@@ -27,7 +27,15 @@
   - [x] 외부 시제품 v0 `builders/exterior.py` → `previews/proto_exterior_v0_*.png` (아직 월드 빌드에는 안 넣음)
   - [x] 성능: 도형 엔진 5배(2단계 평가·관 단순화), 리전 쓰기 8배(문자열 캐시·빈 섹션 재사용·병렬)
   - [x] 스모크 월드에 도형 엔진 견본(받침대 동쪽 작은 탑 + 말린 가지) → 서버 검증 541/541 통과, 테스터 항목 ⑨로 계단 방향 화면 확인 요청
-- 다음: 테스터 결과 반영 → Phase 1 (외부 건물: 시제품 v0를 다듬어 확정)
+- [x] Phase 0 테스트 결과 반영 (2026-10-11): BSL 하늘이 해 질 녘 → 공간별 시계(자정·초승달 위상 138000틱, 멈춤),
+      문에 못 들어감 → 걸어 들어가는 TP, 떠 있는 랜턴 → 품질 검사기로 발견·수정
+- [x] **Phase 1 외부 1차 완성** (사용자 요청 "도서관 탑과 주변 전경 완성 + 입구 TP")
+  - 탑: 숯색·청회색(현무암·심층암·뒤틀린 줄기), 11단, 창, 좁고 긴 빛나는 문, 가늘고 긴 마디 가지 40개 + 갈래 + 소용돌이, 수관, 뿌리
+  - 주변: 분화구(계단식 단 7개 + 도시 + 밝은 옹벽), 나선 구름(반지름 400~760), 고리 구조물, 빛기둥(신호기)
+  - TP: 정문 홈에 걸어 들어가면 로비, 로비 남쪽 문 → 정문 계단 앞. 스폰 = 광장 남쪽 (0.5, 0, 100.5)
+  - 미리보기: `previews/exterior_compare_*.png` (원화와 나란히)
+- [ ] 테스터 확인 대기 (TESTING.md Phase 1 ①~⑩), TESTING ⑦(명령어) 실패 원인 미확인 → 메시지 받기
+- 다음: 테스터 결과로 외부 다듬기 → Phase 2 로비
 
 ## 2. 확인된 사실 (26.3, 포맷 프로브·서버 로그로 검증)
 
@@ -92,7 +100,11 @@ tools/preview.py        위에서 본 모습(높이 음영)·입면·단면 PNG 
 tools/shapes.py         도형 엔진: Box/Sphere/Revolve(회전체)/Tube(관) 부품, Union(|)/Subtract(-)/Displace,
                         carve(dim, 도형, shell, smooth) — 껍질만 블록화 + 계단·반블록 다듬기, 칠하기(paint) 함수
 tools/render3d.py       입체 미리보기: iso_panel(dim, Palette(), 제목, view='se'|'sw'|'nw'|'ne'|'front', lod, box)
-builders/exterior.py    외부 시제품 v0 (design/exterior.md 수치). python build.py proto 로 미리보기 (약 30초)
+builders/exterior.py    외부: 탑(몸통·창·문·가지·뿌리)·광장·계단·종이 물결 + TP/스폰. build(b, city, clouds)
+builders/crater.py      분화구: 단(terraces)·옹벽·단 위 도시·구름(clouds, 열 단위)·고리 구조물·빛기둥(light_beam)
+builders/city.py        빌딩 생성기 (겉껍질, 창, 네온, 안테나) — crater가 단마다 호출
+tools/render_persp.py   원근 미리보기 (사람 눈높이, 원화 비교용). 카메라를 단 안쪽(r 135 이상, 낮은 y)에 두지 말 것
+tools/lint.py           블록 품질 검사 (python build.py check)
 design/exterior.md      외부 원화 분석·제안 수치·재질 후보
 tools/server.py         서버 jar 다운로드, 콘솔 명령 하네스
 tools/ci.py             CI 단계: fetch, refs, reports, colors, probe, world

@@ -64,14 +64,14 @@ def _box(d, rng, x0, z0, w, l, y0, h, wall, lit_ratio, lit_main):
 
 
 def build_city(d, r0: float, r1: float, seed: int = 81, ground_y: int = -40, h_min: int = 60, h_max: int = 120,
-               skip=None) -> dict:
+               skip=None, spacing0: float = 34, size=(12, 30)) -> dict:
     """skip(x, z) -> True 면 그 자리는 비움 (예: 정면 시야 확보)."""
     rng = np.random.default_rng(seed)
     count, blocks = 0, 0
     r = r0
     while r < r1:
         t = (r - r0) / max(1.0, r1 - r0)
-        spacing = 34 + 22 * t                   # 바깥쪽은 듬성듬성
+        spacing = spacing0 + 22 * t             # 바깥쪽은 듬성듬성
         n = max(8, int(2 * math.pi * r / spacing))
         off = rng.uniform(0, 2 * math.pi)
         for i in range(n):
@@ -80,8 +80,8 @@ def build_city(d, r0: float, r1: float, seed: int = 81, ground_y: int = -40, h_m
             cx, cz = rr * math.cos(th), rr * math.sin(th)
             if skip is not None and skip(cx, cz):
                 continue
-            w = int(rng.integers(12, 30))
-            l = int(rng.integers(12, 30))
+            w = int(rng.integers(size[0], size[1]))
+            l = int(rng.integers(size[0], size[1]))
             hmax = h_min + (h_max - h_min) * (0.35 + 0.65 * t)
             h = int(rng.uniform(h_min, hmax) * rng.uniform(0.75, 1.25))
             h = int(np.clip(h, 30, h_max * 1.3))
