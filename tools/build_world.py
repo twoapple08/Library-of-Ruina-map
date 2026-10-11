@@ -193,10 +193,15 @@ def ci_world(argv) -> int:
         tq = {}
         for dim in by_dim:
             tq[dim] = srv.run(f"execute in {dim} run time query time")
-        tq["clock"] = srv.run(f"time of {datapack.CLOCK} query")
+        tq["clock"] = srv.run(f"time of {datapack.CLOCK} query time")
         rep.data["time_query"] = tq
-        want = (str(config.CLOCK_TIME), str(config.CLOCK_TIME % 24000))
-        bad_q = [k for k, o in tq.items() if not any(w in " ".join(o) for w in want)]
+
+        def _ticks(lines):  # "Clock minecraft:overworld is at 138001 tick(s)" → 138001
+            import re
+            m = re.search(r"at (\d+) tick", " ".join(lines))
+            return int(m.group(1)) if m else None
+        # 멈추기 전에 한두 틱 흐를 수 있음 → ±20틱 허용 (하루 24000틱 중 자정 근처면 됨)
+        bad_q = [k for k, o in tq.items() if _ticks(o) is None or abs(_ticks(o) - config.CLOCK_TIME) > 20]
         rep.add(not bad_q, f"차원별 시각 = 자정 {config.CLOCK_TIME} (어긋남: {bad_q})")
         out = srv.run("function ruina:setup")
         rep.data["setup_cmd"] = out
