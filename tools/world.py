@@ -227,25 +227,30 @@ class Dimension:
         sy1 = (self.min_y + self.height - 1) >> 4
         biomes = {"palette": List([self.biome])}
         sections = List(elem_tag=nbt.TAG_COMPOUND)
+        empty = self.__dict__.setdefault("_empty_sec", {})
         for sy in range(sy0, sy1 + 1):
-            sec = {"Y": Byte(sy)}
             s = self.sections.get((cx, sy, cz))
             if s is None or not s.any():
-                sec["block_states"] = {"palette": List([AIR])}
-            else:
-                uniq, inv = np.unique(s.ravel(), return_inverse=True)
-                pal = List()
-                mixed = any("[" in self.palette[u] for u in uniq)
-                for u in uniq:
-                    name, props = parse_state(self.palette[u])
-                    if not props:
-                        pal.append({"": name} if mixed else name)
-                    else:
-                        pal.append({"id": name, "properties": props})
-                bs = {"palette": pal}
-                if len(uniq) > 1:
-                    bs["data"] = pack_indices(inv.astype(np.uint64), block_bits(len(uniq)))
-                sec["block_states"] = bs
+                raw = empty.get(sy)
+                if raw is None:
+                    raw = empty[sy] = nbt.raw_compound(
+                        {"Y": Byte(sy), "block_states": {"palette": List([AIR])}, "biomes": biomes})
+                sections.append(raw)
+                continue
+            sec = {"Y": Byte(sy)}
+            uniq, inv = np.unique(s.ravel(), return_inverse=True)
+            pal = List()
+            mixed = any("[" in self.palette[u] for u in uniq)
+            for u in uniq:
+                name, props = parse_state(self.palette[u])
+                if not props:
+                    pal.append({"": name} if mixed else name)
+                else:
+                    pal.append({"id": name, "properties": props})
+            bs = {"palette": pal}
+            if len(uniq) > 1:
+                bs["data"] = pack_indices(inv.astype(np.uint64), block_bits(len(uniq)))
+            sec["block_states"] = bs
             sec["biomes"] = biomes
             sections.append(sec)
         bes = List(elem_tag=nbt.TAG_COMPOUND)
@@ -272,18 +277,37 @@ class Dimension:
             "structures": {"References": {}, "starts": {}},
         }
 
-    def write_regions(self, region_dir: str, data_version: int) -> int:
-        """청크를 리전 파일로 쓴다. 반환: 쓴 청크 수."""
+    def _write_region(self, args):
+        region_dir, data_version, rx, rz, keys = args
+        chunks = {k: nbt.dumps(self.chunk_nbt(k[0], k[1], data_version)) for k in keys}
+        region.write_region(os.path.join(region_dir, region.region_name(rx, rz)), chunks)
+        return len(chunks)
+
+    def write_regions(self, region_dir: str, data_version: int, workers: int | None = None) -> int:
+        """청크를 리전 파일로 쓴다 (리전마다 병렬). 반환: 쓴 청크 수."""
         os.makedirs(region_dir, exist_ok=True)
         by_region = defaultdict(list)
         for cx, cz in self.chunk_keys():
             by_region[(cx >> 5, cz >> 5)].append((cx, cz))
-        n = 0
-        for (rx, rz), keys in sorted(by_region.items()):
-            chunks = {k: nbt.dumps(self.chunk_nbt(k[0], k[1], data_version)) for k in keys}
-            region.write_region(os.path.join(region_dir, region.region_name(rx, rz)), chunks)
-            n += len(chunks)
+        jobs = [(region_dir, data_version, rx, rz, keys) for (rx, rz), keys in sorted(by_region.items())]
+        workers = workers or min(len(jobs), os.cpu_count() or 1)
+        if workers <= 1 or len(jobs) <= 1:
+            return sum(self._write_region(j) for j in jobs)
+        import multiprocessing as mp
+        ctx = mp.get_context("fork")  # 자식은 이 객체를 복사 없이 공유 (copy-on-write)
+        global _WRITER
+        _WRITER = self
+        with ctx.Pool(workers) as pool:
+            n = sum(pool.imap_unordered(_write_job, jobs))
+        _WRITER = None
         return n
+
+
+_WRITER = None
+
+
+def _write_job(args):
+    return _WRITER._write_region(args)
 
 
 # ------------------------------------------------------------------ 읽기 (검증용)

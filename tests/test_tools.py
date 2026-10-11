@@ -120,6 +120,27 @@ class WorldTest(unittest.TestCase):
             got = world.chunk_block(c, x, y, z) if c else world.AIR
             self.assertEqual(got, dim.get(x, y, z), (x, y, z))
 
+    def test_cached_empty_sections_same_bytes(self):
+        """빈 섹션을 미리 직렬화해 재사용해도 결과 바이트가 일반 경로와 같아야 함."""
+        dim = world.Dimension("ruina:test", -64, 640, "ruina:test")
+        dim.fill(0, 0, 0, 20, 3, 20, "minecraft:oak_stairs[facing=east]")
+        dim.set(5, 100, 5, "minecraft:glowstone")
+        for cx, cz in dim.chunk_keys():
+            raw = nbt.dumps(dim.chunk_nbt(cx, cz, 5023))
+            again = nbt.dumps(nbt.loads(raw))
+            self.assertEqual(raw, again)
+
+    def test_parallel_write_matches_serial(self):
+        dim = world.Dimension("ruina:test", -64, 640, "ruina:test")
+        dim.fill(-600, 0, -600, 600, 0, 600, "minecraft:stone")
+        with tempfile.TemporaryDirectory() as a, tempfile.TemporaryDirectory() as b:
+            n1 = dim.write_regions(a, 5023, workers=1)
+            n2 = dim.write_regions(b, 5023, workers=3)
+            self.assertEqual(n1, n2)
+            for f in os.listdir(a):
+                with open(os.path.join(a, f), "rb") as fa, open(os.path.join(b, f), "rb") as fb:
+                    self.assertEqual(fa.read(), fb.read(), f)
+
     def test_registry_check(self):
         with tempfile.TemporaryDirectory() as d:
             p = os.path.join(d, "b.json")

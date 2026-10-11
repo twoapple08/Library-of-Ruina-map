@@ -11,6 +11,7 @@
 """
 from __future__ import annotations
 
+import functools
 import gzip
 import io
 import struct
@@ -47,6 +48,11 @@ class Double(float):
     tag = TAG_DOUBLE
 
 
+class RawCompound(bytes):
+    """미리 직렬화한 Compound 내용(이름 없음, 끝 TAG_END 포함). 같은 내용을 많이 쓸 때 속도용."""
+    tag = 10
+
+
 class List(list):
     """원소 타입을 기억하는 리스트 (빈 리스트의 타입 보존용)."""
 
@@ -58,6 +64,8 @@ class List(list):
 # ---------------------------------------------------------------- 문자열 (Modified UTF-8)
 
 def _mutf8_encode(s: str) -> bytes:
+    if s.isascii() and "\x00" not in s:
+        return s.encode("ascii")
     if all(0 < ord(c) < 0x10000 for c in s):
         return s.encode("utf-8")
     # NUL·BMP 밖 문자가 있으면 UTF-16 코드 유닛 단위로 하나씩 인코딩
@@ -121,10 +129,14 @@ _S_B, _S_H, _S_I, _S_Q = struct.Struct(">b"), struct.Struct(">h"), struct.Struct
 _S_F, _S_D, _S_US = struct.Struct(">f"), struct.Struct(">d"), struct.Struct(">H")
 
 
-def _w_str(out: list, s: str):
+@functools.lru_cache(maxsize=1 << 16)
+def _str_bytes(s: str) -> bytes:
     b = _mutf8_encode(s)
-    out.append(_S_US.pack(len(b)))
-    out.append(b)
+    return _S_US.pack(len(b)) + b
+
+
+def _w_str(out: list, s: str):
+    out.append(_str_bytes(s))
 
 
 def _w_payload(out: list, t: int, v):
@@ -143,6 +155,9 @@ def _w_payload(out: list, t: int, v):
     elif t == TAG_STRING:
         _w_str(out, v)
     elif t == TAG_COMPOUND:
+        if isinstance(v, RawCompound):
+            out.append(v)
+            return
         for k, sub in v.items():
             st = tag_of(sub)
             out.append(bytes((st,)))
@@ -176,6 +191,12 @@ def _w_payload(out: list, t: int, v):
         out.append(a.tobytes())
     else:
         raise ValueError(f"알 수 없는 태그 {t}")
+
+
+def raw_compound(d: dict) -> RawCompound:
+    out: list = []
+    _w_payload(out, TAG_COMPOUND, d)
+    return RawCompound(b"".join(out))
 
 
 def dumps(root: dict, name: str = "") -> bytes:
