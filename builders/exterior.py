@@ -24,6 +24,7 @@ R_BOTTOM = 36 * K
 R_TOP = 27 * K
 GATE_W, GATE_H, GATE_FLOOR = 15, 24, 6   # 정문 (K와 무관하게 사람 기준)
 PLAZA_R = 110 * K
+CITY_R0, CITY_R1 = 300 * K, 750 * K   # 도시 실루엣 반지름 (렌더 거리 문제로 조정 가능)
 
 WOOD = ("minecraft:dark_oak_stairs", "minecraft:dark_oak_slab")
 SOUTH = math.pi / 2  # atan2(z, x): +Z 방향
@@ -368,4 +369,6 @@ def build(b):
     stairs(d)
     st = S.carve(d, S.Union(*tower_parts(), *paper_parts()), shell=1, smooth=True)
     scatter_pages(d)
+    from builders.city import build_city
+    build_city(d, CITY_R0, CITY_R1)
     return st

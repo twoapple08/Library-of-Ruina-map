@@ -57,7 +57,14 @@ def render_proto(out_dir):
     for view, name, title in (("se", "proto_exterior_v0_se.png", "외부 시제품 v0 — 남동쪽에서"),
                               ("front", "proto_exterior_v0_front.png", "외부 시제품 v0 — 정면(남쪽)")):
         p = os.path.join(out_dir, name)
-        iso_panel(d, pal, title, notes, view=view, target=1500).save(p, optimize=True)
+        iso_panel(d, pal, title, notes, view=view, target=1500, box=(-240, -8, -240, 240, 460, 240)).save(p, optimize=True)
+        files.append(p)
+    for view, name, title, lod, box in (
+            ("se", "proto_exterior_city_se.png", "외부 전체 — 탑 + 도시 실루엣 (남동쪽 위)", 4, None),
+            ("front", "proto_exterior_city_front.png", "외부 전체 — 정면 (앞쪽 도시는 잘라냄)", 2, (-760, -64, -760, 760, 600, 200))):
+        p = os.path.join(out_dir, name)
+        iso_panel(d, pal, title, ["도시: 반지름 300~750, 빌딩 약 900채 (겉껍질만)"], view=view, lod=lod, box=box,
+                  target=1500).save(p, optimize=True)
         files.append(p)
     p = os.path.join(out_dir, "proto_exterior_v0_paper.png")
     iso_panel(d, pal, "외부 시제품 — 정문과 황금 종이 물결 확대", notes, view="se",

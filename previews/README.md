@@ -22,3 +22,5 @@
 | ![](proto_exterior_v0_se.png) | 남동쪽 위에서 본 입체도 |
 | ![](proto_exterior_v0_front.png) | 정면(남쪽) — 빛나는 정문과 계단 |
 | ![](proto_exterior_v0_paper.png) | 정문 앞 확대 — 황금 종이 물결 두 줄기 |
+| ![](proto_exterior_city_front.png) | 전체 정면 — 도시 실루엣 속의 탑 (앞쪽 도시는 잘라냄) |
+| ![](proto_exterior_city_se.png) | 전체 — 탑을 둘러싼 도시 고리 |
