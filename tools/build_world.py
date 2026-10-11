@@ -68,6 +68,7 @@ def ci_world(argv) -> int:
     sys.path.insert(0, ROOT)
     from builders import build_all
     from tools import datapack
+    import config
 
     shutil.rmtree(OUT, ignore_errors=True)
     os.makedirs(OUT, exist_ok=True)
@@ -187,7 +188,16 @@ def ci_world(argv) -> int:
             tout[c] = srv.run(c)
         rep.data["time_cmds"] = tout
         bad_t = [c for c, o in tout.items() if any(k in " ".join(o) for k in ("Unknown", "Incorrect", "Can't", "Invalid", "<--[HERE]"))]
-        rep.add(not bad_t, f"공간별 시계 고정 ({len(tout) - len(bad_t)}/{len(tout)} 명령 성공)")
+        rep.add(not bad_t, f"시계 고정 ({len(tout) - len(bad_t)}/{len(tout)} 명령 성공)")
+        # 각 차원에서 본 시각 (쉐이더가 읽는 값): 모두 자정이어야 함
+        tq = {}
+        for dim in by_dim:
+            tq[dim] = srv.run(f"execute in {dim} run time query time")
+        tq["clock"] = srv.run(f"time of {datapack.CLOCK} query")
+        rep.data["time_query"] = tq
+        want = (str(config.CLOCK_TIME), str(config.CLOCK_TIME % 24000))
+        bad_q = [k for k, o in tq.items() if not any(w in " ".join(o) for w in want)]
+        rep.add(not bad_q, f"차원별 시각 = 자정 {config.CLOCK_TIME} (어긋남: {bad_q})")
         out = srv.run("function ruina:setup")
         rep.data["setup_cmd"] = out
         for dim in by_dim:

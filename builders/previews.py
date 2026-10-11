@@ -12,15 +12,11 @@ from tools.render_persp import render_persp
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def _beacon(d):
-    for y in range(d.min_y + d.height - 1, d.min_y, -1):
-        if d.get(0, y, 0) == "minecraft:beacon":
-            return [(0, y, 0)]
-    return []
-
-
-def _compare(ref_name, ours, title, notes):
-    ref = Image.open(os.path.join(ROOT, "reference", ref_name)).convert("RGB").resize(ours.size)
+def _compare(ref_name, ours, title, notes, crop=None):
+    ref = Image.open(os.path.join(ROOT, "reference", ref_name)).convert("RGB")
+    if crop:
+        ref = ref.crop(crop)
+    ref = ref.resize(ours.size)
     both = Image.new("RGB", (ours.width, ours.height * 2))
     both.paste(ref, (0, 0))
     both.paste(ours, (0, ours.height))
@@ -29,7 +25,6 @@ def _compare(ref_name, ours, title, notes):
 
 def render_exterior(b, out_dir, pal):
     d = b.dims["exterior"]
-    beams = _beacon(d)
     files = []
 
     def save(img, name):
@@ -37,17 +32,22 @@ def render_exterior(b, out_dir, pal):
         img.save(p, optimize=True)
         files.append(p)
 
-    ground = render_persp(d, pal, cam=(0, 4, 100), look=(0, 40, 0), fov=95, W=1000, H=562, beams=beams)
+    ground = render_persp(d, pal, cam=(0, 4, 100), look=(0, 40, 0), fov=95, W=1000, H=562)
     save(_compare("도서관 외견.png", ground, "외부 — 원화(위) / 맵(아래): 스폰에서 본 정문과 탑",
                   ["맵 그림은 블록 데이터로 그린 근사 (실제 게임은 텍스처·쉐이더로 더 자세함)"]),
          "exterior_compare_gate.png")
-    up = render_persp(d, pal, cam=(18, 2, 92), look=(0, 230, 0), fov=100, W=1000, H=562, beams=beams)
-    save(_frame(up, "외부 — 탑 올려다보기", ["가지 끝 소용돌이, 꼭대기 빛기둥(신호기)"]), "exterior_look_up.png")
-    aerial = render_persp(d, pal, cam=(0, 1050, 900), look=(0, 0, -40), fov=62, W=1000, H=562, fog_dist=2200,
-                          max_dist=2600, beams=beams)
+    up = render_persp(d, pal, cam=(18, 2, 92), look=(0, 230, 0), fov=100, W=1000, H=562)
+    save(_frame(up, "외부 — 탑 올려다보기", ["가지 끝 소용돌이, 꼭대기에서 넓게 퍼지는 수관, 빛기둥 건축물"]), "exterior_look_up.png")
+    aerial = render_persp(d, pal, cam=(0, 800, 1280), look=(0, 60, 0), fov=62, W=1000, H=562, fog_dist=2200,
+                          max_dist=2600)
     save(_compare("도서관 위치 전경.png", aerial, "외부 — 원화(위) / 맵(아래): 위에서 본 분화구",
-                  ["계단식 동심원 단 7개 + 단 위 빌딩, 바깥 나선 구름, 고리 구조물, 빛기둥"]),
+                  ["원화와 비슷한 각도(약 32°)에서 봄. 계단식 단 7개(그릇 모양) + 빌딩, 나선 구름(가장자리 스테인드글라스), 고리 구조물, 빛기둥 건축물, 종이 물결 7줄기"]),
          "exterior_compare_aerial.png")
+    tower = render_persp(d, pal, cam=(0, 560, 780), look=(0, 210, 0), fov=52, W=1000, H=562, max_dist=2000)
+    save(_compare("도서관 위치 전경.png", tower, "외부 — 원화(위, 탑 부분 확대) / 맵(아래): 탑과 수관",
+                  ["아래가 굵고 위로 좁아지는 몸통, 꼭대기에서 꽃병처럼 퍼지는 수관, 빛기둥 건축물",
+                   "탑 높이 285 + 수관 ≈ 120, 바깥 단 214 + 빌딩"], crop=(205, 140, 605, 365)),
+         "exterior_compare_tower.png")
     save(iso_panel(d, pal, "외부 전체 입체도", ["분화구 지름 약 1520칸"], view="se", lod=4, target=1400),
          "exterior_iso.png")
     save(render_top(d, pal, (-760, -760, 760, 760), "외부 — 위에서 본 평면", ["초록 = 도착 지점, 주황 = TP"],

@@ -16,6 +16,7 @@ import config
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REF = os.path.join(ROOT, "ref")
 NS = config.NAMESPACE
+CLOCK = "minecraft:overworld"   # 모든 공간이 쓰는 시계
 
 
 @dataclass
@@ -110,7 +111,9 @@ def dimension_type(space: config.Space) -> dict:
     if base is None:
         raise FileNotFoundError("ref/vanilla/dimension_type/overworld.json 없음 (python -m tools.ci refs)")
     d = json.loads(json.dumps(base))
-    d["default_clock"] = space.dim  # 공간마다 자기 시계 (ruina:<id>), 빌드 때 시각 고정
+    # 기본(오버월드) 시계를 같이 씀: 쉐이더(BSL/Iris)는 기본 시계 시각으로 하늘을 그리는 듯 (Phase 1 테스트 ③ 노을)
+    # → 오버월드 시계를 자정에 멈춰 둠 (time_commands). 하늘 색 자체는 attributes 고정값
+    d["default_clock"] = CLOCK
     d.pop("timelines", None)
     attrs = dict(d.get("attributes", {}))
     attrs.pop("minecraft:audio/ambient_sounds", None)  # 어두운 곳의 동굴 소리 끔
@@ -217,12 +220,8 @@ def functions(links: Links) -> dict:
 
 
 def time_commands() -> list[str]:
-    """공간별 시계를 정해진 시각에 멈춤."""
-    out = []
-    for s in config.SPACES:
-        out.append(f"time of {s.dim} set {s.clock_time}")
-        out.append(f"time of {s.dim} pause")
-    return out
+    """기본(오버월드) 시계를 자정에 멈춤 (모든 공간 공통)."""
+    return [f"time of {CLOCK} set {config.CLOCK_TIME}", f"time of {CLOCK} pause"]
 
 
 # ------------------------------------------------------------------ 출력
@@ -249,7 +248,6 @@ def write(out_dir: str, links: Links):
         "max_format": fmt,
     }})
     for s in config.SPACES:
-        put(f"data/{NS}/world_clock/{s.id}.json", {})
         put(f"data/{NS}/dimension_type/{s.id}.json", dimension_type(s))
         put(f"data/{NS}/dimension/{s.id}.json", dimension(s))
         put(f"data/{NS}/worldgen/biome/{s.id}.json", biome(s))

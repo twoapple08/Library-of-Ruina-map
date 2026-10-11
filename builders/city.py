@@ -1,8 +1,9 @@
 """외부 배경 도시 실루엣 (design/exterior.md 2절 '광장·배경').
 
 - 탑을 둘러싼 고리(반지름 r0~r1)에 고층 빌딩을 겉껍질만 세운다 (속 비움, 지붕 한 겹)
-- 창: 층마다(4칸) 창 줄, 일부만 불 켜짐(발광 블록), 꺼진 창은 검은 콘크리트(불투명 → 받침 불필요)
-- 네온: 일부 빌딩 지붕 테두리·모서리에 분홍/청록 발광 띠, 옥상 안테나
+- 창: 빌딩마다 정한 격자(창 폭·간격·층 높이)를 네 면에 똑같이, 불 켜짐은 층 단위로 뭉침.
+  꺼진 창은 검은 콘크리트(불투명 → 받침 불필요). 모서리·옥상 난간은 테 재질
+- 네온: 일부 빌딩 모서리 세로 띠, 옥상 안테나 (지붕 테두리 발광은 없앰 — Phase 1 테스트 ⑩)
 - 바깥으로 갈수록 듬성듬성 + 높게 (원화처럼 뒤쪽이 더 높아 보이게)
 블록을 직접 채운다 (도형 엔진보다 훨씬 빠름).
 """
@@ -12,10 +13,13 @@ import math
 
 import numpy as np
 
-WALLS = ["minecraft:black_concrete", "minecraft:gray_concrete", "minecraft:polished_deepslate",
-         "minecraft:cyan_terracotta", "minecraft:blue_terracotta", "minecraft:purple_terracotta",
-         "minecraft:polished_blackstone"]
-WALL_W = [14, 6, 8, 20, 16, 18, 6]
+WALLS = ["minecraft:gray_concrete", "minecraft:polished_deepslate", "minecraft:cyan_terracotta",
+         "minecraft:blue_terracotta", "minecraft:purple_terracotta", "minecraft:polished_blackstone",
+         "minecraft:light_blue_terracotta", "minecraft:magenta_terracotta"]
+WALL_W = [8, 10, 18, 18, 18, 8, 6, 6]
+# 모서리·옥상 난간 (벽과 다른 재질로 테를 둘러 건물 윤곽을 또렷하게)
+TRIM = ["minecraft:polished_blackstone_bricks", "minecraft:deepslate_tiles", "minecraft:smooth_stone",
+        "minecraft:polished_andesite"]
 LIT = ["minecraft:ochre_froglight", "minecraft:sea_lantern", "minecraft:pearlescent_froglight",
        "minecraft:verdant_froglight", "minecraft:glowstone"]
 LIT_W = [36, 30, 16, 10, 8]
@@ -28,38 +32,55 @@ def _pick(rng, items, weights):
     return items[rng.choice(len(items), p=w / w.sum())]
 
 
-def _facade(rng, width, height, wall_id, lit_ids, dark_id, lit_ratio, floor_h=4):
-    """한 면의 [가로, 높이] 팔레트 번호 배열."""
-    a = np.full((width, height), wall_id, dtype=np.int32)
-    win_w = int(rng.integers(1, 3))
-    gap = int(rng.integers(1, 3))
-    period = win_w + gap
-    for y0 in range(2, height - 2, floor_h):
-        rows = slice(y0, min(height - 1, y0 + 2))
-        for x0 in range(1, width - 1, period):
-            cols = slice(x0, min(width - 1, x0 + win_w))
-            if rng.random() < lit_ratio:
-                a[cols, rows] = lit_ids[int(rng.integers(len(lit_ids)))] if rng.random() < 0.15 else lit_ids[0]
-            else:
-                a[cols, rows] = dark_id
+class Style:
+    """빌딩 하나의 창 규칙 (네 면 모두 같은 격자 → 가지런함)."""
+
+    def __init__(self, rng, d, wall, trim, lit_main, lit_ratio):
+        self.wall, self.trim = d.id(wall), d.id(trim)
+        self.lit = d.id(lit_main)
+        self.dark = d.id(DARK_WINDOW)
+        self.win_w = int(rng.choice([1, 2, 2, 3]))
+        self.gap = int(rng.choice([1, 1, 2]))
+        self.floor_h = int(rng.choice([3, 4, 4]))
+        self.win_h = 2 if self.floor_h == 4 else 1 + int(rng.random() < 0.5)
+        self.lit_ratio = lit_ratio
+        self.seed = int(rng.integers(1 << 30))
+
+
+def _facade(st: Style, width, height, face: int):
+    """한 면의 [가로, 높이] 팔레트 번호 배열. 양 끝 1칸은 모서리 테, 층마다 같은 자리에 창.
+    불 켜짐은 층 단위로 뭉쳐서 (층 전체가 켜지거나 그 층의 일부 구간만) — 무작위 점무늬 대신."""
+    rng = np.random.default_rng(st.seed + face)
+    a = np.full((width, height), st.wall, dtype=np.int32)
+    a[0, :] = st.trim
+    a[width - 1, :] = st.trim
+    period = st.win_w + st.gap
+    inner = width - 2
+    n = max(1, (inner - st.gap) // period)
+    pad = (inner - (n * period - st.gap)) // 2 + 1   # 가운데 맞춤
+    for k, y0 in enumerate(range(2, height - 2, st.floor_h)):
+        floor_on = rng.random() < st.lit_ratio * 1.6
+        run0, run1 = sorted(rng.integers(0, n + 1, 2))
+        for i in range(n):
+            x0 = pad + i * period
+            on = floor_on and (run0 <= i <= run1 or rng.random() < 0.25)
+            a[x0:x0 + st.win_w, y0:y0 + st.win_h] = st.lit if on else st.dark
     return a
 
 
-def _box(d, rng, x0, z0, w, l, y0, h, wall, lit_ratio, lit_main):
-    """속 빈 직육면체 빌딩 하나: 네 벽(창 무늬) + 지붕."""
+def _box(d, rng, st: Style, x0, z0, w, l, y0, h):
+    """속 빈 직육면체 빌딩 하나: 네 벽(창 격자) + 지붕 + 옥상 난간."""
     x1, z1, y1 = x0 + w - 1, z0 + l - 1, y0 + h - 1
-    wid = d.id(wall)
-    lit_ids = [d.id(lit_main)] + [d.id(s) for s in LIT]
-    dark = d.id(DARK_WINDOW)
-    # 남·북 벽 (x 방향 가로)
-    for z in (z0, z1):
-        f = _facade(rng, w, h, wid, lit_ids, dark, lit_ratio)
-        d.place(x0, y0, z, f[:, :, None])
-    # 동·서 벽 (z 방향 가로)
-    for x in (x0, x1):
-        f = _facade(rng, l, h, wid, lit_ids, dark, lit_ratio)
-        d.place(x, y0, z0, f[None, :, :])
-    d.fill(x0, y1, z0, x1, y1, z1, wall)  # 지붕
+    for k, z in enumerate((z0, z1)):
+        d.place(x0, y0, z, _facade(st, w, h, k)[:, :, None])
+    for k, x in enumerate((x0, x1)):
+        d.place(x, y0, z0, _facade(st, l, h, k + 2)[None, :, :])
+    roof = np.full((w, 1, l), st.wall, np.int32)
+    d.place(x0, y1, z0, roof)
+    rim = np.full((w, 1, l), -1, np.int32)
+    rim[[0, -1], 0, :] = st.trim
+    rim[:, 0, [0, -1]] = st.trim
+    d.place(x0, y1 + 1, z0, rim)
     return x1, y1, z1
 
 
@@ -86,8 +107,7 @@ def build_city(d, r0: float, r1: float, seed: int = 81, ground_y: int = -40, h_m
             h = int(rng.uniform(h_min, hmax) * rng.uniform(0.75, 1.25))
             h = int(np.clip(h, 30, h_max * 1.3))
             wall = _pick(rng, WALLS, WALL_W)
-            lit_main = _pick(rng, LIT, LIT_W)
-            lit_ratio = rng.uniform(0.05, 0.28)
+            st = Style(rng, d, wall, _pick(rng, TRIM, [3, 3, 2, 2]), _pick(rng, LIT, LIT_W), rng.uniform(0.12, 0.4))
             x0, z0 = int(cx - w / 2), int(cz - l / 2)
             y0 = ground_y
             height_total = h - ground_y if ground_y < 0 else h
@@ -97,7 +117,7 @@ def build_city(d, r0: float, r1: float, seed: int = 81, ground_y: int = -40, h_m
             bx, bz, bw, bl, by = x0, z0, w, l, y0
             for k in range(tiers):
                 th_h = remaining if k == tiers - 1 else int(remaining * rng.uniform(0.45, 0.7))
-                _, ytop, _ = _box(d, rng, bx, bz, bw, bl, by, th_h, wall, lit_ratio, lit_main)
+                _, ytop, _ = _box(d, rng, st, bx, bz, bw, bl, by, th_h)
                 blocks += 2 * (bw + bl) * th_h + bw * bl
                 remaining -= th_h
                 if k < tiers - 1:
@@ -105,15 +125,8 @@ def build_city(d, r0: float, r1: float, seed: int = 81, ground_y: int = -40, h_m
                     bx, bz, bw, bl, by = bx + shrink, bz + shrink, bw - 2 * shrink, bl - 2 * shrink, ytop + 1
                     if bw < 6 or bl < 6:
                         break
-            # 네온: 지붕 테두리 / 모서리 세로 띠
-            if rng.random() < 0.3:
-                neon = _pick(rng, NEON, [5, 4, 2])
-                yt = ytop + 1
-                d.fill(bx, yt, bz, bx + bw - 1, yt, bz, neon)
-                d.fill(bx, yt, bz + bl - 1, bx + bw - 1, yt, bz + bl - 1, neon)
-                d.fill(bx, yt, bz, bx, yt, bz + bl - 1, neon)
-                d.fill(bx + bw - 1, yt, bz, bx + bw - 1, yt, bz + bl - 1, neon)
-            if rng.random() < 0.25:
+            # 네온: 모서리 세로 띠만 (지붕 테두리 발광은 '천장이 빛남'으로 보여서 뺌)
+            if rng.random() < 0.15:
                 neon = _pick(rng, NEON, [5, 4, 2])
                 d.fill(x0, y0 + 2, z0, x0, y0 + int(height_total * rng.uniform(0.5, 0.95)), z0, neon)
             # 안테나

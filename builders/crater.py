@@ -20,9 +20,11 @@ from .city import build_city
 
 K = config.EXTERIOR_SCALE / 3.0
 
-# 단 경계 반지름과 각 단 윗면 높이 (안 → 밖)
+# 단 경계 반지름과 각 단 윗면 높이 (안 → 밖). 높이는 바깥으로 갈수록 가파른 그릇 모양,
+# 맨 바깥 단 + 빌딩이 탑 몸통 꼭대기(285)쯤 오게
+# (Phase 1 테스트: 탑 혼자 기둥처럼 높음 → 탑은 330→285로 낮추고 바깥 단은 194→214로 높임)
 RINGS = [135, 190, 255, 330, 415, 510, 620, 760]
-TOPS = [14, 34, 58, 86, 118, 154, 194]
+TOPS = [12, 30, 56, 88, 124, 166, 214]
 FLOOR_Y = -1  # 광장·분화구 바닥 윗면
 
 PAVE = ["minecraft:gray_concrete", "minecraft:polished_deepslate", "minecraft:deepslate_tiles",
@@ -97,12 +99,12 @@ def retaining_wall(d, r, y0, y1, rng):
         wid = wall_ids[int(srng.integers(len(wall_ids)))]
         col = np.full(H + 1, wid, dtype=np.int32)
         ratio = srng.uniform(0.25, 0.6)
-        if (j % 3) != 0:  # 창 기둥
-            for yy in range(3, H - 1, 4):
-                if rng.random() < ratio:
-                    col[yy:yy + 2] = lit[int(srng.integers(len(lit)))] if srng.random() < 0.3 else lit[0]
-                else:
-                    col[yy:yy + 2] = dark
+        if (j % 3) != 0:  # 창 기둥 — 불 켜짐은 (구간, 층) 단위로 뭉쳐 가지런하게
+            lit_id = lit[int(srng.integers(len(lit)))] if srng.random() < 0.3 else lit[0]
+            ys = np.arange(3, H - 1, 4)
+            on = S.hash01(np.full(ys.shape, int(r)), np.full(ys.shape, seg), ys, seed=97) < ratio
+            for yy, o in zip(ys, on):
+                col[yy:yy + 2] = lit_id if o else dark
         d.place(x, y0, z, col[None, :, None])
 
 
@@ -121,11 +123,12 @@ def terrace_city(d, seed=101):
 
 CLOUD_IN = (["minecraft:white_wool", "minecraft:snow_block", "minecraft:calcite", "minecraft:white_concrete"],
             [40, 25, 20, 15])
+CLOUD_GLASS_T = 4.0   # 구름 반두께가 이보다 얇은 곳(가장자리)은 스테인드글라스
 CLOUD_OUT = (["minecraft:light_gray_wool", "minecraft:white_wool", "minecraft:gray_wool", "minecraft:tuff"],
              [40, 30, 18, 12])
 
 
-def clouds(d, y0=250.0, r_hole=400.0, r_out=760.0, arms=3, twist=1.9, thick=12.0, seed=111, tile=192):
+def clouds(d, y0=318.0, r_hole=400.0, r_out=760.0, arms=3, twist=1.9, thick=12.0, seed=111, tile=192):
     """나선 소용돌이 구름층 (열 단위로 직접 채움 — 빠름).
 
     - 가운데(반지름 r_hole 안)는 맑게: 땅에서 보면 머리 위는 맑고 지평선 쪽에 구름 고리 (외견 원화)
@@ -133,6 +136,7 @@ def clouds(d, y0=250.0, r_hole=400.0, r_out=760.0, arms=3, twist=1.9, thick=12.0
     - 겉면만 블록: 각 열의 윗면·아랫면 + 이웃 열보다 튀어나온 옆면
     """
     y0, r_hole, r_out, thick = y0 * K, r_hole * K, r_out * K, thick * K
+    glass_in, glass_out = d.id("minecraft:white_stained_glass"), d.id("minecraft:light_gray_stained_glass")
     rng_ids_in = [d.id(x) for x in CLOUD_IN[0]]
     rng_ids_out = [d.id(x) for x in CLOUD_OUT[0]]
     w_in = np.cumsum(CLOUD_IN[1]) / np.sum(CLOUD_IN[1])
@@ -181,6 +185,9 @@ def clouds(d, y0=250.0, r_hole=400.0, r_out=760.0, arms=3, twist=1.9, thick=12.0
             ids_in = np.array(rng_ids_in)[np.searchsorted(w_in, h).clip(0, len(rng_ids_in) - 1)]
             ids_out = np.array(rng_ids_out)[np.searchsorted(w_out, h).clip(0, len(rng_ids_out) - 1)]
             ids = np.where(outer, ids_out, ids_in)
+            # 얇은 가장자리는 스테인드글라스 → 반투명하게 흩어지는 느낌 (테스터 의견, 속은 양털 그대로)
+            thin = (half[1:-1, 1:-1] < CLOUD_GLASS_T * K)[..., None]
+            ids = np.where(thin, np.where(outer, glass_out, glass_in), ids)
             ids = np.where(exposed, ids, -1).astype(np.int32)
             d.place(x0, ylo, z0, ids.transpose(0, 2, 1), only_air=True)  # [x,z,y] → [x,y,z]
             total += int(exposed.sum())
@@ -223,19 +230,70 @@ def ring_landmark(seed=121):
     return parts
 
 
-# ---------------------------------------------------------------- 빛기둥
+# ---------------------------------------------------------------- 빛기둥 (건축물)
 
-def light_beam(d, top_y_guess: int):
-    """탑 꼭대기 가운데: 금 블록 3×3 + 신호기 + 노란 유리 → 하늘로 솟는 금빛 빛기둥."""
-    y = top_y_guess + 12
-    while y > top_y_guess - 30 and d.get(0, y, 0) == "minecraft:air":
-        y -= 1
-    d.fill(-1, y, -1, 1, y, 1, "minecraft:gold_block")
-    d.set(0, y + 1, 0, "minecraft:beacon")
-    d.block_entity(0, y + 1, 0, {"id": "minecraft:beacon"})
-    d.set(0, y + 2, 0, "minecraft:yellow_stained_glass")
-    # 위로 막힌 블록 제거 (빛이 통과해야 함)
-    for yy in range(y + 3, d.min_y + d.height):
-        if d.get(0, yy, 0) != "minecraft:air":
-            d.set(0, yy, 0, "minecraft:air")
-    return y + 1
+SPIRE_CORE = (["minecraft:ochre_froglight", "minecraft:glowstone", "minecraft:pearlescent_froglight",
+               "minecraft:sea_lantern"], [50, 25, 15, 10])
+
+
+def light_spire(d, top_y: int, y_end: int | None = None, seed=131):
+    """탑 꼭대기에서 하늘 끝까지 솟는 빛기둥 건축물 (신호기 대신, 테스터 의견).
+
+    - 받침: 꼭대기 테두리에서 가운데 기둥으로 모이는 검은 갈비살 8개 + 금빛 고리 (등불 갓 모양)
+    - 기둥: 발광 블록 심(겉 한 겹만) + 노란 스테인드글라스 겹 + 흰 스테인드글라스 겹 (사이는 빈칸 → 빛이 번져 보임)
+    - 위로 갈수록 가늘어짐 (흰 유리 반지름 15 → 6), 24칸마다 금빛 테 (마디)
+    반환: 기둥 꼭대기 y
+    """
+    rng = np.random.default_rng(seed)
+    y_end = (d.min_y + d.height - 1) if y_end is None else y_end
+    y0 = top_y - 2
+    core_ids = np.array([d.id(x) for x in SPIRE_CORE[0]])
+    cw = np.cumsum(SPIRE_CORE[1]) / np.sum(SPIRE_CORE[1])
+    yel, white = d.id("minecraft:yellow_stained_glass"), d.id("minecraft:white_stained_glass")
+    band = d.id("minecraft:gold_block")
+    # 원화의 빛기둥은 탑 몸통만큼 굵음 → 흰 유리 겹 반지름 15 → 6
+    R = 17
+    xs = np.arange(-R, R + 1)
+    X, Z = np.meshgrid(xs, xs, indexing="ij")
+    rr = np.hypot(X, Z)
+    for y in range(y0, y_end + 1):
+        t = (y - y0) / max(1, y_end - y0)
+        rc = 5.5 - 3.5 * t ** 0.6          # 심 반지름 5.5 → 2
+        ry = rc + 3.0 - 1.0 * t             # 노란 유리
+        rw = rc + 9.5 - 5.5 * t ** 0.8      # 흰 유리 (아래는 넓게)
+        layer = np.full(X.shape, -1, np.int32)
+        h = S.hash01(X, np.full_like(X, y), Z, seed=seed)
+        core = rr <= rc
+        core_skin = core & (rr > rc - 1.3)
+        layer[core_skin] = core_ids[np.searchsorted(cw, h[core_skin]).clip(0, len(core_ids) - 1)]
+        layer[(rr > ry - 0.8) & (rr <= ry)] = yel
+        layer[(rr > rw - 0.8) & (rr <= rw)] = white
+        if (y - y0) % 24 == 0 and y > y0:  # 금빛 테
+            layer[(rr > rw - 0.8) & (rr <= rw + 0.7)] = band
+        if y == y0:
+            layer[rr <= rw] = band
+        d.place(-R, y, -R, layer[:, None, :])
+    # 받침 갈비살: 몸통 꼭대기 테두리 → 기둥 (y0 + 40)
+    from builders.exterior import STONE, body_radius
+    rim = float(body_radius(top_y)) - 1.5
+    parts = []
+    mat = S.mix(["minecraft:polished_blackstone", "minecraft:polished_blackstone_bricks", "minecraft:gilded_blackstone"],
+                [6, 3, 1], seed=seed)
+    for k in range(8):
+        a = k * math.pi / 4 + 0.2
+        o = np.array([math.cos(a), 0, math.sin(a)])
+        p0 = o * rim + np.array([0, top_y - 6.0, 0])
+        p3 = o * 16.0 + np.array([0, y0 + 42.0, 0])
+        p1 = o * (rim + 4) + np.array([0, top_y + 14.0, 0])
+        p2 = o * 19.0 + np.array([0, y0 + 26.0, 0])
+        pts = S.resample(S.bezier(p0, p1, p2, p3, 60), 1.0)
+        parts.append(S.Tube(pts, np.linspace(2.4, 1.2, len(pts))).with_(paint=mat, smooth=STONE))
+    ring_y = top_y + 4.0
+    t = np.linspace(0, 2 * math.pi, 160)
+    ring = np.c_[(rim + 1.5) * np.cos(t), np.full_like(t, ring_y), (rim + 1.5) * np.sin(t)]
+    parts.append(S.Tube(ring, 1.6).with_(paint="minecraft:gold_block", smooth=None))
+    t2 = np.linspace(0, 2 * math.pi, 80)
+    ring2 = np.c_[17.0 * np.cos(t2), np.full_like(t2, y0 + 30.0), 17.0 * np.sin(t2)]
+    parts.append(S.Tube(ring2, 1.3).with_(paint="minecraft:gold_block", smooth=None))
+    S.carve(d, S.Union(*parts), shell=1, smooth=True, only_air=True)
+    return y_end
