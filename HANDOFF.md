@@ -1,7 +1,7 @@
 # 인수인계 (HANDOFF)
 
 새 세션은 **이 문서 → `docs/test/README.md`(최근 테스트 원문) + `docs/test/*.jpg` 스크린샷 4장을 직접 열어 보기 → `PLAN.md` → `design/exterior.md` → `TESTING.md`** 순서로 확인하고 이어서 작업한다.
-마지막 갱신: 2026-10-12 (Phase 1 2차 수정 + Phase 2 로비 1차 완료 → 테스터 테스트 대기. 다음 할 일은 4절).
+마지막 갱신: 2026-10-12 (외부 2차 + 로비 + 10개 층 전부 1차 완료, CI 통과 138/138 → 테스터 테스트 대기. 다음 세션 첫 작업은 4절 맨 위).
 
 ## 0. 사용자와 일하는 방식
 
@@ -154,6 +154,17 @@ previews/               미리보기 PNG (폰 확인용)
 - 서버 검증: `Build.block_checks()`(차원마다 청크 4개×블록 24개 무작위 + 블록 엔티티), `light_checks()`, `extra_checks`
 
 ## 4. 다음 할 일 (우선순위)
+
+### ▶ 다음 세션 첫 작업 (2026-10-12 세션 끝 기준)
+1. **소리 연결** (사용자가 파일 제공 — `resourcepack/README.md`): 로비 홀 테마(`ruina:music.lobby_hall`)를 바이옴
+   `ruina:lobby_hall` 의 `minecraft:audio/background_music` 에, F 전환 소리(`ruina:fragment.switch`)를 `fragment.py` 의 `fx/switch` 에,
+   CI가 `resourcepack/`을 `resources.zip`으로 묶어 월드 폴더에 넣게 (`tools/build_world.py`). 바닐라 바이옴 json에서 background_music 형식 확인
+2. 테스터 결과가 오면 반영 (TESTING.md ①~㊸, 특히 BSL 밤·정문 TP·조각 전환·각 층 모습·fps)
+3. 남은 구색: 블록 텍스처(구름·종이·전구 등)·아이템 이미지(조각 11종)·나머지 소리 → 그 뒤 모드화는 **사용자 지시 후** (4-1절)
+- 이번 세션에서 확인된 것: 디스플레이 엔티티 `block_state` 는 26.3 에서 블록 id 문자열, `gameplay/sky_light_level` 은 바이옴에 못 넣음(차원만),
+  CI 서버는 `pause-when-empty-seconds=-1` (안 하면 forceload 청크가 안 불러와짐), 검토 도구 `python tools/review_links.py <build.pkl>`
+- 이 세션 지정 브랜치: `ccr-ab8a5abc-whq9fh` (main 과 같게 맞춰 둠)
+
 
 ### 2차 수정 완료 (2026-10-11) — 테스트 대기 (TESTING.md 3절)
 1. ✅ **BSL 노을**: 모든 차원 `default_clock = minecraft:overworld`, 오버월드 시계를 138000(자정)에 멈춤
