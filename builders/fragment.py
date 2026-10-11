@@ -86,7 +86,8 @@ def fixed(anchor: str) -> list:
 SILVER_P, SILVER = item("silver", "minecraft:iron_nugget", "은조각")
 GOLD_P, GOLD = item("gold", "minecraft:gold_nugget", "금조각")
 IRON_P, IRON = item("iron", "minecraft:iron_ingot", "철괴")   # 기술과학의 층 (사용자 지정: 철괴)
-ALL = [(SILVER_P, SILVER), (GOLD_P, GOLD), (IRON_P, IRON)]
+COPPER_P, COPPER = item("copper", "minecraft:copper_ingot", "구리 주괴")   # 문학의 층 (주홍빛 전구와 어울리게)
+ALL = [(SILVER_P, SILVER), (GOLD_P, GOLD), (IRON_P, IRON), (COPPER_P, COPPER)]
 
 
 def exchange(keep_p: str, keep: str) -> list:

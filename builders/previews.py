@@ -157,6 +157,32 @@ def render_technology(b, out_dir, pal):
     return files
 
 
+def render_literature(b, out_dir, pal):
+    from builders.literature import ARRIVE_X, RD, ROOM_X, RY, Y0
+    d = b.dims["literature"]
+    files = []
+    mist = dict(sky=((96, 112, 132), (122, 142, 164)), fog=(109, 128, 150), stars=0, night=False)
+
+    def save(img, name):
+        p = os.path.join(out_dir, name)
+        img.save(p, optimize=True)
+        files.append(p)
+
+    side = render_persp(d, pal, cam=(0.5, Y0 + 5, 30), look=(0.5, Y0 + 12, -120), fov=80, W=1000, H=562,
+                        max_dist=900, fog_dist=260, **mist)
+    save(_compare("문학의 층 전경.png", side, "문학의 층 — 원화(위) / 맵(아래): 보도 옆에서 북쪽",
+                  ["나무 보도와 아래 팔각 아치 고가(줄 전구), 뒤로 엇갈린 에스컬레이터형 책장",
+                   "줄에 매달린 주홍빛 전구(작은 것 = 랜턴, 큰 것 = 물방울 전구), 나무 탑(창 안의 큰 전구)"]),
+         "literature_compare_walkway.png")
+    room = render_persp(d, pal, cam=(ROOM_X - 6.5, RY + 2.5, RD - 1), look=(ROOM_X + 10, RY + 4, -6), fov=80,
+                        W=1000, H=562, max_dist=150, sky=((58, 42, 28), (106, 86, 64)), fog=(106, 86, 64),
+                        fog_dist=70, stars=0)
+    save(_compare("문학의 층 지정사서 방.png", room, "호드 방 — 원화(위) / 맵(아래)",
+                  ["책장 기둥, 높이 제각각 매달린 전구, 책상·의자 넷, 오른쪽 팔각 문틀 복도"]),
+         "literature_compare_room.png")
+    return files
+
+
 def render_all(b, out_dir):
     os.makedirs(out_dir, exist_ok=True)
     pal = Palette()
@@ -169,4 +195,6 @@ def render_all(b, out_dir):
         files += render_history(b, out_dir, pal)
     if "technology" in b.dims:
         files += render_technology(b, out_dir, pal)
+    if "literature" in b.dims:
+        files += render_literature(b, out_dir, pal)
     return files

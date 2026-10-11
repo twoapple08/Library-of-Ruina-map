@@ -310,6 +310,10 @@ def build(b):
     L.anchor("technology_room", d.dim, ROOM_X + 0.5, RY, RD - 2.5, yaw=180, on_arrive=arrive)
     # 돌아가는 길: 다리 서쪽 끝 (안개 속) → 역사의 층 말쿠트 방 금빛 틈 앞
     L.walk(d.dim, (-BX + 6, Y0, -HW + 1, -BX + 9, Y0 + 3, HW - 1), "history_gap", fade=True)
+    # 예소드 방 빛나는 유리문에 다가가면 → 문학의 층. 돌아오면 유리문 앞에서 방 쪽(남쪽)을 봄
+    z0 = -RD - 1
+    L.walk(d.dim, (ROOM_X + 1, RY, z0 + 3, ROOM_X + 4, RY + 2, z0 + 3), "literature_entrance", fade=True)
+    L.anchor("technology_door", d.dim, ROOM_X + 2.5, RY, z0 + 6.5, yaw=0, title="기술과학의 층", on_arrive=arrive)
     F.setup(L, "iron", d.dim, F.IRON_P, f"x={ROOM_X - 200},y=-64,z=-1024,dx=400,dy=1024,dz=2048",
             to_a=F.fixed("technology_entrance"), to_b=F.fixed("technology_room"))
     b.extra_checks += [

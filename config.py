@@ -112,6 +112,17 @@ TECH_ROOM_SKY = {
     "minecraft:visual/fog_end_distance": 50.0,
 }
 
+# 문학의 층 (reference/문학의 층 전경.png, 지정사서 방.png)
+LIT_SKY = night_sky("#7a8ea4", "#6d8096", stars=0.0, sky_light_level=0.45, light_color="#c8d4e0", extra={
+    "minecraft:visual/fog_start_distance": 30.0, "minecraft:visual/fog_end_distance": 300.0,
+    "minecraft:visual/block_light_tint": "#ff9a4a"})
+LIT_ROOM_SKY = {
+    "minecraft:visual/sky_color": "#3a2a1c",
+    "minecraft:visual/fog_color": "#6a5640",
+    "minecraft:visual/fog_start_distance": 8.0,
+    "minecraft:visual/fog_end_distance": 70.0,
+}
+
 SPACES = [
     # 날리는 종이: 하얀 창백한참나무 잎 + 금빛 포플러 잎 파티클 (떨어지며 흔들림)
     Space("exterior", "외부", "", 1536, 400, EXTERIOR_SKY,
@@ -127,7 +138,10 @@ SPACES = [
     # 기술과학의 층: 보라 밤하늘 + 보라 구름(바닐라 구름 색·높이) + 초승달, 보라 안개. 예소드 방은 어두운 보라
     Space("technology", "기술과학의 층", "예소드", 2048, 512, TECH_SKY, particles=[("minecraft:white_ash", 0.001)],
           biomes={"technology_room": {"attributes": TECH_ROOM_SKY, "particles": []}}),
-    Space("literature", "문학의 층", "호드", 1536, 400),
+    # 문학의 층: 푸른 회색 안개 속 주홍빛 전구 (원화). 호드 방은 따뜻한 갈색
+    Space("literature", "문학의 층", "호드", 1536, 400, LIT_SKY, particles=[("minecraft:white_ash", 0.002),
+                                                                     ("minecraft:firefly", 0.001)],
+          biomes={"literature_room": {"attributes": LIT_ROOM_SKY, "particles": [("minecraft:white_ash", 0.002)]}}),
     Space("art", "예술의 층", "네짜흐", 1536, 400),
     Space("natural_science", "자연과학의 층", "티페리트", 1024, 400),
     Space("language", "언어의 층", "게부라", 1536, 400),
