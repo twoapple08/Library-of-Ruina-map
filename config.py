@@ -18,10 +18,30 @@ DIM_MIN_Y = -64
 DIM_HEIGHT = 640
 
 
-@dataclass
-class Sky:
-    """차원(층)별 하늘. 키는 환경 속성 이름에서 'minecraft:visual/'를 뺀 것."""
-    visual: dict = field(default_factory=dict)
+def night_sky(sky="#2a1850", fog="#2a1a4f", *, moon_phase="waxing_crescent", moon_angle=35.0,
+              stars=0.5, light_factor=0.24, light_color="#8f7aff", sky_light_level=0.27, clouds="#00000000",
+              extra=None) -> dict:
+    """시계 없이 고정된 밤하늘 (환경 속성).
+
+    바닐라 timeline/day.json 의 한밤중(18000틱) 값을 기준으로 함:
+    sun_angle 180 = 해가 지평선 아래 정반대, moon_angle 0 = 달이 머리 위, star_brightness 0.5.
+    """
+    a = {
+        "minecraft:visual/sky_color": sky,
+        "minecraft:visual/fog_color": fog,
+        "minecraft:visual/sun_angle": 180.0,
+        "minecraft:visual/moon_angle": moon_angle,
+        "minecraft:visual/star_angle": 180.0,
+        "minecraft:visual/star_brightness": stars,
+        "minecraft:visual/moon_phase": moon_phase,
+        "minecraft:visual/sky_light_factor": light_factor,
+        "minecraft:visual/sky_light_color": light_color,
+        "minecraft:visual/sunrise_sunset_color": "#00000000",
+        "minecraft:visual/cloud_color": clouds,
+        "minecraft:gameplay/sky_light_level": sky_light_level,
+    }
+    a.update(extra or {})
+    return a
 
 
 @dataclass
@@ -31,7 +51,7 @@ class Space:
     librarian: str     # 지정사서
     size: int          # 구역 한 변 (블록, 512 배수)
     content_height: int  # 구역 높이 (PLAN 6절)
-    sky: Sky = field(default_factory=Sky)
+    attributes: dict = field(default_factory=night_sky)  # 환경 속성 (차원 전체)
     min_y: int = DIM_MIN_Y
     height: int = DIM_HEIGHT
     has_skylight: bool = True
@@ -41,13 +61,11 @@ class Space:
         return f"{NAMESPACE}:{self.id}"
 
 
-NIGHT_PURPLE = Sky(visual={
-    "sky_color": "#2a1850",
-    "fog_color": "#3a2468",
-})
+# 외관: 보라색 밤하늘 + 초승달 (PLAN 5·7절). 층별 값은 각 층 착수 때 원화 보고 정해서 PLAN 7절에 기록
+EXTERIOR_SKY = night_sky("#3b2370", "#2c1b52", moon_phase="waxing_crescent", moon_angle=35.0)
 
 SPACES = [
-    Space("exterior", "외부", "", 1536, 400, NIGHT_PURPLE),
+    Space("exterior", "외부", "", 1536, 400, EXTERIOR_SKY),
     Space("lobby", "로비", "앤젤라", 512, 400),
     Space("history", "역사의 층", "말쿠트", 1536, 400),
     Space("technology", "기술과학의 층", "예소드", 2048, 512),
@@ -74,4 +92,6 @@ GAMERULES = {
     "fire_spread_radius_around_player": "0",
     "mob_griefing": "false",
     "respawn_radius": "0",
+    "spawn_monsters": "false",
+    "spawn_phantoms": "false",
 }

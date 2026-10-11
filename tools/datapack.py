@@ -1,8 +1,8 @@
 """데이터팩 생성: 차원·차원 타입·바이옴·함수(TP, 초기 설정).
 
 형식 근거: HANDOFF.md 2절 + 서버 jar에서 뽑은 바닐라 파일(ref/vanilla/).
-ref/vanilla/ 가 있으면 바닐라 overworld 차원 타입·the_void 바이옴을 바탕으로
-필요한 값만 덮어쓴다 (필드 이름 추측을 줄이기 위해).
+ref/vanilla/ 의 바닐라 overworld 차원 타입·the_void 바이옴을 바탕으로
+필요한 값만 덮어쓴다 (필드 이름 추측을 줄이기 위해). ref/ 는 tools.ci refs 로 갱신.
 """
 from __future__ import annotations
 
@@ -84,52 +84,33 @@ def _fmt(n: float) -> str:
 # ------------------------------------------------------------------ JSON
 
 def dimension_type(space: config.Space) -> dict:
+    """바닐라 overworld 차원 타입을 바탕으로: 시계·타임라인 제거(시간 고정), 높이·하늘 덮어쓰기."""
     base = _read_json("vanilla", "dimension_type", "overworld.json")
-    if base is None:  # HANDOFF 2절 필드 목록 기준 추정값
-        base = {
-            "coordinate_scale": 1.0,
-            "has_skylight": True,
-            "has_ceiling": False,
-            "has_ender_dragon_fight": False,
-            "ambient_light": 0.0,
-            "has_fixed_time": True,
-            "monster_spawn_block_light_limit": 0,
-            "monster_spawn_light_level": 0,
-            "logical_height": 384,
-            "min_y": -64,
-            "height": 384,
-            "infiniburn": "#minecraft:infiniburn_overworld",
-            "skybox": "overworld",
-            "cardinal_light": "default",
-            "attributes": {},
-        }
+    if base is None:
+        raise FileNotFoundError("ref/vanilla/dimension_type/overworld.json 없음 (python -m tools.ci refs)")
     d = json.loads(json.dumps(base))
+    d.pop("default_clock", None)
+    d.pop("timelines", None)
+    attrs = dict(d.get("attributes", {}))
+    attrs.pop("minecraft:audio/ambient_sounds", None)  # 어두운 곳의 동굴 소리 끔
+    attrs.update(space.attributes)
     d.update({
         "min_y": space.min_y,
         "height": space.height,
         "logical_height": space.height,
         "has_skylight": space.has_skylight,
+        "has_fixed_time": True,
         "monster_spawn_block_light_limit": 0,
         "monster_spawn_light_level": 0,
+        "attributes": dict(sorted(attrs.items())),
     })
-    attrs = dict(d.get("attributes", {}))
-    for k, v in space.sky.visual.items():
-        attrs[f"minecraft:visual/{k}"] = v
-    d["attributes"] = attrs
-    return d
+    return dict(sorted(d.items()))
 
 
 def biome(space: config.Space) -> dict:
     base = _read_json("vanilla", "worldgen", "biome", "the_void.json")
     if base is None:
-        base = {
-            "has_precipitation": False,
-            "temperature": 0.5,
-            "downfall": 0.0,
-            "effects": {"water_color": 4159204},
-            "carvers": [],
-            "features": [],
-        }
+        raise FileNotFoundError("ref/vanilla/worldgen/biome/the_void.json 없음")
     b = json.loads(json.dumps(base))
     b["has_precipitation"] = False
     b["features"] = []

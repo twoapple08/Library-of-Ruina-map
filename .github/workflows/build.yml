@@ -1,10 +1,12 @@
 name: build
 
+# 월드 빌드: 실제 마인크래프트 서버(최신 정식)로 월드를 만들고 검증한 뒤 릴리스(world-latest)에 올린다.
+# 결과 보고서·로그는 ci-output 브랜치에 올라간다.
 on:
   workflow_dispatch:
     inputs:
       task:
-        description: "probe = 포맷 프로브, world = 월드 빌드"
+        description: "world = 월드 빌드, probe = 포맷 프로브"
         type: choice
         options: [world, probe]
         default: world
@@ -12,6 +14,14 @@ on:
         description: "마인크래프트 버전 (비우면 최신 정식)"
         required: false
         default: ""
+  push:
+    branches: [main]
+    paths:
+      - "builders/**"
+      - "tools/**"
+      - "config.py"
+      - "ref/**"
+      - ".github/workflows/build.yml"
 
 permissions:
   contents: write
@@ -20,10 +30,13 @@ concurrency:
   group: build
   cancel-in-progress: false
 
+env:
+  TASK: ${{ inputs.task || 'world' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v5
 
@@ -33,6 +46,9 @@ jobs:
 
       - name: 파이썬 패키지
         run: pip install numpy pillow
+
+      - name: 단위 테스트
+        run: python -m unittest discover -s tests -v
 
       - name: 서버 jar 받기
         id: mc
@@ -49,21 +65,37 @@ jobs:
           python -m tools.ci reports
 
       - name: 포맷 프로브
-        if: inputs.task == 'probe'
+        if: env.TASK == 'probe'
         run: python -m tools.ci probe
 
       - name: 월드 빌드
-        if: inputs.task == 'world'
+        if: env.TASK == 'world'
         run: python -m tools.ci world
+
+      - name: 릴리스(world-latest)에 월드 올리기
+        if: env.TASK == 'world' && success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG=world-latest
+          gh release view "$TAG" >/dev/null 2>&1 || \
+            gh release create "$TAG" --title "최신 월드 (자동 빌드)" --notes "준비 중" --target "${{ github.sha }}"
+          gh release upload "$TAG" out/release/Library-of-Ruina.zip --clobber
+          {
+            echo "자동 빌드: $(date -u +%F' '%H:%M) UTC / Minecraft ${{ steps.mc.outputs.mc_version }} / 커밋 ${GITHUB_SHA::7}"
+            echo
+            cat ci_out/world/SUMMARY.md
+          } > notes.md
+          gh release edit "$TAG" --notes-file notes.md
 
       - name: 결과를 ci-output 브랜치에 올리기
         if: always()
         run: |
           [ -d ci_out ] || exit 0
           cd ci_out
-          echo "run ${{ github.run_id }} / ${{ inputs.task }} / mc ${{ steps.mc.outputs.mc_version }} / $(date -u +%FT%TZ)" > RUN.txt
+          echo "run ${{ github.run_id }} / $TASK / mc ${{ steps.mc.outputs.mc_version }} / commit ${GITHUB_SHA::7} / $(date -u +%FT%TZ)" > RUN.txt
           git init -q
           git checkout -q -b ci-output
           git add -A
-          git -c user.name="ruina-ci" -c user.email="ruina-ci@users.noreply.github.com" commit -qm "CI ${{ inputs.task }} run ${{ github.run_id }}"
+          git -c user.name="ruina-ci" -c user.email="ruina-ci@users.noreply.github.com" commit -qm "CI $TASK run ${{ github.run_id }}"
           git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" ci-output

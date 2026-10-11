@@ -224,6 +224,8 @@ def cmd_probe():
         "execute in ruina:lobby run forceload add 0 0",
         "#wait ruina:lobby 0 0 0",
         "execute in ruina:lobby if block 0 0 0 minecraft:air",
+        "execute in ruina:lobby run setblock 1 0 1 minecraft:oak_stairs[facing=east,half=top]",
+        "execute in ruina:lobby run setblock 2 0 1 minecraft:chest[facing=west]{Items:[{Slot:0b,id:\"minecraft:book\",count:3}]}",
         "execute in ruina:exterior run forceload add 0 0",
         "#wait ruina:exterior 0 0 0",
         "execute in ruina:exterior run setworldspawn 0 100 0",
