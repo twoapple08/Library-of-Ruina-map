@@ -545,7 +545,7 @@ def carve(dim, shape: Field, shell: float = 1.0, smooth: bool = True, only_air: 
           default_paint: str = "minecraft:stone") -> CarveStats:
     """도형을 dim에 블록으로 쓴다.
 
-    shell: 껍질 두께(칸). 바깥 공기와 맞닿은 칸은 항상 포함 (구멍 방지).
+    shell: 껍질 두께(칸). 1이면 바깥 공기와 맞닿은 칸만 + 투명·반쪽 블록 뒤에만 한 겹 받침 (숨은 블록 최소).
     smooth: 부품에 smooth=(계단, 반블록)이 있으면 바깥 가장자리에 계단·반블록을 덧붙임 (공기 칸에만).
     only_air: True면 이미 블록이 있는 칸은 건드리지 않음.
     """
@@ -603,18 +603,38 @@ def carve(dim, shape: Field, shell: float = 1.0, smooth: bool = True, only_air: 
                     inside[1:-1, 2:, 1:-1] & inside[1:-1, 1:-1, :-2] & inside[1:-1, 1:-1, 2:])
         dc = dd[1:-1, 1:-1, 1:-1]
         oc = own[1:-1, 1:-1, 1:-1]
-        mask = core & (~enclosed | (dc > -shell))
+        outer = core & ~enclosed
+        mask = outer | (core & (dc > -shell)) if shell > 1 else outer
         ids = np.full((16, 16, 16), -1, dtype=np.int32)
         Pc = P.reshape(18, 18, 18, 3)[1:-1, 1:-1, 1:-1]
-        if mask.any():
-            for pi in np.unique(oc[mask]):
-                sel = mask & (oc == pi)
+
+        def paint(sel):
+            for pi in np.unique(oc[sel]):
+                ss = sel & (oc == pi)
                 part = parts[pi]
-                pts = Pc[sel]
+                pts = Pc[ss]
                 xi, yi, zi = (np.floor(pts[:, k]).astype(np.int64) for k in range(3))
-                ctx = Ctx(xi, yi, zi, pts, dc[sel], part.info(pts) if part.paint is not None else {})
+                ctx = Ctx(xi, yi, zi, pts, dc[ss], part.info(pts) if part.paint is not None else {})
                 states = part.paint(ctx) if part.paint is not None else np.full(len(pts), default_paint, object)
-                ids[sel] = ids_of(np.asarray(states, dtype=object))
+                ids[ss] = ids_of(np.asarray(states, dtype=object))
+
+        if mask.any():
+            paint(mask)
+            # 바깥 칸이 투명·반쪽 블록(유리·계단 등)이면 속이 보이므로 그 뒤 칸만 받친다
+            see = outer & ~_opaque(dim, ids)
+            dil = see.copy()
+            dil[1:] |= see[:-1]
+            dil[:-1] |= see[1:]
+            dil[:, 1:] |= see[:, :-1]
+            dil[:, :-1] |= see[:, 1:]
+            dil[:, :, 1:] |= see[:, :, :-1]
+            dil[:, :, :-1] |= see[:, :, 1:]
+            border = np.zeros_like(core)
+            border[[0, -1]] = border[:, [0, -1]] = border[:, :, [0, -1]] = True
+            back = core & enclosed & ~mask & (dil | (border & (dc > -2.0) & see.any()))
+            if back.any():
+                paint(back)
+                mask |= back
             st.blocks += int(mask.sum())
         if smooth:
             near_in = np.zeros_like(core)
@@ -652,6 +672,20 @@ def carve(dim, shape: Field, shell: float = 1.0, smooth: bool = True, only_air: 
             dim.place(sx * 16, sy * 16, sz * 16, ids, only_air=only_air)
             st.sections += 1
     return st
+
+
+_OPQ_CACHE: dict = {}
+
+
+def _opaque(dim, ids) -> np.ndarray:
+    """팔레트 번호 배열 → 불투명 꽉 찬 블록인지 (-1은 False)."""
+    from .render3d import NOT_FULL
+    key = id(dim)
+    lut = _OPQ_CACHE.get(key)
+    if lut is None or len(lut) < len(dim.palette):
+        lut = np.array([s != "minecraft:air" and not any(k in s for k in NOT_FULL) for s in dim.palette] + [False])
+        _OPQ_CACHE[key] = lut
+    return lut[np.where(ids >= 0, ids, len(lut) - 1)] & (ids >= 0)
 
 
 def _neighbor_owner(own, inside):

@@ -80,6 +80,9 @@ def ci_world(argv) -> int:
     b = build_all()
     dp = os.path.join(CACHE, "datapack")
     datapack.write(dp, b.links)
+    from tools.lint import lint_build
+    for line in lint_build(b):
+        rep.info("검사: " + line.strip())
     rep.info(f"빌더 {time.time() - t0:.1f}초: " + ", ".join(f"{k} {len(d.chunk_keys())}청크" for k, d in b.dims.items()))
 
     # ---------------------------------------------- 1차 실행

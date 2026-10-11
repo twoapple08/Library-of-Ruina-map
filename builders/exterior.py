@@ -259,7 +259,7 @@ def tower_parts(seed=7):
 
 
 def plaza(d):
-    """원형 나무 광장 (윗면 Y=-1, 두께 3, 가장자리 테두리)."""
+    """원형 나무 광장 (윗면 Y=-1 한 겹, 가장자리 두께 3 테두리)."""
     R = int(PLAZA_R)
     xs, zs = np.meshgrid(np.arange(-R, R + 1), np.arange(-R, R + 1), indexing="ij")
     rr = np.hypot(xs, zs)
@@ -274,8 +274,6 @@ def plaza(d):
     d.place(-R, -1, -R, top[:, None, :])
     rim = disk & (rr > R - 2)
     d.place_mask(-R, -3, -R, np.repeat(rim[:, None, :], 2, axis=1), "minecraft:polished_deepslate")
-    under = disk & (rr <= R - 2)
-    d.place_mask(-R, -2, -R, under[:, None, :], "minecraft:dark_oak_planks")
 
 
 def stairs(d):
@@ -297,5 +295,5 @@ def build(b):
     d = b.dim("exterior")
     plaza(d)
     stairs(d)
-    st = S.carve(d, S.Union(*tower_parts()), shell=2, smooth=True)
+    st = S.carve(d, S.Union(*tower_parts()), shell=1, smooth=True)
     return st

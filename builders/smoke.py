@@ -77,8 +77,8 @@ def exterior(b):
     for x in range(-3, 4):
         d.set(x, Y0 - 1, gz + 1, "minecraft:polished_deepslate_stairs[facing=north,half=bottom]")
     d.fill(-3, Y0, gz - 1, 3, Y0 + 12, gz - 1, "minecraft:black_concrete")  # 문 안쪽 어둠
-    d.set(-5, Y0 + 12, gz + 1, "minecraft:lantern[hanging=true]")
-    d.set(5, Y0 + 12, gz + 1, "minecraft:lantern[hanging=true]")
+    d.set(-3, Y0 + 12, gz, "minecraft:lantern[hanging=true]")  # 상인방 아래에 매닮
+    d.set(3, Y0 + 12, gz, "minecraft:lantern[hanging=true]")
 
     # 조각된 책장 (블록 엔티티 확인용)
     shelf = ("minecraft:chiseled_bookshelf[facing=south,slot_0_occupied=true,slot_1_occupied=true,"
