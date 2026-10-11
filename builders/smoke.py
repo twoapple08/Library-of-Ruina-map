@@ -14,7 +14,37 @@ Y0 = 64  # 바닥 위 첫 칸
 
 def build(b):
     exterior(b)
+    engine_sample(b)
     lobby(b)
+
+
+def engine_sample(b):
+    """도형 엔진 견본 (받침대 동쪽): 말린 가지 2개 + 작은 판자 탑. 계단·반블록 곡면 다듬기 화면 확인용."""
+    from tools import shapes as S
+    d = b.dim("exterior")
+    wood = ("minecraft:dark_oak_stairs", "minecraft:dark_oak_slab")
+    log = S.log_along("minecraft:dark_oak_log[axis={a}]")
+    cx, cz = 30, -6
+    d.fill(cx - 8, Y0 - 1, cz - 8, cx + 8, Y0 - 1, cz + 8, "minecraft:polished_deepslate")
+
+    def rad(y, th):
+        return 5.5 + 0.8 * np.sin(np.pi * ((y - Y0) % 8) / 8)
+    tower = S.Revolve(Y0, Y0 + 24, rad, rmax=7, cx=cx + 0.5, cz=cz + 0.5).with_(
+        paint=S.mix(["minecraft:dark_oak_log[axis=y]", "minecraft:stripped_dark_oak_log[axis=y]"], seed=3))
+    ledge = S.Revolve(Y0 + 11.5, Y0 + 13, lambda y, th: np.full_like(y, 7.5), rmax=8, cx=cx + 0.5,
+                      cz=cz + 0.5).with_(paint="minecraft:dark_oak_planks", smooth=wood)
+    parts = [tower, ledge]
+    for dirv in (np.array([1.0, 0, 0.25]), np.array([0.2, 0, -1.0])):  # 동쪽, 북쪽 (정문 쪽은 피함)
+        dirv = dirv / np.linalg.norm(dirv)
+        p0 = np.array([cx + 0.5, Y0 + 16, cz + 0.5]) + dirv * 4
+        p3 = p0 + dirv * 26 + np.array([0, 10, 0])
+        main = S.resample(S.bezier(p0, p0 + dirv * 8 + [0, 9, 0], p3 - dirv * 9 + [0, 2, 0], p3, 60), 1.0)
+        c = S.curl(main[-1], main[-1] - main[-2], [0, 1, 0], 6, turns=1.8, shrink=0.5, step=1.0)
+        pts = S.join(main, c)
+        radii = np.concatenate([np.linspace(3.2, 1.8, len(main)), np.linspace(1.8, 1.1, len(c) - 1)])
+        parts.append(S.Tube(pts, radii).with_(paint=log, smooth=wood))
+    S.carve(d, S.Union(*parts), shell=1, smooth=True)
+    b.links.anchor("engine_sample", d.dim, cx + 0.5, Y0, cz + 14.5, yaw=180)
 
 
 def exterior(b):

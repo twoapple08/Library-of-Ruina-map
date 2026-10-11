@@ -10,6 +10,7 @@
 | ![](smoke_exterior_front.png) | 외부 — 정면(남쪽에서 북쪽을 본 모습) |
 | ![](smoke_lobby_plan.png) | 로비 — 평면도 (천장을 잘라낸 모습) |
 | ![](smoke_lobby_section.png) | 로비 — 단면 |
+| ![](smoke_exterior_iso.png) | 외부 입체도 — 받침대 동쪽에 도형 엔진 견본(작은 탑 + 말린 가지, 테스터 확인 ⑨) |
 
 ## 도형 엔진 시연 — 외부 건물 시제품 v0
 
