@@ -380,10 +380,14 @@ def build(b):
     malkuth_room(d)
 
     L = b.links
-    arrive = [F.take(F.SILVER_P), F.give_if_missing(F.GOLD_P, F.GOLD)]
+    arrive = F.exchange(F.GOLD_P, F.GOLD)
     L.anchor("history_entrance", d.dim, 0.5, Y0, ARRIVE_Z + 0.5, yaw=180, title="역사의 층", on_arrive=arrive)
     L.anchor("history_room", d.dim, ROOM_X + 0.5, Y0, RD - 2.5, yaw=180, on_arrive=arrive)
     L.walk(d.dim, zone, "lobby_stairs", fade=True)
+    # 말쿠트 방 오른쪽 금빛 틈 안쪽으로 걸어 들어가면 → 기술과학의 층. 돌아오면 틈 앞(방 안)에서 서쪽을 봄
+    gx = ROOM_X + RW + 1
+    L.walk(d.dim, (gx + 5, Y0, -6, gx + 8, Y0 + 3, 0), "technology_entrance", fade=True)
+    L.anchor("history_gap", d.dim, gx - 3 + 0.5, Y0, -2.5, yaw=90, title="역사의 층", on_arrive=arrive)
     # 금조각 F: 접대 공간 ↔ 말쿠트 방 (고정 자리)
     F.setup(L, "gold", d.dim, F.GOLD_P, f"x={ROOM_X - 200},y=-64,z=-1024,dx=400,dy=1024,dz=2048",
             to_a=F.fixed("history_entrance"), to_b=F.fixed("history_room"))

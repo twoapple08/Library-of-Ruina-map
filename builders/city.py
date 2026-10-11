@@ -85,8 +85,13 @@ def _box(d, rng, st: Style, x0, z0, w, l, y0, h):
 
 
 def build_city(d, r0: float, r1: float, seed: int = 81, ground_y: int = -40, h_min: int = 60, h_max: int = 120,
-               skip=None, spacing0: float = 34, size=(12, 30)) -> dict:
-    """skip(x, z) -> True 면 그 자리는 비움 (예: 정면 시야 확보)."""
+               skip=None, spacing0: float = 34, size=(12, 30), palette: dict | None = None) -> dict:
+    """skip(x, z) -> True 면 그 자리는 비움 (예: 정면 시야 확보).
+    palette: 층마다 다른 모습 {walls/lit/neon/trim: (목록, 무게),
+             corner_neon: 모서리 네온 확률, roof_neon: 옥상 테두리 네온 확률} — 없으면 외부 기본값."""
+    pal = {"walls": (WALLS, WALL_W), "lit": (LIT, LIT_W), "neon": (NEON, [5, 4, 2]), "trim": (TRIM, [3, 3, 2, 2]),
+           "corner_neon": 0.15, "corners": 1, "roof_neon": 0.0}
+    pal.update(palette or {})
     rng = np.random.default_rng(seed)
     count, blocks = 0, 0
     r = r0
@@ -106,8 +111,9 @@ def build_city(d, r0: float, r1: float, seed: int = 81, ground_y: int = -40, h_m
             hmax = h_min + (h_max - h_min) * (0.35 + 0.65 * t)
             h = int(rng.uniform(h_min, hmax) * rng.uniform(0.75, 1.25))
             h = int(np.clip(h, 30, h_max * 1.3))
-            wall = _pick(rng, WALLS, WALL_W)
-            st = Style(rng, d, wall, _pick(rng, TRIM, [3, 3, 2, 2]), _pick(rng, LIT, LIT_W), rng.uniform(0.12, 0.4))
+            wall = _pick(rng, *pal["walls"])
+            st = Style(rng, d, wall, _pick(rng, *pal["trim"]), _pick(rng, *pal["lit"]),
+                       rng.uniform(0.12, 0.4))
             x0, z0 = int(cx - w / 2), int(cz - l / 2)
             y0 = ground_y
             height_total = h - ground_y if ground_y < 0 else h
@@ -125,10 +131,17 @@ def build_city(d, r0: float, r1: float, seed: int = 81, ground_y: int = -40, h_m
                     bx, bz, bw, bl, by = bx + shrink, bz + shrink, bw - 2 * shrink, bl - 2 * shrink, ytop + 1
                     if bw < 6 or bl < 6:
                         break
-            # 네온: 모서리 세로 띠만 (지붕 테두리 발광은 '천장이 빛남'으로 보여서 뺌)
-            if rng.random() < 0.15:
-                neon = _pick(rng, NEON, [5, 4, 2])
-                d.fill(x0, y0 + 2, z0, x0, y0 + int(height_total * rng.uniform(0.5, 0.95)), z0, neon)
+            # 네온: 모서리 세로 띠 (외부는 지붕 테두리 발광을 뺌 — '천장이 빛남'. 기술과학의 층은 원화대로 윤곽 네온)
+            if rng.random() < pal["corner_neon"]:
+                neon = _pick(rng, *pal["neon"])
+                for cxx, czz in ((x0, z0), (x0 + w - 1, z0 + l - 1))[:pal["corners"]]:
+                    d.fill(cxx, y0 + 2, czz, cxx, y0 + int(height_total * rng.uniform(0.5, 0.95)), czz, neon)
+            if pal["roof_neon"] and rng.random() < pal["roof_neon"]:   # 확률 0이면 난수도 안 씀 (외부 모습 그대로)
+                neon = _pick(rng, *pal["neon"])
+                yt = ytop + 1
+                for a0, b0, a1, b1 in ((bx, bz, bx + bw - 1, bz), (bx, bz + bl - 1, bx + bw - 1, bz + bl - 1),
+                                       (bx, bz, bx, bz + bl - 1), (bx + bw - 1, bz, bx + bw - 1, bz + bl - 1)):
+                    d.fill(a0, yt, b0, a1, yt, b1, neon)
             # 안테나
             if rng.random() < 0.3:
                 ax, az = bx + bw // 2, bz + bl // 2

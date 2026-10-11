@@ -127,6 +127,36 @@ def render_history(b, out_dir, pal):
     return files
 
 
+def render_technology(b, out_dir, pal):
+    from builders.technology import ARRIVE_X, RD, ROOM_X, RY, Y0
+    d = b.dims["technology"]
+    files = []
+    night = dict(sky=((60, 36, 96), (106, 69, 150)), fog=(75, 47, 112), stars=200)
+
+    def save(img, name):
+        p = os.path.join(out_dir, name)
+        img.save(p, optimize=True)
+        files.append(p)
+
+    side = render_persp(d, pal, cam=(0.5, Y0 + 6, 34), look=(0.5, Y0 + 4, -120), fov=80, W=1000, H=562,
+                        max_dist=1200, fog_dist=500, **night)
+    save(_compare("기술과학의 층 전경.png", side, "기술과학의 층 — 원화(위) / 맵(아래): 다리 옆에서 북쪽",
+                  ["고가도로(4차선·점선·철 난간), 녹슨 주탑·쇠사슬, 다리 아래 트러스와 네온 도시·빛나는 길",
+                   "뒤로 네온 빌딩 숲, 녹슨 거대 톱니, 가장 높은 건물에서 톱니로 뻗은 케이블, 보라 하늘"]),
+         "technology_compare_bridge.png")
+    deck = render_persp(d, pal, cam=(ARRIVE_X + 0.5, Y0 + 1.6, 0.5), look=(ARRIVE_X + 60, Y0 + 20, 0.5), fov=80,
+                        W=1000, H=562, max_dist=1200, fog_dist=500, **night)
+    save(_frame(deck, "기술과학의 층 — 도착 자리 (다리 위, 동쪽을 봄)", ["철괴를 왼손으로 들면(F) 예소드 방으로"]),
+         "technology_deck.png")
+    room = render_persp(d, pal, cam=(ROOM_X + 0.5, RY + 2.5, RD - 1), look=(ROOM_X + 0.5, RY + 5, -RD), fov=80,
+                        W=1000, H=562, max_dist=120, sky=((20, 10, 32), (36, 19, 58)), fog=(36, 19, 58),
+                        fog_dist=50, stars=0)
+    save(_compare("기술과학의 층 지정사서 방.png", room, "예소드 방 — 원화(위) / 맵(아래)",
+                  ["빛줄 서랍장, 천장에 매달린 톱니 샹들리에(보라 발광), 콘솔 책상·화면, 빛나는 유리문(초승달)"]),
+         "technology_compare_room.png")
+    return files
+
+
 def render_all(b, out_dir):
     os.makedirs(out_dir, exist_ok=True)
     pal = Palette()
@@ -137,4 +167,6 @@ def render_all(b, out_dir):
         files += render_lobby(b, out_dir, pal)
     if "history" in b.dims:
         files += render_history(b, out_dir, pal)
+    if "technology" in b.dims:
+        files += render_technology(b, out_dir, pal)
     return files

@@ -100,6 +100,18 @@ HISTORY_ROOM_SKY = {
     "minecraft:visual/fog_end_distance": 60.0,
 }
 
+# 기술과학의 층 (reference/기술과학의 층 전경.png, 지정사서 방.png)
+TECH_SKY = night_sky("#6a4596", "#4b2f70", moon_phase="waxing_crescent", moon_angle=8.0, stars=0.3,
+                     sky_light_level=0.35, light_color="#b48cff", clouds="#b78fd8e0", extra={
+                         "minecraft:visual/cloud_height": 380.0,
+                         "minecraft:visual/fog_start_distance": 80.0, "minecraft:visual/fog_end_distance": 420.0})
+TECH_ROOM_SKY = {
+    "minecraft:visual/sky_color": "#140a20",
+    "minecraft:visual/fog_color": "#24133a",
+    "minecraft:visual/fog_start_distance": 6.0,
+    "minecraft:visual/fog_end_distance": 50.0,
+}
+
 SPACES = [
     # 날리는 종이: 하얀 창백한참나무 잎 + 금빛 포플러 잎 파티클 (떨어지며 흔들림)
     Space("exterior", "외부", "", 1536, 400, EXTERIOR_SKY,
@@ -112,7 +124,9 @@ SPACES = [
     Space("history", "역사의 층", "말쿠트", 1536, 400, HISTORY_SKY, particles=[("minecraft:firefly", 0.002),
                                                                           ("minecraft:white_ash", 0.002)],
           biomes={"history_room": {"attributes": HISTORY_ROOM_SKY, "particles": [("minecraft:white_ash", 0.002)]}}),
-    Space("technology", "기술과학의 층", "예소드", 2048, 512),
+    # 기술과학의 층: 보라 밤하늘 + 보라 구름(바닐라 구름 색·높이) + 초승달, 보라 안개. 예소드 방은 어두운 보라
+    Space("technology", "기술과학의 층", "예소드", 2048, 512, TECH_SKY, particles=[("minecraft:white_ash", 0.001)],
+          biomes={"technology_room": {"attributes": TECH_ROOM_SKY, "particles": []}}),
     Space("literature", "문학의 층", "호드", 1536, 400),
     Space("art", "예술의 층", "네짜흐", 1536, 400),
     Space("natural_science", "자연과학의 층", "티페리트", 1024, 400),

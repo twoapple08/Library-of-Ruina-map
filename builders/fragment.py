@@ -85,3 +85,10 @@ def fixed(anchor: str) -> list:
 
 SILVER_P, SILVER = item("silver", "minecraft:iron_nugget", "은조각")
 GOLD_P, GOLD = item("gold", "minecraft:gold_nugget", "금조각")
+IRON_P, IRON = item("iron", "minecraft:iron_ingot", "철괴")   # 기술과학의 층 (사용자 지정: 철괴)
+ALL = [(SILVER_P, SILVER), (GOLD_P, GOLD), (IRON_P, IRON)]
+
+
+def exchange(keep_p: str, keep: str) -> list:
+    """그 층에 도착하면: 다른 조각은 회수, 그 층 조각은 없으면 1개."""
+    return [take(p) for p, _ in ALL if p != keep_p] + [give_if_missing(keep_p, keep)]

@@ -317,8 +317,8 @@ def build(b):
     build_room(d)
     build_hall(d)
     L = b.links
-    # 로비에 오면: 금조각 회수(역사의 층에서 돌아올 때) + 은조각이 없으면 1개
-    arrive = [F.take(F.GOLD_P), F.give_if_missing(F.SILVER_P, F.SILVER)]
+    # 로비에 오면: 다른 층 조각(금조각·철괴) 회수 + 은조각이 없으면 1개
+    arrive = F.exchange(F.SILVER_P, F.SILVER)
     L.anchor("lobby_entrance", d.dim, 0.5, Y0, RZ - 2.5, yaw=180, title="로비", on_arrive=arrive)
     L.anchor("lobby_hall", d.dim, HALL_DX + 0.5, Y0, RZ - 2.5, yaw=180, on_arrive=arrive)
     L.portal(d.dim, 0.5, Y0, RZ + 1.5, "exterior_gate", width=3, height=4)
