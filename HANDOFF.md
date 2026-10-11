@@ -159,7 +159,8 @@ previews/               미리보기 PNG (폰 확인용)
 1. **소리 연결** (사용자가 파일 제공 — `resourcepack/README.md`): 로비 홀 테마(`ruina:music.lobby_hall`)를 바이옴
    `ruina:lobby_hall` 의 `minecraft:audio/background_music` 에, F 전환 소리(`ruina:fragment.switch`)를 `fragment.py` 의 `fx/switch` 에,
    CI가 `resourcepack/`을 `resources.zip`으로 묶어 월드 폴더에 넣게 (`tools/build_world.py`). 바닐라 바이옴 json에서 background_music 형식 확인
-2. 테스터 결과가 오면 반영 (TESTING.md ①~㊸, 특히 BSL 밤·정문 TP·조각 전환·각 층 모습·fps)
+2. **테스터 체크리스트 답변은 다음 세션에서 사용자가 전달** (TESTING.md ①~㊸ 보고 양식 + 스크린샷 → `docs/test/`에 원문·사진 보관,
+   README 처럼 정리). 받으면 항목별로 원인 분석 → 수정 (특히 BSL 밤·정문 TP·조각 전환·각 층 모습·fps)
 3. 남은 구색: 블록 텍스처(구름·종이·전구 등)·아이템 이미지(조각 11종)·나머지 소리 → 그 뒤 모드화는 **사용자 지시 후** (4-1절)
 - 이번 세션에서 확인된 것: 디스플레이 엔티티 `block_state` 는 26.3 에서 블록 id 문자열, `gameplay/sky_light_level` 은 바이옴에 못 넣음(차원만),
   CI 서버는 `pause-when-empty-seconds=-1` (안 하면 forceload 청크가 안 불러와짐), 검토 도구 `python tools/review_links.py <build.pkl>`
