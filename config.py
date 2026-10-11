@@ -75,7 +75,8 @@ class Space:
 EXTERIOR_SKY = night_sky("#3b2370", "#2c1b52", moon_phase="waxing_crescent", moon_angle=35.0)
 
 # 로비 (reference/로비.png, reference/로비 전경 (전환 후).jpg, reference/로비_3D/)
-LOBBY_ROOM_SKY = night_sky("#120a05", "#1c1008", stars=0.0, extra={
+# sky_light_level 은 차원 단위만 됨 (바이옴에 넣으면 서버 오류) → 차원은 밝게, 방은 천장이 가려서 어두움
+LOBBY_ROOM_SKY = night_sky("#120a05", "#1c1008", stars=0.0, sky_light_level=1.0, extra={
     "minecraft:visual/fog_start_distance": 4.0, "minecraft:visual/fog_end_distance": 48.0})
 LOBBY_HALL_SKY = {
     "minecraft:visual/sky_color": "#f4e2bd",
@@ -85,7 +86,6 @@ LOBBY_HALL_SKY = {
     "minecraft:visual/sky_light_factor": 1.0,
     "minecraft:visual/sky_light_color": "#fff0d0",
     "minecraft:visual/star_brightness": 0.0,
-    "minecraft:gameplay/sky_light_level": 1.0,
 }
 
 SPACES = [
