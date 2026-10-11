@@ -58,6 +58,8 @@ class Space:
     # 차원 시계 시각 (멈춰 둠). 쉐이더(BSL)는 하늘을 이 시각으로 그린다 — 시계가 없으면 0(아침)으로 보임.
     # 138000 = 6번째 날 자정 → 달 위상 '초승달(차는 중)' (바닐라 timeline/moon.json: 120000부터)
     clock_time: int = 138000
+    # 공중에 떠다니는 파티클 [(파티클, 확률)] — 바이옴 visual/ambient_particles
+    particles: list = field(default_factory=list)
 
     @property
     def dim(self) -> str:
@@ -68,7 +70,9 @@ class Space:
 EXTERIOR_SKY = night_sky("#3b2370", "#2c1b52", moon_phase="waxing_crescent", moon_angle=35.0)
 
 SPACES = [
-    Space("exterior", "외부", "", 1536, 400, EXTERIOR_SKY),
+    # 날리는 종이: 하얀 창백한참나무 잎 + 금빛 포플러 잎 파티클 (떨어지며 흔들림)
+    Space("exterior", "외부", "", 1536, 400, EXTERIOR_SKY,
+          particles=[("minecraft:pale_oak_leaves", 0.004), ("minecraft:yellow_poplar_leaves", 0.002)]),
     Space("lobby", "로비", "앤젤라", 512, 400),
     Space("history", "역사의 층", "말쿠트", 1536, 400),
     Space("technology", "기술과학의 층", "예소드", 2048, 512),

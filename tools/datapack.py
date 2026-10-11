@@ -140,6 +140,10 @@ def biome(space: config.Space) -> dict:
     # 바이옴 시각 속성이 차원 값을 덮어쓰므로 지운다 (HANDOFF 2절)
     if isinstance(b.get("attributes"), dict):
         b["attributes"] = {k: v for k, v in b["attributes"].items() if not k.startswith("minecraft:visual/")}
+    if space.particles:  # 바닐라 basalt_deltas.json 과 같은 형식
+        b.setdefault("attributes", {})["minecraft:visual/ambient_particles"] = {
+            "argument": [{"particle": {"type": t}, "probability": p} for t, p in space.particles],
+            "modifier": "append"}
     return b
 
 
