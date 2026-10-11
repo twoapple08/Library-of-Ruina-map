@@ -190,11 +190,23 @@ def ci_world(argv) -> int:
             # 플레이어가 없으니 도착지 둘레 청크를 직접 불러옴 (게임에서는 플레이어가 불러옴)
             r = datapack.LOAD_R
             srv.run(f"execute in {a.dim} run forceload add {int(a.x) - r} {int(a.z) - r} {int(a.x) + r} {int(a.z) + r}")
+            time.sleep(3)
             srv.run(f"execute in {w.dim} run summon minecraft:marker {(x0 + x1 + 1) / 2} {y0 + 0.1} {(z0 + z1 + 1) / 2} "
                     f"{{Tags:[\"ruina.fadetest\"]}}")
             srv.run(f"execute as @e[type=minecraft:marker,tag=ruina.fadetest] run function ruina:tp/fade/{w.dest}")
+            outs = []
             for _ in range(datapack.FADE_MIN + 2):
-                srv.run("execute as @e[type=minecraft:marker,tag=ruina.fadetest] at @s run function ruina:tp/fade_tick")
+                outs.append(srv.run("execute as @e[type=minecraft:marker,tag=ruina.fadetest] at @s run function ruina:tp/fade_tick"))
+            diag = {
+                "ticks": outs[:1] + outs[9:12] + outs[-2:],
+                "arrived": srv.test(f"execute in {a.dim} positioned {a.x} {a.y} {a.z} if entity "
+                                    f"@e[type=minecraft:marker,tag=ruina.fadetest,distance=..0.5]"),
+                "fading": srv.test("execute if entity @e[type=minecraft:marker,tag=ruina.fadetest,tag=ruina.fading]"),
+                "score": srv.run("scoreboard players list @e[type=minecraft:marker,tag=ruina.fadetest,limit=1]"),
+                "loaded": srv.test(f"execute in {a.dim} positioned {a.x} {a.y} {a.z} if loaded ~-{r} ~ ~-{r} "
+                                   f"if loaded ~{r} ~ ~{r}"),
+            }
+            rep.data.setdefault("fade_diag", {})[w.dest] = diag
             ok = srv.test(f"execute in {a.dim} positioned {a.x} {a.y} {a.z} if entity "
                           f"@e[type=minecraft:marker,tag=ruina.fadetest,tag=!ruina.fading,distance=..0.5]")
             rep.add(ok, f"암전 TP {w.dim} {w.box} → {w.dest} (도착 + 로딩 확인 후 해제)")
