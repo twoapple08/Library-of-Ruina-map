@@ -177,8 +177,8 @@ class Dimension:
             if s is not None:
                 s[ay0 & 15:(ay1 & 15) + 1, az0 & 15:(az1 & 15) + 1, ax0 & 15:(ax1 & 15) + 1] = i
 
-    def place(self, x0: int, y0: int, z0: int, ids: np.ndarray):
-        """ids: [X,Y,Z] 정수 배열 (팔레트 번호, -1 = 건드리지 않음)."""
+    def place(self, x0: int, y0: int, z0: int, ids: np.ndarray, only_air: bool = False):
+        """ids: [X,Y,Z] 정수 배열 (팔레트 번호, -1 = 건드리지 않음). only_air면 빈 칸에만."""
         ids = np.asarray(ids)
         X, Y, Z = ids.shape
         self._check_y(y0, y0 + Y - 1)
@@ -194,6 +194,8 @@ class Dimension:
                     continue
                 s = self._sec(key)
             view = s[ay0 & 15:(ay1 & 15) + 1, az0 & 15:(az1 & 15) + 1, ax0 & 15:(ax1 & 15) + 1]
+            if only_air:
+                m = m & (view == 0)
             view[m] = sub[m]
 
     def place_mask(self, x0: int, y0: int, z0: int, mask: np.ndarray, state: str):
