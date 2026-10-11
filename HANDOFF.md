@@ -1,6 +1,6 @@
 # 인수인계 (HANDOFF)
 
-새 세션은 **이 문서 → `PLAN.md` → `design/exterior.md` → `TESTING.md`** 순서로 읽고 이어서 작업한다.
+새 세션은 **이 문서 → `docs/test/README.md`(최근 테스트 원문) + `docs/test/*.jpg` 스크린샷 4장을 직접 열어 보기 → `PLAN.md` → `design/exterior.md` → `TESTING.md`** 순서로 확인하고 이어서 작업한다.
 마지막 갱신: 2026-10-11 (Phase 1 외부 1차 완성 → 테스터 피드백 받음, 수정 작업 대기).
 
 ## 0. 사용자와 일하는 방식
