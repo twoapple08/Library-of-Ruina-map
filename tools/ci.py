@@ -83,7 +83,9 @@ def cmd_refs():
             f.write(z.read("version.json"))
     n = 0
     for name in names:
-        if any(name.startswith(p) for p in REF_PATTERNS) and not name.endswith("/"):
+        extra = (name.startswith("data/minecraft/worldgen/biome/") and name.endswith(".json")
+                 and b"ambient_particles" in z.read(name))
+        if (extra or any(name.startswith(p) for p in REF_PATTERNS)) and not name.endswith("/"):
             dst = os.path.join(ref, "vanilla", name.split("data/minecraft/", 1)[-1])
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             with open(dst, "wb") as f:
