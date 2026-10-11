@@ -135,6 +135,8 @@ def ci_world(argv) -> int:
             by_dim.setdefault(p.dim, set()).add((int(p.x) >> 4, int(p.z) >> 4))
         for a in b.links.anchors.values():
             by_dim.setdefault(a.dim, set()).add((int(a.x) >> 4, int(a.z) >> 4))
+        for dim, x, z in b.forceload:
+            by_dim.setdefault(dim, set()).add((int(x) >> 4, int(z) >> 4))
         for dim, chunks in by_dim.items():
             _forceload(srv, dim, chunks, rep)
 
@@ -146,7 +148,7 @@ def ci_world(argv) -> int:
                 fails.append(c)
         rep.add(passed == len(checks), f"블록 검증 {passed}/{len(checks)} (팔레트 형식 {W.PALETTE_FORMAT})")
 
-        for e in b.extra_checks:
+        for e in [e for e in b.extra_checks if not e.get("after_entities")]:
             for c in e.get("setup", []):
                 srv.run(c)
             got = srv.test(e["cmd"])
@@ -155,6 +157,9 @@ def ci_world(argv) -> int:
         # 상호작용 엔티티 소환
         out = srv.run("function ruina:build/entities")
         rep.data["entities_cmd"] = out
+        for e in [e for e in b.extra_checks if e.get("after_entities")]:
+            got = srv.test(e["cmd"])
+            rep.add(got == e["expect"], f"{e['what']}: {e['cmd']}")
         for p in b.links.portals:
             ok = srv.test(f"execute in {p.dim} positioned {p.x} {p.y} {p.z} if entity "
                           f"@e[type=minecraft:interaction,tag=ruina.to.{p.dest},distance=..0.5]")

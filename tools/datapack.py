@@ -70,6 +70,7 @@ class Links:
     functions: dict = field(default_factory=dict)   # 빌더가 추가하는 함수 {이름: [명령]}
     tick: list = field(default_factory=list)        # 빌더가 추가하는 tick 명령
     scores: list = field(default_factory=list)      # 빌더가 쓰는 점수판 이름
+    entity_cmds: list = field(default_factory=list) # 빌드 때 한 번 소환할 엔티티 명령 (build/entities)
 
     def walk(self, dim, box, dest, fade: bool = False) -> Walk:
         w = Walk(dim, tuple(int(v) for v in box), dest, fade)
@@ -256,7 +257,7 @@ def functions(links: Links) -> dict:
         nbt = (f"{{width:{_fmt(p.width)}f,height:{_fmt(p.height)}f,response:1b,"
                f"Tags:[\"{NS}.tp\",\"{NS}.to.{p.dest}\"]}}")
         ents.append(f"execute in {p.dim} run summon minecraft:interaction {_fmt(p.x)} {_fmt(p.y)} {_fmt(p.z)} {nbt}")
-    f["build/entities"] = ents
+    f["build/entities"] = ents + list(links.entity_cmds)
     for k, v in links.functions.items():
         if k in f:
             raise KeyError(f"함수 이름 겹침: {k}")

@@ -118,6 +118,8 @@ build.py                로컬: python build.py previews | datapack | check
 builders/__init__.py    Build(차원별 블록 저장소, TP 연결, 서버 검증 목록 자동 생성)
 builders/smoke.py       Phase 0 스모크 월드 (더 안 씀)
 builders/lobby.py       로비: 전환 전 방 + 전환 후 홀, 은조각 F 전환
+builders/history.py     역사의 층: 접대 무대(길·난간·진열장)·반복 바닥·배경·유물, 말쿠트 방
+builders/fragment.py    조각(은·금) F 전환 공용
 builders/previews.py    공간별 미리보기 목록
 tools/nbt.py            NBT 읽기/쓰기 (+ to_snbt 덤프)
 tools/region.py         .mca 읽기/쓰기 (255섹터 초과 시 .mcc)
@@ -181,11 +183,21 @@ previews/               미리보기 PNG (폰 확인용)
   `Dimension.set_biome`(청크별 바이옴), `config.Space.biomes`(추가 바이옴). `builders/smoke.py`의 임시 로비는 더 안 씀
 - 미리보기 `previews/lobby_*.png`. CI가 암전 TP·방↔홀 전환·바이옴을 마커로 검사
 
+### Phase 3 역사의 층 1차 (2026-10-12) — 테스트 대기 (TESTING.md ⑲~㉕)
+- 사용자 결정: 로비 홀 흰 대계단 꼭대기 빛 → 암전 → '역사의 층' (은조각 회수, 금조각 지급). 돌아갈 땐 도착 자리 뒤 내려가는 계단 빛 →
+  로비 계단 위 ('로비', 금조각 회수). 금조각 F: 접대 공간 ↔ 말쿠트 방 (고정 자리)
+- 크기 (처음 정한 층별 크기 1536×400 유지, 사용자 첨부 '층 내부 크기 정리' 참고): 3겹
+  ① 접대 무대 500×250 (길 여러 줄, 난간 8칸·진열장 5칸 간격 — 원화는 평평한 바닥을 살짝 위에서 내려다본 원근)
+  ② 130~370: 아래로 반복되는 바닥 4겹(24칸 간격, 겹마다 16칸 넓어짐, 보이는 테두리만) + 책장 절벽, 책장 기둥 줄, 유물 셋
+  ③ 600~720: 구역 끝 큰 책장 벽 (DH/렌더 거리 48+ 에서 보임 — 테스트 ㉔)
+- 최적화: 겉면만, 아래 겹은 테두리만, 진열장 속 책(item_display)은 도착 자리 둘레 277개만. 블록 약 408만, 숨은 블록 0.3%
+- 코드: `builders/history.py`, 조각 공용 `builders/fragment.py` (은조각·금조각, `F.setup`), `Links.entity_cmds`, `Build.forceload`
+
 ### 남은 일
 8. **색감**: 월드 폴더에 `resources.zip` 넣는 방식으로 텍스처팩 (사용자 결정: 이 방식, 모드 제작은 최종 단계).
    구름·종이·탑 판자 색 맞춤 텍스처. 싱글플레이에서 자동 적용 제안이 뜨는지 검증 필요
 9. 2차 테스트 결과 반영 (특히 BSL 밤 여부, 정문 TP)
-10. 로비 테스트 결과 반영 → 그다음 Phase 3: 첫 층 (역사의 층, 은조각 회수)
+10. 테스트 결과 반영 (외부·로비·역사의 층) → 그다음 기술과학의 층 (예소드)
 
 ### 작업 팁 (이번 세션에서 배운 것)
 - 전체 외부 빌드 ≈ 135초(로컬, 2차 수정 후). 탑만 다시 만들고 주변만 바꿔 볼 때는 `exterior.build(b, city=False, clouds=False)` 결과를 pickle로 캐시해 두고 crater 함수만 다시 실행하면 빠름

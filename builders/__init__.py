@@ -21,6 +21,7 @@ class Build:
         self.dims: dict[str, Dimension] = {}
         self.links = datapack.Links()
         self.extra_checks: list[dict] = []
+        self.forceload: list[tuple] = []   # (차원, x, z): 서버가 엔티티를 소환할 수 있게 미리 불러올 칸
 
     def dim(self, space_id: str) -> Dimension:
         d = self.dims.get(space_id)
@@ -84,9 +85,10 @@ class Build:
 
 
 def build_all(only: list[str] | None = None) -> Build:
-    """월드에 들어가는 전체. 외부 + 로비 (전환 전 방 ↔ 전환 후 홀)."""
-    from . import exterior, lobby
+    """월드에 들어가는 전체. 외부 + 로비 (전환 전 방 ↔ 전환 후 홀) + 역사의 층."""
+    from . import exterior, history, lobby
     b = Build()
     exterior.build(b)
     lobby.build(b)
+    history.build(b)
     return b

@@ -21,11 +21,6 @@ from tools import shapes as S
 Y0 = 64            # 서 있는 높이 (바닥 블록 Y0-1)
 HALL_DX = 512      # 홀 = 방 + (512, 0, 0)
 
-# ---------------------------------------------------------------- 은조각
-SILVER_P = "minecraft:iron_nugget[minecraft:custom_data={ruina:{silver:1b}}]"
-SILVER_ITEM = ('minecraft:iron_nugget[minecraft:custom_data={ruina:{silver:1b}},minecraft:item_name="은조각",'
-               "minecraft:enchantment_glint_override=true]")
-
 # ---------------------------------------------------------------- 방 (전환 전)
 RX, RZ = 10, 16    # 안쪽 반폭 (x -10..10, z -16..16)
 RH = 10            # 천장 높이 (안쪽 Y0..Y0+9)
@@ -309,62 +304,36 @@ def _clutter(d, ox, rng):
 
 # ---------------------------------------------------------------- 조립 + TP·전환
 
+def stair_top():
+    """흰 대계단 꼭대기 (빛 앞 층계참): (가운데 x, 서 있는 y, 층계참 z 범위)."""
+    k = STAIR_N
+    zt = STAIR_Z0 - 2 * k
+    return HALL_DX + _stair_center(k), Y0 + k, (zt - 5, zt)
+
+
 def build(b):
+    from . import fragment as F
     d = b.dim("lobby")
     build_room(d)
     build_hall(d)
     L = b.links
-    give = (f"execute unless items entity @s container.* {SILVER_P} unless items entity @s weapon.offhand {SILVER_P} "
-            f"run give @s {SILVER_ITEM}")
-    L.anchor("lobby_entrance", d.dim, 0.5, Y0, RZ - 2.5, yaw=180, title="로비", on_arrive=[give])
-    L.anchor("lobby_hall", d.dim, HALL_DX + 0.5, Y0, RZ - 2.5, yaw=180, on_arrive=[give])
+    # 로비에 오면: 금조각 회수(역사의 층에서 돌아올 때) + 은조각이 없으면 1개
+    arrive = [F.take(F.GOLD_P), F.give_if_missing(F.SILVER_P, F.SILVER)]
+    L.anchor("lobby_entrance", d.dim, 0.5, Y0, RZ - 2.5, yaw=180, title="로비", on_arrive=arrive)
+    L.anchor("lobby_hall", d.dim, HALL_DX + 0.5, Y0, RZ - 2.5, yaw=180, on_arrive=arrive)
     L.portal(d.dim, 0.5, Y0, RZ + 1.5, "exterior_gate", width=3, height=4)
     L.walk(d.dim, (-1, Y0, RZ + 1, 1, Y0 + 2, RZ + 1), "exterior_gate", fade=True)
 
-    # 은조각을 왼손으로 들면(F) 번쩍 → 방 ↔ 홀 (같은 상대 위치, 막혀 있으면 기본 자리). 몇 틱 뒤 오른손으로 되돌림
-    NS = "ruina"
-    L.scores += [f"{NS}.silver", f"{NS}.ok"]
-    L.tick += [
-        f"execute as @a[tag=!{NS}.fading,tag=!{NS}.silver_up] at @s if dimension {d.dim} "
-        f"if items entity @s weapon.offhand {SILVER_P} run function {NS}:lobby/switch",
-        f"execute as @a[tag={NS}.silver_up] run function {NS}:lobby/silver_tick",
-    ]
-    hall_box = f"x={HALL_DX // 2},y=-64,z=-1024,dx=4096,dy=1024,dz=2048"
-    L.functions["lobby/switch"] = [
-        f"tag @s add {NS}.silver_up",
-        f"scoreboard players set @s {NS}.silver 0",
-        f"execute if entity @s[{hall_box}] run tag @s add {NS}.was_hall",   # 한 번만 판단 (이동 뒤 다시 판단하면 되돌아감)
-        f"execute if entity @s[tag={NS}.was_hall] run function {NS}:lobby/go/room",
-        f"execute unless entity @s[tag={NS}.was_hall] run function {NS}:lobby/go/hall",
-        f"tag @s remove {NS}.was_hall",
-        f"execute at @s run function {NS}:lobby/fx",
-        f"execute at @s run function {NS}:lobby/fx_flash",
-    ]
-    for name, dx, fallback in (("hall", HALL_DX, "lobby_hall"), ("room", -HALL_DX, "lobby_entrance")):
-        L.functions[f"lobby/go/{name}"] = [
-            f"scoreboard players set @s {NS}.ok 0",
-            f"execute positioned ~{dx} ~ ~ if block ~ ~ ~ minecraft:air if block ~ ~1 ~ minecraft:air "
-            f"run scoreboard players set @s {NS}.ok 1",
-            f"execute if score @s {NS}.ok matches 1 positioned ~{dx} ~ ~ run tp @s ~ ~ ~",
-            f"execute if score @s {NS}.ok matches 0 run function {NS}:tp/to/{fallback}",
-        ]
-    L.functions["lobby/fx"] = [
-        "particle minecraft:end_rod ~ ~1 ~ 1.5 1.2 1.5 0.12 160 force @s",
-        "particle minecraft:firefly ~ ~1 ~ 4 2 4 0 120 force @s",
-        "effect give @s minecraft:night_vision 1 0 true",
-    ]
-    # 플래시 입자는 버전마다 옵션이 달라 따로 (문법 오류면 이 함수만 실패)
-    L.functions["lobby/fx_flash"] = ["particle minecraft:flash{color:[1.0,0.96,0.85,1.0]} ^ ^1.6 ^1 0 0 0 0 1 force @s"]
-    L.functions["lobby/silver_tick"] = [
-        f"scoreboard players add @s {NS}.silver 1",
-        f"execute if score @s {NS}.silver matches 6.. unless items entity @s weapon.mainhand * "
-        f"if items entity @s weapon.offhand {SILVER_P} run function {NS}:lobby/silver_back",
-        f"execute unless items entity @s weapon.offhand {SILVER_P} run tag @s remove {NS}.silver_up",
-    ]
-    L.functions["lobby/silver_back"] = [
-        "item replace entity @s weapon.mainhand from entity @s weapon.offhand",
-        "item replace entity @s weapon.offhand with minecraft:air",
-    ]
+    # 흰 대계단 꼭대기 빛으로 걸어 들어가면 → 암전 → 역사의 층. 돌아오면 계단 몇 단 아래에 남쪽을 보고 도착
+    cx, ytop, (z0, z1) = stair_top()
+    L.walk(d.dim, (int(cx) - STAIR_W, ytop, z0, int(cx) + STAIR_W, ytop + 3, z0 + 2), "history_entrance", fade=True)
+    k = STAIR_N - 4
+    L.anchor("lobby_stairs", d.dim, HALL_DX + round(_stair_center(k)) + 0.5, Y0 + k + 1, STAIR_Z0 - 2 * k + 0.5, yaw=0,
+             title="로비", on_arrive=arrive)
+
+    # 은조각을 왼손으로 들면(F) 번쩍 → 방 ↔ 홀 (같은 상대 위치, 막혀 있으면 기본 자리)
+    F.setup(L, "silver", d.dim, F.SILVER_P, f"x={HALL_DX // 2},y=-64,z=-1024,dx=4096,dy=1024,dz=2048",
+            to_a=F.relative(-HALL_DX, "lobby_entrance"), to_b=F.relative(HALL_DX, "lobby_hall"))
     # 서버 검증: 홀 바이옴, 방 → 홀 → 방 전환 (마커로)
     ax, az = 0.5, RZ - 2.5
     b.extra_checks += [
@@ -373,11 +342,11 @@ def build(b):
         {"what": "방 바이옴 ruina:lobby", "cmd": f"execute in {d.dim} if biome 0 {Y0} 0 ruina:lobby", "expect": True},
         {"what": "전환 방→홀 (같은 상대 위치)",
          "setup": [f"execute in {d.dim} run summon minecraft:marker {ax} {Y0} {az} {{Tags:[\"ruina.sw\"]}}",
-                   f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.sw] at @s run function ruina:lobby/switch"],
+                   f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.sw] at @s run function ruina:silver/switch"],
          "cmd": f"execute in {d.dim} positioned {HALL_DX + ax} {Y0} {az} if entity @e[type=minecraft:marker,tag=ruina.sw,distance=..0.5]",
          "expect": True},
         {"what": "전환 홀→방",
-         "setup": [f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.sw] at @s run function ruina:lobby/switch"],
+         "setup": [f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.sw] at @s run function ruina:silver/switch"],
          "cmd": f"execute in {d.dim} positioned {ax} {Y0} {az} if entity @e[type=minecraft:marker,tag=ruina.sw,distance=..0.5]",
          "expect": True},
     ]

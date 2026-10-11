@@ -88,6 +88,18 @@ LOBBY_HALL_SKY = {
     "minecraft:visual/star_brightness": 0.0,
 }
 
+# 역사의 층 (reference/역사의 층 전경.png, 지정사서 방.png)
+HISTORY_SKY = night_sky("#f1d9a6", "#e2bf86", stars=0.0, sky_light_level=1.0, light_factor=1.0,
+                        light_color="#fff0d0", extra={
+                            "minecraft:visual/fog_start_distance": 40.0, "minecraft:visual/fog_end_distance": 340.0,
+                            "minecraft:visual/sky_fog_end_distance": 360.0})
+HISTORY_ROOM_SKY = {
+    "minecraft:visual/sky_color": "#2a1a0c",
+    "minecraft:visual/fog_color": "#3a2412",
+    "minecraft:visual/fog_start_distance": 6.0,
+    "minecraft:visual/fog_end_distance": 60.0,
+}
+
 SPACES = [
     # 날리는 종이: 하얀 창백한참나무 잎 + 금빛 포플러 잎 파티클 (떨어지며 흔들림)
     Space("exterior", "외부", "", 1536, 400, EXTERIOR_SKY,
@@ -96,7 +108,10 @@ SPACES = [
     Space("lobby", "로비", "앤젤라", 512, 400, LOBBY_ROOM_SKY, particles=[("minecraft:white_ash", 0.003)],
           biomes={"lobby_hall": {"attributes": LOBBY_HALL_SKY, "particles": [("minecraft:firefly", 0.004),
                                                                              ("minecraft:end_rod", 0.0004)]}}),
-    Space("history", "역사의 층", "말쿠트", 1536, 400),
+    # 역사의 층: 금빛·크림색 안개 (원화 배경의 밝은 빛), 먼 배경은 안개 속으로. 말쿠트 방은 따뜻하고 어두운 실내
+    Space("history", "역사의 층", "말쿠트", 1536, 400, HISTORY_SKY, particles=[("minecraft:firefly", 0.002),
+                                                                          ("minecraft:white_ash", 0.002)],
+          biomes={"history_room": {"attributes": HISTORY_ROOM_SKY, "particles": [("minecraft:white_ash", 0.002)]}}),
     Space("technology", "기술과학의 층", "예소드", 2048, 512),
     Space("literature", "문학의 층", "호드", 1536, 400),
     Space("art", "예술의 층", "네짜흐", 1536, 400),

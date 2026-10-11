@@ -96,6 +96,37 @@ def render_lobby(b, out_dir, pal):
     return files
 
 
+def render_history(b, out_dir, pal):
+    from builders.history import ARRIVE_Z, RD, ROOM_X, Y0
+    d = b.dims["history"]
+    files = []
+    warm = dict(sky=((241, 217, 166), (226, 191, 134)), fog=(226, 191, 134), stars=0, night=False)
+
+    def save(img, name):
+        p = os.path.join(out_dir, name)
+        img.save(p, optimize=True)
+        files.append(p)
+
+    stage = render_persp(d, pal, cam=(0.5, Y0 + 9, ARRIVE_Z + 12), look=(0.5, Y0 + 2, ARRIVE_Z - 40), fov=78,
+                         W=1000, H=562, max_dist=900, fog_dist=260, **warm)
+    save(_compare("역사의 층 전경.png", stage, "역사의 층 — 원화(위) / 맵(아래): 도착 자리 위에서 북쪽을 내려다봄",
+                  ["동서로 긴 길 여러 줄: 헤링본 바닥, 난간(검은 몸통·금속 윗면·아래 빛줄), 5칸마다 유리 진열장(책)",
+                   "멀리 안개 속 거대 책장 기둥, 거대 유물 셋 (불 켜진 나무 장 · 톱니·쇠사슬 돌기둥 · 이끼 돌덩이)"]),
+         "history_compare_stage.png")
+    over = render_persp(d, pal, cam=(0.5, Y0 + 160, 420), look=(0.5, Y0 - 20, -120), fov=70, W=1000, H=562,
+                        max_dist=1600, fog_dist=700, **warm)
+    save(_frame(over, "역사의 층 — 멀리서 본 전체", ["가운데 접대 무대(500×250) → 아래로 4겹 반복되는 바닥과 책장 절벽",
+                                                  "뒤로 책장 기둥 줄과 유물 셋, 구역 끝을 두르는 큰 책장 벽"]),
+         "history_overview.png")
+    room = render_persp(d, pal, cam=(ROOM_X - 4.5, Y0 + 2.2, RD - 1), look=(ROOM_X + 4, Y0 + 3, -RD), fov=80,
+                        W=1000, H=562, max_dist=120, sky=((40, 26, 12), (58, 36, 18)), fog=(58, 36, 18),
+                        fog_dist=60, stars=0)
+    save(_compare("역사의 층 지정사서 방.png", room, "말쿠트 방 — 원화(위) / 맵(아래)",
+                  ["천장까지 책장 칸 + 칸 사이 금빛 빛줄, 책상 위 펼친 책·책 더미, 높은 등받이 의자 둘",
+                   "오른쪽 책장 틈으로 금빛 (금조각을 왼손으로 들면(F) 접대 공간 ↔ 방)"]), "history_compare_room.png")
+    return files
+
+
 def render_all(b, out_dir):
     os.makedirs(out_dir, exist_ok=True)
     pal = Palette()
@@ -104,4 +135,6 @@ def render_all(b, out_dir):
         files += render_exterior(b, out_dir, pal)
     if "lobby" in b.dims:
         files += render_lobby(b, out_dir, pal)
+    if "history" in b.dims:
+        files += render_history(b, out_dir, pal)
     return files
