@@ -85,7 +85,7 @@ def fixed(anchor: str) -> list:
 
 
 # 층 순서대로 (사용자 지정, 2026-10-12): 철조각, 금조각, 철괴, 금괴, 철발판, 금발판, 철블럭, 금블럭, 모루, 황금사과.
-# 로비부터 하나씩. 총류는 목록이 모자라 임시로 마법이 부여된 황금사과 (사용자 확인 필요)
+# 로비부터 하나씩, 총류는 마법이 부여된 황금사과 (사용자 확정)
 SILVER_P, SILVER = item("silver", "minecraft:iron_nugget", "철조각")                 # 로비 (예전 이름 '은조각')
 GOLD_P, GOLD = item("gold", "minecraft:gold_nugget", "금조각")                       # 역사
 IRON_P, IRON = item("iron", "minecraft:iron_ingot", "철괴")                          # 기술과학
@@ -96,7 +96,7 @@ IBLOCK_P, IBLOCK = item("iblock", "minecraft:iron_block", "철블럭")          
 GBLOCK_P, GBLOCK = item("gblock", "minecraft:gold_block", "금블럭")                  # 사회과학
 ANVIL_P, ANVIL = item("anvil", "minecraft:anvil", "모루")                            # 철학
 APPLE_P, APPLE = item("apple", "minecraft:golden_apple", "황금사과")                  # 종교
-EAPPLE_P, EAPPLE = item("eapple", "minecraft:enchanted_golden_apple", "마법이 부여된 황금사과")  # 총류 (임시)
+EAPPLE_P, EAPPLE = item("eapple", "minecraft:enchanted_golden_apple", "마법이 부여된 황금사과")  # 총류
 MAGMA_P, MAGMA = item("magma", "minecraft:magma_cream", "마그마크림")                 # 자연과학 색감 전환
 ALL = [(SILVER_P, SILVER), (GOLD_P, GOLD), (IRON_P, IRON), (GOLDBAR_P, GOLDBAR), (IPLATE_P, IPLATE),
        (GPLATE_P, GPLATE), (IBLOCK_P, IBLOCK), (GBLOCK_P, GBLOCK), (ANVIL_P, ANVIL), (APPLE_P, APPLE),

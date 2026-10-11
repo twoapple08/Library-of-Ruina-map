@@ -125,6 +125,7 @@ def build_room(d):
     d.set(0, Y0, -6, "minecraft:dark_oak_stairs[facing=north]")
     # 남쪽 출구 (검은 문)
     d.fill(-1, Y0, RZ + 1, 1, Y0 + 3, RZ + 1, "minecraft:air")
+    d.fill(-1, Y0 - 1, RZ + 1, 1, Y0 - 1, RZ + 1, "minecraft:dark_oak_planks")   # 문턱 (빠지지 않게)
     d.fill(-1, Y0, RZ + 2, 1, Y0 + 3, RZ + 2, "minecraft:black_concrete")
     d.fill(-2, Y0 + 4, RZ + 1, 2, Y0 + 4, RZ + 1, PLINTH)
 

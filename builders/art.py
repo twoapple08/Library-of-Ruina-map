@@ -250,7 +250,7 @@ def spirits(b, d, ox=ROOM_X, n=20, seed=1321):
     for x, y, z in spots:
         for (oy, sx, sy, sz) in ((0.0, 0.22, 0.3, 0.22), (0.3, 0.32, 0.3, 0.32)):
             cmds.append(f"execute in {d.dim} run summon minecraft:block_display {x - sx / 2:.2f} {y + oy:.2f} {z - sz / 2:.2f} "
-                        '{block_state:{Name:"minecraft:verdant_froglight"},Tags:["ruina.spirit"],'
+                        '{block_state:"minecraft:verdant_froglight",Tags:["ruina.spirit"],'
                         "brightness:{sky:15,block:15},transformation:{left_rotation:[0f,0f,0f,1f],"
                         f"right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],scale:[{sx}f,{sy}f,{sz}f]}}}}")
         b.forceload.append((d.dim, x, z))

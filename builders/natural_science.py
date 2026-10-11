@@ -191,12 +191,12 @@ def tiphereth_room(d, ox=ROOM_X):
     for x in range(-5, 6):
         top = int(16 + 3 * math.sqrt(max(0.0, 1 - (x / 5) ** 2)))
         d.fill(ox + x, y0 + 3, z0, ox + x, y0 + top, z0, "minecraft:pearlescent_froglight")
-        if x % 2 == 0:
-            d.fill(ox + x, y0 + 3, z0 + 1, ox + x, y0 + top - 4, z0 + 1, "minecraft:white_stained_glass_pane")
-    for k in range(-3, 4):                                     # 마름모 테
-        d.set(ox + k, y0 + 15 + (3 - abs(k)), z0 + 1, "minecraft:gold_block")
-        d.set(ox + k, y0 + 15 - (3 - abs(k)), z0 + 1, "minecraft:gold_block")
-    d.set(ox, y0 + 15, z0 + 1, "minecraft:diamond_block")     # 청록 보석
+        if x % 3 == 0:   # 창살 (창 면 안에 — 앞을 막지 않게)
+            d.fill(ox + x, y0 + 3, z0, ox + x, y0 + top - 4, z0, "minecraft:stripped_oak_log[axis=y]")
+    for k in range(-3, 4):                                     # 마름모 테 (창 면 안에)
+        d.set(ox + k, y0 + 15 + (3 - abs(k)), z0, "minecraft:gold_block")
+        d.set(ox + k, y0 + 15 - (3 - abs(k)), z0, "minecraft:gold_block")
+    d.set(ox, y0 + 15, z0, "minecraft:diamond_block")         # 청록 보석
     # 창 앞 단 3칸 + 둥근 탁자 + 안락의자
     for k in range(3):
         d.fill(ox - 6, y0 + k, z0 + 1, ox + 6, y0 + k, z0 + 6 - k * 2, "minecraft:smooth_sandstone")

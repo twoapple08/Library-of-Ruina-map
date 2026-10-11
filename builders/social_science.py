@@ -128,7 +128,7 @@ def floating(b, d, rng, cars=12, fish=40):
         for state, tr, sc in ((body, (-2.5, 0, -1), (5, 1.2, 2)), ("minecraft:tinted_glass", (-1.5, 1.2, -0.9), (3, 0.9, 1.8)),
                               ("minecraft:black_concrete", (-2.2, -0.4, -1.05), (4.4, 0.5, 2.1))):
             cmds.append(f"execute in {d.dim} run summon minecraft:block_display {x:.1f} {y:.1f} {z:.1f} "
-                        f'{{block_state:{{Name:"{state}"}},Tags:["ruina.car"],transformation:{{left_rotation:[{q[0]}f,{q[1]}f,{q[2]}f,{q[3]}f],'
+                        f'{{block_state:"{state}",Tags:["ruina.car"],transformation:{{left_rotation:[{q[0]}f,{q[1]}f,{q[2]}f,{q[3]}f],'
                         f"right_rotation:[0f,0f,0f,1f],translation:[{tr[0]}f,{tr[1]}f,{tr[2]}f],scale:[{sc[0]}f,{sc[1]}f,{sc[2]}f]}}}}")
         b.forceload.append((d.dim, x, z))
     kinds = ["minecraft:tropical_fish", "minecraft:cod", "minecraft:salmon", "minecraft:pufferfish"]
