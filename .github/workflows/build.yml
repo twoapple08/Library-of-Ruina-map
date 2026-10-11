@@ -63,7 +63,7 @@ jobs:
         run: |
           python -m tools.ci refs
           python -m tools.ci reports
-          python -m tools.ci colors
+          python -m tools.ci colors || echo "::warning::블록 색 추출 실패 (미리보기용이라 계속 진행)"
 
       - name: 포맷 프로브
         if: env.TASK == 'probe'

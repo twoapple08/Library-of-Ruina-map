@@ -168,10 +168,15 @@ def cmd_colors():
 
     def resolve(tex, key, depth=0):
         v = tex.get(key)
-        while isinstance(v, str) and v.startswith("#") and depth < 10:
-            v = tex.get(v[1:])
-            depth += 1
-        return v
+        while depth < 10:
+            if isinstance(v, dict):  # 새 형식: {"sprite": "...", ...}
+                v = v.get("sprite")
+            if isinstance(v, str) and v.startswith("#"):
+                v = tex.get(v[1:])
+                depth += 1
+                continue
+            break
+        return v if isinstance(v, str) else None
 
     def avg(texref):
         if not texref:
