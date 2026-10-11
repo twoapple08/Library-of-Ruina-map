@@ -291,9 +291,81 @@ def stairs(d):
             d.fill(-hw, top, zb, hw, top, zb, "minecraft:dark_oak_stairs[facing=north,half=bottom]")
 
 
+# ---------------------------------------------------------------- 황금 종이 물결
+
+PAPER = ("minecraft:smooth_sandstone_stairs", "minecraft:smooth_sandstone_slab")
+PAPER_MIX = (["minecraft:smooth_sandstone", "minecraft:birch_planks", "minecraft:sandstone",
+              "minecraft:honeycomb_block", "minecraft:ochre_froglight", "minecraft:glowstone",
+              "minecraft:gold_block", "minecraft:end_stone_bricks"],
+             [30, 14, 8, 8, 14, 6, 4, 6])
+
+
+def _stream_path(side: int):
+    """종이 물결 중심선 (xz). 정문 옆 기단에서 출발해 계단 옆을 지나 앞·바깥으로 휘며 퍼짐."""
+    pts = np.array([[13, 37], [19, 47], [27, 60], [36, 72], [50, 84], [66, 92], [80, 96]], float) * K
+    pts[:, 0] *= side
+    return S.resample(np.c_[pts[:, 0], np.zeros(len(pts)), pts[:, 1]], 2.0)[:, [0, 2]]
+
+
+def _stream_height(side: int, seed: int):
+    path = _stream_path(side)
+
+    def h(X, Z):
+        dist, s, L = S.polyline_2d(path, X, Z)
+        u = s / L
+        half = (6 + 14 * u ** 0.8) * K                  # 반폭 6 → 20
+        top = (4.2 - 2.4 * u) * K                         # 높이 4.2 → 1.8
+        P = np.stack([X, np.zeros_like(X), Z], 1)
+        edge = half * (1 + 0.35 * S.fbm(P, 9.0 * K, 3, seed))   # 들쭉날쭉한 가장자리
+        v = np.clip(dist / np.maximum(edge, 1e-6), 0, None)
+        prof = np.where(v < 1, np.clip(1 - v ** 2, 0, None) ** 0.6, 0.0)
+        bumps = 0.7 * S.fbm(P, 4.0, 2, seed + 7)         # 종이 더미 울퉁불퉁
+        hh = -0.5 + (top + 0.5) * prof + bumps * prof
+        # 출발점: 기단 벽을 따라 흘러내림 (처음 10칸은 높게)
+        fall = np.clip(1 - s / (10 * K), 0, 1) * 14 * K * np.clip(1 - dist / (6 * K), 0, 1)
+        return np.where(prof > 0, hh + fall, -9.0)
+    return h
+
+
+def paper_parts():
+    parts = []
+    for side, seed in ((-1, 61), (1, 62)):
+        fn = _stream_height(side, seed)
+        xs = [p * side for p in (8 * K, 110 * K)]
+        parts.append(S.HeightField(fn, min(xs), 26 * K, max(xs), 125 * K, y0=-0.5, ymax=22 * K).with_(
+            paint=S.mix(*PAPER_MIX, seed=seed), smooth=PAPER, name=f"paper{side}"))
+    return parts
+
+
+def scatter_pages(d, seed=71):
+    """물결 위·주변에 흩어진 종이 (카펫). 물결에서 멀수록 드물게."""
+    rng = np.random.default_rng(seed)
+    pages = ["minecraft:white_carpet", "minecraft:white_carpet", "minecraft:yellow_carpet"]
+    R = int(PLAZA_R) - 2
+    for side in (-1, 1):
+        path = _stream_path(side)
+        xs = np.arange(-R, R + 1)
+        X, Z = np.meshgrid(xs, np.arange(20, R + 1), indexing="ij")
+        X, Z = X.ravel(), Z.ravel()
+        inside = np.hypot(X, Z) < R
+        dist, s, L = S.polyline_2d(path, X + 0.5, Z + 0.5)
+        half = (6 + 14 * (s / L) ** 0.8) * K
+        p = np.clip(1.2 - dist / (half * 1.6), 0, 1) ** 2 * 0.12
+        pick = inside & (rng.random(len(X)) < p)
+        for x, z in zip(X[pick], Z[pick]):
+            # 가장 높은 블록 위가 비었으면 종이 한 장
+            for y in range(int(22 * K), -2, -1):
+                st = d.get(int(x), y, int(z))
+                if st != "minecraft:air":
+                    if "carpet" not in st and "slab" not in st and "stairs" not in st and d.get(int(x), y + 1, int(z)) == "minecraft:air":
+                        d.set(int(x), y + 1, int(z), pages[rng.integers(len(pages))])
+                    break
+
+
 def build(b):
     d = b.dim("exterior")
     plaza(d)
     stairs(d)
-    st = S.carve(d, S.Union(*tower_parts()), shell=1, smooth=True)
+    st = S.carve(d, S.Union(*tower_parts(), *paper_parts()), shell=1, smooth=True)
+    scatter_pages(d)
     return st

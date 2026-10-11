@@ -335,6 +335,48 @@ class Tube(Part):
         return out
 
 
+class HeightField(Part):
+    """땅 위에 쌓인 더미: 윗면 높이 h = fn(x, z) (배열 → 배열), 바닥 y0.
+
+    h <= y0 인 곳은 없음. 거리는 (y - h)를 기울기로 나눈 근사 (lip 넉넉히).
+    info: h(그 칸의 윗면 높이), depth(윗면에서 내려온 깊이)
+    """
+
+    def __init__(self, fn, x0, z0, x1, z1, y0: float, ymax: float, lip: float = 2.0):
+        self.fn, self.y0 = fn, float(y0)
+        self.lo = np.array([x0, y0, z0], float)
+        self.hi = np.array([x1 + 1, ymax, z1 + 1], float)
+        self.lip = lip
+
+    def d(self, P, lo=None, hi=None):
+        h = self.fn(P[:, 0], P[:, 2])
+        top = (P[:, 1] - h) / self.lip
+        bottom = self.y0 - P[:, 1]
+        return np.maximum(top, bottom)
+
+    def info(self, P):
+        h = self.fn(P[:, 0], P[:, 2])
+        return {"h": h, "depth": h - P[:, 1]}
+
+
+def polyline_2d(points, X, Z):
+    """xz 평면 꺾은선에 대한 (거리, 곡선 길이 위치, 길이 전체). points (M,2)."""
+    Q = np.asarray(points, float)
+    a, b = Q[:-1], Q[1:]
+    ab = b - a
+    L2 = np.maximum((ab * ab).sum(1), 1e-12)
+    seglen = np.sqrt(L2)
+    s0 = np.concatenate([[0], np.cumsum(seglen)[:-1]])
+    P = np.stack([X, Z], 1)
+    ap = P[:, None, :] - a[None]
+    t = np.clip((ap * ab[None]).sum(2) / L2[None], 0, 1)
+    diff = ap - t[..., None] * ab[None]
+    dist = np.sqrt((diff * diff).sum(2))
+    k = dist.argmin(1)
+    rows = np.arange(len(P))
+    return dist[rows, k], s0[k] + t[rows, k] * seglen[k], float(seglen.sum())
+
+
 # =================================================================== 곡선 도구
 
 def _simplify(Q: np.ndarray, tol: float) -> np.ndarray:

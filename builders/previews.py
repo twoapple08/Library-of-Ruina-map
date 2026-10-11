@@ -53,10 +53,14 @@ def render_proto(out_dir):
     d = b.dims["exterior"]
     pal = Palette()
     files = []
-    notes = ["도형 엔진 시연용 시제품 (Phase 1에서 다듬음) · 종이 물결·도시 배경은 아직 없음"]
+    notes = ["시제품 (Phase 1에서 다듬음) · 황금 종이 물결 포함 · 도시 배경은 아직"]
     for view, name, title in (("se", "proto_exterior_v0_se.png", "외부 시제품 v0 — 남동쪽에서"),
                               ("front", "proto_exterior_v0_front.png", "외부 시제품 v0 — 정면(남쪽)")):
         p = os.path.join(out_dir, name)
         iso_panel(d, pal, title, notes, view=view, target=1500).save(p, optimize=True)
         files.append(p)
+    p = os.path.join(out_dir, "proto_exterior_v0_paper.png")
+    iso_panel(d, pal, "외부 시제품 — 정문과 황금 종이 물결 확대", notes, view="se",
+              box=(-120, -4, 0, 120, 40, 120), target=1400).save(p, optimize=True)
+    files.append(p)
     return files
