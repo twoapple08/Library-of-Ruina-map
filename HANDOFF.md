@@ -1,7 +1,7 @@
 # 인수인계 (HANDOFF)
 
 새 세션은 **이 문서와 `PLAN.md`를 먼저 읽고** 이어서 작업한다.
-마지막 갱신: 2026-10-11 (Phase 0 코드·CI 완료, 테스터 확인 대기).
+마지막 갱신: 2026-10-11 (Phase 0 완료·테스터 확인 대기 + 기반 작업: 설계서·도형 엔진·입체 렌더러·성능).
 
 ## 0. 사용자와 일하는 방식
 
@@ -20,7 +20,13 @@
 - [x] 릴리스 `world-latest`에 `Library-of-Ruina.zip` 자동 업로드
 - [x] `TESTING.md` (테스터용 설치·확인·보고 양식)
 - [ ] **테스터 확인 대기** (TESTING.md 3절 ①~⑧). 특히 ③ BSL에서 커스텀 차원 하늘·초승달
-- 다음: 테스터 결과 반영 → Phase 1 (외부 건물)
+- [x] 기반 작업 (사용자 요청: 노력 높을 때 효과 큰 작업 먼저)
+  - [x] 외부 원화 정밀 분석 → `design/exterior.md` (탑 11단 = 로비+10층 대응 등 제안 수치)
+  - [x] 곡면 도형 엔진 `tools/shapes.py` (SDF 부품, 속 빈 껍질, 계단·반블록 곡면 다듬기, 노이즈, 소용돌이 곡선)
+  - [x] 입체 미리보기 렌더러 `tools/render3d.py` (등각/정면, 면 음영, 발광 번짐, lod 묶음)
+  - [x] 외부 시제품 v0 `builders/exterior.py` → `previews/proto_exterior_v0_*.png` (아직 월드 빌드에는 안 넣음)
+  - [x] 성능: 도형 엔진 5배(2단계 평가·관 단순화), 리전 쓰기 8배(문자열 캐시·빈 섹션 재사용·병렬)
+- 다음: 테스터 결과 반영 → Phase 1 (외부 건물: 시제품 v0를 다듬어 확정)
 
 ## 2. 확인된 사실 (26.3, 포맷 프로브·서버 로그로 검증)
 
@@ -82,6 +88,11 @@ tools/region.py         .mca 읽기/쓰기 (255섹터 초과 시 .mcc)
 tools/world.py          Dimension: set/fill/place(numpy 배열)/place_mask, 블록 이름 검사(ref/blocks.json), 청크 NBT
 tools/datapack.py       차원·차원타입·바이옴·함수(TP, setup, 엔티티 소환) 생성
 tools/preview.py        위에서 본 모습(높이 음영)·입면·단면 PNG (색: ref/block_colors.json)
+tools/shapes.py         도형 엔진: Box/Sphere/Revolve(회전체)/Tube(관) 부품, Union(|)/Subtract(-)/Displace,
+                        carve(dim, 도형, shell, smooth) — 껍질만 블록화 + 계단·반블록 다듬기, 칠하기(paint) 함수
+tools/render3d.py       입체 미리보기: iso_panel(dim, Palette(), 제목, view='se'|'sw'|'nw'|'ne'|'front', lod, box)
+builders/exterior.py    외부 시제품 v0 (design/exterior.md 수치). python build.py proto 로 미리보기 (약 30초)
+design/exterior.md      외부 원화 분석·제안 수치·재질 후보
 tools/server.py         서버 jar 다운로드, 콘솔 명령 하네스
 tools/ci.py             CI 단계: fetch, refs, reports, colors, probe, world
 tools/build_world.py    CI 월드 빌드: 1차 실행 → 청크 쓰기 → 2차 실행 검증 → level.dat 수정 → zip
@@ -107,12 +118,26 @@ previews/               미리보기 PNG (폰 확인용)
    - 배경음악: 지금은 바닐라 크리에이티브 음악이 그대로 나옴 (사용자에게 끌지 물어볼 것)
 
 ### Phase 1~: PLAN.md 3절 순서대로 (외부 → 로비 → 역사 → … → 총류)
-- 외부 건물 착수 전 준비: `builders/shapes.py`(원통·테이퍼·곡선 가지·소용돌이 등 numpy 마스크 도형), 큰 공간용 성능(리전 단위 생성, 멀티프로세스 쓰기)
-- 외부 스케일: PLAN 5절 (정문 24×15, 탑 지름 72, 높이 330, 가지 반지름 180, 도시 실루엣 300~750) — `config.EXTERIOR_SCALE`
+- 외부(Phase 1) 남은 일: 시제품 v0에 황금 종이 물결, 도시 실루엣(반지름 300~750), 가지 계단·기둥, 재질 다듬기
+  → 사용자에게 미리보기로 확인 → `build_all()`에 넣어 CI 빌드 → 테스터 확인
+- 외부 스케일: PLAN 5절 — `config.EXTERIOR_SCALE`
 - 각 층 착수 시 원화(`reference/`) 보고 하늘 값 결정 → PLAN.md 7절에 기록
+
+### 도형 엔진 사용법 요약
+```python
+from tools import shapes as S
+WOOD = ("minecraft:dark_oak_stairs", "minecraft:dark_oak_slab")
+tube = S.Tube(점들(M,3), 반지름들(M,)).with_(paint=S.log_along("minecraft:dark_oak_log[axis={a}]"), smooth=WOOD)
+body = S.Revolve(y0, y1, radius_fn(y, theta), rmax).with_(paint=함수(ctx))  # ctx.info: rho, theta, y
+S.carve(dim, S.Union(body - S.Box(...), tube), shell=2, smooth=True)
+```
+- 곡선: `S.bezier`, `S.resample`, `S.curl`(소용돌이), `S.join`, `S.taper` / 난수: `S.hash01`, `S.fbm`
+- 칠하기 ctx: x,y,z(정수), P(중심), d(깊이: 0에 가까울수록 바깥 면), info(부품별 값)
+- 계단 판정표는 마인크래프트 StairBlock의 SHAPE_BY_STATE를 그대로 옮김 (방향·inner/outer 검증은 테스터 화면으로)
 
 ## 5. 미해결 질문 / 리스크
 - Iris/BSL + 커스텀 차원/attributes 하늘 호환 (테스터 ③)
-- 큰 공간(최대 3072×3072) 생성 시간·메모리: 지금 구조는 섹션 dict라 수십만 섹션이면 GB 단위 → Phase 1 전에 리전 단위 스트리밍 검토
+- 큰 공간 성능 측정 (2026-10-11): 3072×3072 바닥+기둥+벽 = 섹션 5.6만 개, 메모리 약 0.5GB, 리전 쓰기 4코어 3.8초 → 현재 구조로 충분
+  - 도형 엔진 carve는 아직 단일 프로세스 (외부 시제품 23초). 필요하면 섹션 단위 병렬화
 - 릴리스 zip 2GB 제한 → 공간별 zip 분리 필요할 수 있음
 - 배경음악·환경음 (사용자 결정)
