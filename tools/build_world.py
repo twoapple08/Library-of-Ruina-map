@@ -187,6 +187,9 @@ def ci_world(argv) -> int:
         for w in [w for w in b.links.walks if w.fade]:
             a = b.links.anchors[w.dest]
             x0, y0, z0, x1, y1, z1 = w.box
+            # 플레이어가 없으니 도착지 둘레 청크를 직접 불러옴 (게임에서는 플레이어가 불러옴)
+            r = datapack.LOAD_R
+            srv.run(f"execute in {a.dim} run forceload add {int(a.x) - r} {int(a.z) - r} {int(a.x) + r} {int(a.z) + r}")
             srv.run(f"execute in {w.dim} run summon minecraft:marker {(x0 + x1 + 1) / 2} {y0 + 0.1} {(z0 + z1 + 1) / 2} "
                     f"{{Tags:[\"ruina.fadetest\"]}}")
             srv.run(f"execute as @e[type=minecraft:marker,tag=ruina.fadetest] run function ruina:tp/fade/{w.dest}")
