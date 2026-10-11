@@ -110,6 +110,7 @@ class Dimension:
         self.min_y = min_y
         self.height = height
         self.biome = biome
+        self.chunk_biomes: dict[tuple, str] = {}   # 청크별 바이옴 (없으면 self.biome)
         self.registry = registry or BlockRegistry(None)
         self.palette: list[str] = [AIR]
         self.index: dict[str, int] = {AIR: 0}
@@ -221,19 +222,26 @@ class Dimension:
         lo, hi = a.min(0) * 16, a.max(0) * 16 + 15
         return int(lo[0]), int(lo[1]), int(lo[2]), int(hi[0]), int(hi[1]), int(hi[2])
 
+    def set_biome(self, x0: int, z0: int, x1: int, z1: int, biome: str):
+        """블록 범위 (x0,z0)~(x1,z1)가 걸친 청크 전체를 다른 바이옴으로 (청크 단위)."""
+        for cx in range(x0 >> 4, (x1 >> 4) + 1):
+            for cz in range(z0 >> 4, (z1 >> 4) + 1):
+                self.chunk_biomes[(cx, cz)] = biome
+
     # ---------------------------------------------- 청크 NBT
     def chunk_nbt(self, cx: int, cz: int, data_version: int) -> dict:
         sy0 = self.min_y >> 4
         sy1 = (self.min_y + self.height - 1) >> 4
-        biomes = {"palette": List([self.biome])}
+        biome = self.chunk_biomes.get((cx, cz), self.biome)
+        biomes = {"palette": List([biome])}
         sections = List(elem_tag=nbt.TAG_COMPOUND)
         empty = self.__dict__.setdefault("_empty_sec", {})
         for sy in range(sy0, sy1 + 1):
             s = self.sections.get((cx, sy, cz))
             if s is None or not s.any():
-                raw = empty.get(sy)
+                raw = empty.get((sy, biome))
                 if raw is None:
-                    raw = empty[sy] = nbt.raw_compound(
+                    raw = empty[(sy, biome)] = nbt.raw_compound(
                         {"Y": Byte(sy), "block_states": {"palette": List([AIR])}, "biomes": biomes})
                 sections.append(raw)
                 continue

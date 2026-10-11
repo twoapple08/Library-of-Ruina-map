@@ -147,6 +147,8 @@ def ci_world(argv) -> int:
         rep.add(passed == len(checks), f"블록 검증 {passed}/{len(checks)} (팔레트 형식 {W.PALETTE_FORMAT})")
 
         for e in b.extra_checks:
+            for c in e.get("setup", []):
+                srv.run(c)
             got = srv.test(e["cmd"])
             rep.add(got == e["expect"], f"{e['what']}: {e['cmd']}")
 
@@ -180,6 +182,20 @@ def ci_world(argv) -> int:
                           f"@e[type=minecraft:marker,tag=ruina.walktest,distance=..0.5]")
             rep.add(ok, f"걷기 TP {w.dim} {w.box} → {w.dest}")
             srv.run("kill @e[type=minecraft:marker,tag=ruina.walktest]")
+
+        # 암전 TP: 마커로 시작 → fade_tick 을 직접 여러 번 실행 (tick 은 플레이어만 처리) → 도착 + 암전 해제 확인
+        for w in [w for w in b.links.walks if w.fade]:
+            a = b.links.anchors[w.dest]
+            x0, y0, z0, x1, y1, z1 = w.box
+            srv.run(f"execute in {w.dim} run summon minecraft:marker {(x0 + x1 + 1) / 2} {y0 + 0.1} {(z0 + z1 + 1) / 2} "
+                    f"{{Tags:[\"ruina.fadetest\"]}}")
+            srv.run(f"execute as @e[type=minecraft:marker,tag=ruina.fadetest] run function ruina:tp/fade/{w.dest}")
+            for _ in range(datapack.FADE_MIN + 2):
+                srv.run("execute as @e[type=minecraft:marker,tag=ruina.fadetest] at @s run function ruina:tp/fade_tick")
+            ok = srv.test(f"execute in {a.dim} positioned {a.x} {a.y} {a.z} if entity "
+                          f"@e[type=minecraft:marker,tag=ruina.fadetest,tag=!ruina.fading,distance=..0.5]")
+            rep.add(ok, f"암전 TP {w.dim} {w.box} → {w.dest} (도착 + 로딩 확인 후 해제)")
+            srv.run("kill @e[type=minecraft:marker,tag=ruina.fadetest]")
 
         # 시계: 문법 확인용 도움말 + 직접 실행해서 결과 기록
         rep.data["help_time"] = srv.run("help time")

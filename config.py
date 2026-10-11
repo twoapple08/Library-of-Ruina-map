@@ -62,6 +62,9 @@ class Space:
     has_skylight: bool = True
     # 공중에 떠다니는 파티클 [(파티클, 확률)] — 바이옴 visual/ambient_particles
     particles: list = field(default_factory=list)
+    # 추가 바이옴 {id: {"attributes": {...}, "particles": [...]}} — 같은 차원 안에서 구역마다 하늘·안개를 다르게
+    # (빌더에서 Dimension.set_biome 으로 청크에 지정). 바이옴 visual 속성은 차원 값을 덮어씀
+    biomes: dict = field(default_factory=dict)
 
     @property
     def dim(self) -> str:
@@ -71,11 +74,28 @@ class Space:
 # 외관: 보라색 밤하늘 + 초승달 (PLAN 5·7절). 층별 값은 각 층 착수 때 원화 보고 정해서 PLAN 7절에 기록
 EXTERIOR_SKY = night_sky("#3b2370", "#2c1b52", moon_phase="waxing_crescent", moon_angle=35.0)
 
+# 로비 (reference/로비.png, reference/로비 전경 (전환 후).jpg, reference/로비_3D/)
+LOBBY_ROOM_SKY = night_sky("#120a05", "#1c1008", stars=0.0, extra={
+    "minecraft:visual/fog_start_distance": 4.0, "minecraft:visual/fog_end_distance": 48.0})
+LOBBY_HALL_SKY = {
+    "minecraft:visual/sky_color": "#f4e2bd",
+    "minecraft:visual/fog_color": "#e9cf9c",
+    "minecraft:visual/fog_start_distance": 12.0,
+    "minecraft:visual/fog_end_distance": 110.0,
+    "minecraft:visual/sky_light_factor": 1.0,
+    "minecraft:visual/sky_light_color": "#fff0d0",
+    "minecraft:visual/star_brightness": 0.0,
+    "minecraft:gameplay/sky_light_level": 1.0,
+}
+
 SPACES = [
     # 날리는 종이: 하얀 창백한참나무 잎 + 금빛 포플러 잎 파티클 (떨어지며 흔들림)
     Space("exterior", "외부", "", 1536, 400, EXTERIOR_SKY,
           particles=[("minecraft:pale_oak_leaves", 0.004), ("minecraft:yellow_poplar_leaves", 0.002)]),
-    Space("lobby", "로비", "앤젤라", 512, 400),
+    # 로비: 전환 전 = 어두운 나무 방 (어두운 갈색 안개, 먼지), 전환 후 = 밝은 홀 (바이옴 lobby_hall: 크림색 안개·하늘, 빛 입자)
+    Space("lobby", "로비", "앤젤라", 512, 400, LOBBY_ROOM_SKY, particles=[("minecraft:white_ash", 0.003)],
+          biomes={"lobby_hall": {"attributes": LOBBY_HALL_SKY, "particles": [("minecraft:firefly", 0.004),
+                                                                             ("minecraft:end_rod", 0.0004)]}}),
     Space("history", "역사의 층", "말쿠트", 1536, 400),
     Space("technology", "기술과학의 층", "예소드", 2048, 512),
     Space("literature", "문학의 층", "호드", 1536, 400),

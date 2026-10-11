@@ -67,17 +67,32 @@ def _marks(b, dim):
 
 
 def render_lobby(b, out_dir, pal):
+    from builders.lobby import HALL_DX, RZ, Y0
     d = b.dims["lobby"]
     files = []
-    for img, name in (
-            (render_top(d, pal, (-14, -14, 14, 14), "로비 (임시 방) — 평면 (천장 아래 Y=70에서 자름)",
-                        ["책장 벽 · 랜턴 조명 · 남쪽 문으로 걸어 나가면 외부로"], y_max=70, marks=_marks(b, d.dim)),
-             "lobby_plan.png"),
-            (iso_panel(d, pal, "로비 (임시 방) — 입체 (천장 제거)", view="sw", box=(-14, 60, -14, 14, 73, 14)),
-             "lobby_iso.png")):
+
+    def save(img, name):
         p = os.path.join(out_dir, name)
         img.save(p, optimize=True)
         files.append(p)
+
+    room = render_persp(d, pal, cam=(0.5, Y0 + 1.6, RZ - 2), look=(0.5, Y0 + 3, -RZ - 4), fov=80, W=1000, H=562,
+                        max_dist=200, sky=((18, 10, 5), (28, 16, 8)), fog=(28, 16, 8), fog_dist=45, stars=0)
+    save(_compare("로비.png", room, "로비 (전환 전) — 원화(위) / 맵(아래): 도착 자리에서 북쪽",
+                  ["어두운 나무 방: 책장 칸과 홈 기둥, 벽등, 등 기둥, 책상, 넓은 낮은 단 → 통로 계단",
+                   "은조각을 왼손으로 들면(F) 번쩍이며 같은 자리의 밝은 홀로 바뀜"]), "lobby_compare_room.png")
+    hall = render_persp(d, pal, cam=(HALL_DX + 0.5, Y0 + 1.6, RZ - 2), look=(HALL_DX + 0.5, Y0 + 9, -30), fov=80,
+                        W=1000, H=562, max_dist=300, sky=((244, 226, 189), (233, 207, 156)), fog=(233, 207, 156),
+                        fog_dist=90, stars=0, night=False)
+    save(_compare("로비 전경 (전환 후).jpg", hall, "로비 (전환 후) — 원화(위) / 맵(아래): 같은 자리에서 본 홀",
+                  ["가운데 단 위 앤젤라의 책상 (높이 1 = 앉은 캐릭터 기준), 뒤로 휘어 오르는 흰 대계단과 빛",
+                   "둥근 책장 벽(반지름 22, 높이 12, 사다리) 너머로 솟은 책장 덩어리, 바닥의 책 더미"]),
+         "lobby_compare_hall.png")
+    save(render_top(d, pal, (-14, -28, 14, 20), "로비 (전환 전) — 평면 (천장 아래에서 자름)",
+                    ["초록 = 도착 지점, 주황 = TP (남쪽 문 → 외부 정문)"], y_max=Y0 + 8, marks=_marks(b, d.dim)),
+         "lobby_plan_room.png")
+    save(render_top(d, pal, (HALL_DX - 64, -80, HALL_DX + 64, 64), "로비 (전환 후) — 평면", [], y_max=Y0 + 40,
+                    marks=_marks(b, d.dim)), "lobby_plan_hall.png")
     return files
 
 

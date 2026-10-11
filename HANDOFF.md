@@ -1,7 +1,7 @@
 # 인수인계 (HANDOFF)
 
 새 세션은 **이 문서 → `docs/test/README.md`(최근 테스트 원문) + `docs/test/*.jpg` 스크린샷 4장을 직접 열어 보기 → `PLAN.md` → `design/exterior.md` → `TESTING.md`** 순서로 확인하고 이어서 작업한다.
-마지막 갱신: 2026-10-11 (Phase 1 2차 수정 완료 → CI 빌드 → 테스터 2차 테스트 대기. 다음 할 일은 4절).
+마지막 갱신: 2026-10-12 (Phase 1 2차 수정 + Phase 2 로비 1차 완료 → 테스터 테스트 대기. 다음 할 일은 4절).
 
 ## 0. 사용자와 일하는 방식
 
@@ -116,7 +116,8 @@
 config.py               공간 목록·크기·높이·하늘(night_sky)·게임룰 (수치는 PLAN.md 근거)
 build.py                로컬: python build.py previews | datapack | check
 builders/__init__.py    Build(차원별 블록 저장소, TP 연결, 서버 검증 목록 자동 생성)
-builders/smoke.py       Phase 0 스모크 월드 (임시 — Phase 1~2에서 exterior.py/lobby.py로 교체)
+builders/smoke.py       Phase 0 스모크 월드 (더 안 씀)
+builders/lobby.py       로비: 전환 전 방 + 전환 후 홀, 은조각 F 전환
 builders/previews.py    공간별 미리보기 목록
 tools/nbt.py            NBT 읽기/쓰기 (+ to_snbt 덤프)
 tools/region.py         .mca 읽기/쓰기 (255섹터 초과 시 .mcc)
@@ -167,11 +168,24 @@ previews/               미리보기 PNG (폰 확인용)
    지붕 테두리 네온 제거. 옹벽 창도 (구간, 층) 단위로 정돈
 7. ✅ **구름**: 반두께 < 4인 가장자리를 흰/연회색 스테인드글라스로 (`CLOUD_GLASS_T`)
 
+### Phase 2 로비 1차 (2026-10-12) — 테스트 대기 (TESTING.md ⑬~⑱)
+- 사용자 결정: 정문 → **암전** → 로비 청크가 서버에 불러와지면(`if loaded`, 최소 1초) 암전 해제 + **'로비'** 글자.
+  효과음·음악은 모든 맵 완성 후. 로비에 오면 **은조각**(철 조각 + custom_data `ruina:{silver:1b}`, 이름·모양·소리는 나중에) 1개 지급.
+  은조각을 들고 **F(왼손)** → 번쩍 → **전환 전 방 ↔ 전환 후 홀** (왕복, 같은 상대 위치, 막히면 기본 자리). 나가는 문은 방에만.
+  다른 층으로 가는 TP는 만들지 않음 (원화에 없는 건 만들지 않기). 은조각은 나중에 역사의 층으로 가면 회수
+- 참고 자료: `reference/로비 전경 (전환 후).jpg`(사용자 제공), `reference/로비_3D/`(공식 3D 영상 프레임 01~07 방, 08~19 홀,
+  story_* 공식 스토리 전환 장면). 웹 검색으로는 공식 로비 이미지를 못 찾음 (wiki.gg 접속 불가)
+- 크기: 사람 기준 1블록 ≈ 1m (3D 영상 19번: 사람 키 ≈ 흰 계단 2.4단), 책상 높이 1 = 앉은 캐릭터
+- 코드: `builders/lobby.py` (방 x -11..11, z -17..17 / 홀 = 방 + (512, 0, 0), 바이옴 `ruina:lobby_hall`로 밝은 안개),
+  `tools/datapack.py` 암전 TP (`Walk.fade`, `Anchor.title/on_arrive`, `tp/fade_tick`), `Links.functions/tick/scores`(빌더 함수),
+  `Dimension.set_biome`(청크별 바이옴), `config.Space.biomes`(추가 바이옴). `builders/smoke.py`의 임시 로비는 더 안 씀
+- 미리보기 `previews/lobby_*.png`. CI가 암전 TP·방↔홀 전환·바이옴을 마커로 검사
+
 ### 남은 일
 8. **색감**: 월드 폴더에 `resources.zip` 넣는 방식으로 텍스처팩 (사용자 결정: 이 방식, 모드 제작은 최종 단계).
    구름·종이·탑 판자 색 맞춤 텍스처. 싱글플레이에서 자동 적용 제안이 뜨는지 검증 필요
 9. 2차 테스트 결과 반영 (특히 BSL 밤 여부, 정문 TP)
-10. 그다음 Phase 2: 로비 (`reference/로비.png`)
+10. 로비 테스트 결과 반영 → 그다음 Phase 3: 첫 층 (역사의 층, 은조각 회수)
 
 ### 작업 팁 (이번 세션에서 배운 것)
 - 전체 외부 빌드 ≈ 135초(로컬, 2차 수정 후). 탑만 다시 만들고 주변만 바꿔 볼 때는 `exterior.build(b, city=False, clouds=False)` 결과를 pickle로 캐시해 두고 crater 함수만 다시 실행하면 빠름

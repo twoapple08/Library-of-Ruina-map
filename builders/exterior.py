@@ -505,7 +505,8 @@ def build(b, city: bool = True, clouds: bool = True):
     L.spawn = "exterior_spawn"
     # 정문: 빛나는 문 앞 홈에 걸어 들어가면 로비로 (클릭도 됨). 홈 바닥 전체(문 앞 4칸)를 구역으로
     # (Phase 1 테스트 ④: 문 앞 2칸만이라 TP 안 됨 → 넓힘, 바닥이 막혀 있지 않은지 gate_walkable 로 확인)
-    w = L.walk(d.dim, (-6, GATE_FLOOR - 1, zb + 1, 6, GATE_FLOOR + 3, zb + 4), "lobby_entrance")
+    # 암전 → 로비 청크 로딩 확인 → 암전 해제 + '로비' 글자 (datapack 암전 TP)
+    w = L.walk(d.dim, (-6, GATE_FLOOR - 1, zb + 1, 6, GATE_FLOOR + 3, zb + 4), "lobby_entrance", fade=True)
     stats["gate_walkable"] = gate_walkable(d, w.box)
     L.portal(d.dim, 0.5, GATE_FLOOR, zb + 1.5, "lobby_entrance", width=7, height=12)
     return stats

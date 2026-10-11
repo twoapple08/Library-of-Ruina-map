@@ -29,6 +29,8 @@ class Anchor:
     z: float
     yaw: float = 0.0
     pitch: float = 0.0
+    title: str | None = None       # 암전 TP로 도착하면 화면에 띄울 글자
+    on_arrive: list = field(default_factory=list)   # 도착하면 (TP한 플레이어로) 실행할 명령
 
 
 @dataclass
@@ -49,6 +51,7 @@ class Walk:
     dim: str
     box: tuple   # (x0, y0, z0, x1, y1, z1)
     dest: str
+    fade: bool = False   # True: 암전 → TP → 도착지 청크 로딩 확인 → 암전 해제 + 제목
 
     def selector(self, base: str = "@a") -> str:
         x0, y0, z0, x1, y1, z1 = self.box
@@ -64,9 +67,12 @@ class Links:
     portals: list = field(default_factory=list)
     walks: list = field(default_factory=list)
     spawn: str | None = None  # 처음 접속 위치 (Anchor 이름)
+    functions: dict = field(default_factory=dict)   # 빌더가 추가하는 함수 {이름: [명령]}
+    tick: list = field(default_factory=list)        # 빌더가 추가하는 tick 명령
+    scores: list = field(default_factory=list)      # 빌더가 쓰는 점수판 이름
 
-    def walk(self, dim, box, dest) -> Walk:
-        w = Walk(dim, tuple(int(v) for v in box), dest)
+    def walk(self, dim, box, dest, fade: bool = False) -> Walk:
+        w = Walk(dim, tuple(int(v) for v in box), dest, fade)
         self.walks.append(w)
         return w
 
@@ -131,7 +137,9 @@ def dimension_type(space: config.Space) -> dict:
     return dict(sorted(d.items()))
 
 
-def biome(space: config.Space) -> dict:
+def biome(space: config.Space, attributes: dict | None = None, particles: list | None = None) -> dict:
+    """공간 기본 바이옴 (attributes/particles 를 주면 추가 바이옴)."""
+    particles = space.particles if particles is None else particles
     base = _read_json("vanilla", "worldgen", "biome", "the_void.json")
     if base is None:
         raise FileNotFoundError("ref/vanilla/worldgen/biome/the_void.json 없음")
@@ -143,9 +151,11 @@ def biome(space: config.Space) -> dict:
     # 바이옴 시각 속성이 차원 값을 덮어쓰므로 지운다 (HANDOFF 2절)
     if isinstance(b.get("attributes"), dict):
         b["attributes"] = {k: v for k, v in b["attributes"].items() if not k.startswith("minecraft:visual/")}
-    if space.particles:  # 바닐라 basalt_deltas.json 과 같은 형식
+    if attributes:
+        b.setdefault("attributes", {}).update(attributes)
+    if particles:  # 바닐라 basalt_deltas.json 과 같은 형식
         b.setdefault("attributes", {})["minecraft:visual/ambient_particles"] = {
-            "argument": [{"particle": {"type": t}, "probability": p} for t, p in space.particles],
+            "argument": [{"particle": {"type": t}, "probability": p} for t, p in particles],
             "modifier": "append"}
     return b
 
@@ -168,21 +178,31 @@ def dimension(space: config.Space) -> dict:
 
 # ------------------------------------------------------------------ 함수
 
+FADE_IN = 10      # 암전 시작 후 TP까지 (틱)
+FADE_MIN = 20     # 최소 암전 시간 (틱)
+FADE_MAX = 200    # 청크가 안 불러와져도 이 시간이 지나면 해제
+LOAD_R = 48       # 도착지 둘레 이만큼(블록)의 청크가 서버에 불러와졌으면 '로딩 끝'
+
+
 def functions(links: Links) -> dict:
     f = {}
     f["load"] = [
         f"# {NS} 데이터팩 로드",
         "scoreboard objectives add ruina.state dummy",
-    ]
+        f"scoreboard objectives add {NS}.fade dummy",
+    ] + [f"scoreboard objectives add {sc} dummy" for sc in links.scores]
     f["tick"] = [
         f"execute as @e[type=minecraft:interaction,tag={NS}.tp] if data entity @s interaction run function {NS}:tp/clicked",
         f"execute as @e[type=minecraft:interaction,tag={NS}.tp] if data entity @s attack run function {NS}:tp/clicked",
         f"execute as @a[tag=!{NS}.joined] at @s run function {NS}:first_join",
+        f"execute as @a[tag={NS}.fading] at @s run function {NS}:tp/fade_tick",
     ]
     for w in links.walks:
         if w.dest not in links.anchors:
             raise KeyError(f"걷기 TP 목적지 {w.dest} 없음")
-        f["tick"].append(f"execute in {w.dim} as {w.selector()} run function {NS}:tp/to/{w.dest}")
+        kind = "fade" if w.fade else "to"
+        f["tick"].append(f"execute in {w.dim} as {w.selector(f'@a[tag=!{NS}.fading]')} run function {NS}:tp/{kind}/{w.dest}")
+    f["tick"] += links.tick
     f["first_join"] = [f"tag @s add {NS}.joined"]
     if links.spawn:
         f["first_join"].append(f"execute if dimension minecraft:overworld run function {NS}:tp/to/{links.spawn}")
@@ -195,11 +215,32 @@ def functions(links: Links) -> dict:
     clicked += ["data remove entity @s interaction", "data remove entity @s attack"]
     f["tp/clicked"] = clicked
 
+    # 암전 TP: 시작 → (FADE_IN틱) TP → 도착지 둘레 청크가 서버에 불러와지면(최소 FADE_MIN틱) 암전 해제 + 제목
+    tick = [f"scoreboard players add @s {NS}.fade 1"]
+    done = ["effect clear @s minecraft:blindness", f"tag @s remove {NS}.fading", f"scoreboard players reset @s {NS}.fade"]
+    c = LOAD_R
+    loaded = " ".join(f"if loaded ~{dx} ~ ~{dz}" for dx in (-c, c) for dz in (-c, c))
     for name, a in links.anchors.items():
         f[f"tp/to/{name}"] = [
             f"execute in {a.dim} run tp @s {_fmt(a.x)} {_fmt(a.y)} {_fmt(a.z)} {_fmt(a.yaw)} {_fmt(a.pitch)}",
             f"execute at @s run playsound minecraft:item.book.page_turn master @s ~ ~ ~ 1 0.8",
+        ] + list(a.on_arrive)
+        f[f"tp/fade/{name}"] = [
+            f"tag @s add {NS}.fading",
+            f"tag @s add {NS}.fade.{name}",
+            f"scoreboard players set @s {NS}.fade 0",
+            "effect give @s minecraft:blindness infinite 0 true",
         ]
+        tick.append(f"execute if score @s {NS}.fade matches {FADE_IN} if entity @s[tag={NS}.fade.{name}] "
+                    f"run function {NS}:tp/to/{name}")
+        if a.title:
+            done.insert(0, f"execute if entity @s[tag={NS}.fade.{name}] run title @s title "
+                           f'{{"text":"{a.title}","color":"#ecd6a6"}}')
+        done.append(f"tag @s remove {NS}.fade.{name}")
+    tick += [f"execute if score @s {NS}.fade matches {FADE_MIN}.. at @s {loaded} run function {NS}:tp/fade_done",
+             f"execute if score @s {NS}.fade matches {FADE_MAX}.. run function {NS}:tp/fade_done"]
+    f["tp/fade_tick"] = tick
+    f["tp/fade_done"] = done
 
     setup = [f"gamerule {k} {v}" for k, v in config.GAMERULES.items()]
     setup += time_commands()
@@ -216,6 +257,10 @@ def functions(links: Links) -> dict:
                f"Tags:[\"{NS}.tp\",\"{NS}.to.{p.dest}\"]}}")
         ents.append(f"execute in {p.dim} run summon minecraft:interaction {_fmt(p.x)} {_fmt(p.y)} {_fmt(p.z)} {nbt}")
     f["build/entities"] = ents
+    for k, v in links.functions.items():
+        if k in f:
+            raise KeyError(f"함수 이름 겹침: {k}")
+        f[k] = v
     return f
 
 
@@ -251,6 +296,8 @@ def write(out_dir: str, links: Links):
         put(f"data/{NS}/dimension_type/{s.id}.json", dimension_type(s))
         put(f"data/{NS}/dimension/{s.id}.json", dimension(s))
         put(f"data/{NS}/worldgen/biome/{s.id}.json", biome(s))
+        for bid, extra in s.biomes.items():
+            put(f"data/{NS}/worldgen/biome/{bid}.json", biome(s, extra.get("attributes"), extra.get("particles", [])))
     put("data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
     put("data/minecraft/tags/function/tick.json", {"values": [f"{NS}:tick"]})
     for name, lines in functions(links).items():

@@ -18,7 +18,11 @@ from .world import Dimension
 def _gather(dim: Dimension, cam, near=170.0, mid=450.0, max_dist=1400.0):
     """lod별 (좌표 lod단위 (N,3), 팔레트 번호) 목록."""
     groups = {1: ([], []), 2: ([], []), 4: ([], [])}
+    # 보이지 않는 블록 (빛 블록·방벽)은 빈칸으로
+    hidden = [i for i, st in enumerate(dim.palette) if st.split("[")[0] in ("minecraft:light", "minecraft:barrier")]
     for (sx, sy, sz), a in dim.sections.items():
+        if hidden:
+            a = np.where(np.isin(a, hidden), 0, a)
         c = np.array([sx * 16 + 8, sy * 16 + 8, sz * 16 + 8])
         dist = float(np.linalg.norm(c - cam))
         if dist > max_dist:

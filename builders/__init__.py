@@ -84,9 +84,9 @@ class Build:
 
 
 def build_all(only: list[str] | None = None) -> Build:
-    """월드에 들어가는 전체. 외부(완성 1차) + 로비(임시 방)."""
-    from . import exterior, smoke
+    """월드에 들어가는 전체. 외부 + 로비 (전환 전 방 ↔ 전환 후 홀)."""
+    from . import exterior, lobby
     b = Build()
     exterior.build(b)
-    smoke.lobby(b)
+    lobby.build(b)
     return b
