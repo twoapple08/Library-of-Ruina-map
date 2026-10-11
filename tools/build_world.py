@@ -189,8 +189,9 @@ def ci_world(argv) -> int:
             x0, y0, z0, x1, y1, z1 = w.box
             # 플레이어가 없으니 도착지 둘레 청크를 직접 불러옴 (게임에서는 플레이어가 불러옴)
             r = datapack.LOAD_R
-            srv.run(f"execute in {a.dim} run forceload add {int(a.x) - r} {int(a.z) - r} {int(a.x) + r} {int(a.z) + r}")
-            time.sleep(3)
+            fl = srv.run(f"execute in {a.dim} run forceload add {int(a.x) - r} {int(a.z) - r} {int(a.x) + r} {int(a.z) + r}")
+            corners = [srv.wait_loaded(a.dim, int(a.x) + dx, int(a.y), int(a.z) + dz, timeout=90)
+                       for dx in (-r, r) for dz in (-r, r)]
             srv.run(f"execute in {w.dim} run summon minecraft:marker {(x0 + x1 + 1) / 2} {y0 + 0.1} {(z0 + z1 + 1) / 2} "
                     f"{{Tags:[\"ruina.fadetest\"]}}")
             srv.run(f"execute as @e[type=minecraft:marker,tag=ruina.fadetest] run function ruina:tp/fade/{w.dest}")
@@ -198,6 +199,7 @@ def ci_world(argv) -> int:
             for _ in range(datapack.FADE_MIN + 2):
                 outs.append(srv.run("execute as @e[type=minecraft:marker,tag=ruina.fadetest] at @s run function ruina:tp/fade_tick"))
             diag = {
+                "forceload": fl, "corners_loaded": corners,
                 "ticks": outs[:1] + outs[9:12] + outs[-2:],
                 "arrived": srv.test(f"execute in {a.dim} positioned {a.x} {a.y} {a.z} if entity "
                                     f"@e[type=minecraft:marker,tag=ruina.fadetest,distance=..0.5]"),
