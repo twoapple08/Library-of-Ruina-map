@@ -67,6 +67,7 @@ SERVER_PROPERTIES = {
     "region-file-compression": "deflate",
     "enable-rcon": "false",
     "motd": "ruina-build",
+    "pause-when-empty-seconds": "-1",   # 플레이어가 없어도 멈추지 않음 (멈추면 forceload 청크가 안 불러와짐)
 }
 
 
