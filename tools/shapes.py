@@ -269,11 +269,14 @@ class Tube(Part):
     info: s(곡선 길이 위치), tangent(진행 방향), r(그 위치 굵기), off(중심선에서의 벡터)
     """
 
-    def __init__(self, points, radii, lip=1.15):
+    def __init__(self, points, radii, lip=1.15, simplify: float = 0.12):
         P = np.asarray(points, float)
         R = np.broadcast_to(np.asarray(radii, float), (len(P),)).copy()
         if len(P) < 2:
             raise ValueError("Tube에는 점이 2개 이상 필요")
+        if simplify > 0 and len(P) > 2:  # 곧은 부분의 점을 줄여 계산량 감소 (오차 simplify 칸 이하)
+            keep = _simplify(np.concatenate([P, R[:, None]], 1), simplify)
+            P, R = P[keep], R[keep]
         self.a, self.b = P[:-1], P[1:]
         self.ra, self.rb = R[:-1], R[1:]
         seg = self.b - self.a
@@ -296,13 +299,15 @@ class Tube(Part):
     def _closest(self, P, idx):
         a, ab = self.a[idx], (self.b - self.a)[idx]
         ap = P[:, None, :] - a[None]
-        t = np.clip((ap * ab[None]).sum(2) / self.len2[idx][None], 0, 1)
-        q = a[None] + t[..., None] * ab[None]
+        t = np.clip(np.einsum("nsk,sk->ns", ap, ab) / self.len2[idx][None], 0, 1)
+        diff = ap - t[..., None] * ab[None]
         r = self.ra[idx][None] + t * (self.rb - self.ra)[idx][None]
-        dist = np.linalg.norm(P[:, None, :] - q, axis=2) - r
+        dist = np.sqrt(np.einsum("nsk,nsk->ns", diff, diff)) - r
         k = dist.argmin(1)
         rows = np.arange(len(P))
-        return dist[rows, k], idx[k], t[rows, k], q[rows, k], r[rows, k]
+        tk = t[rows, k]
+        q = a[k] + tk[:, None] * ab[k]
+        return dist[rows, k], idx[k], tk, q, r[rows, k]
 
     def d(self, P, lo=None, hi=None):
         idx = self._segs(lo, hi)
@@ -331,6 +336,29 @@ class Tube(Part):
 
 
 # =================================================================== 곡선 도구
+
+def _simplify(Q: np.ndarray, tol: float) -> np.ndarray:
+    """더글러스-포이커: 남길 점 번호 (양 끝 포함). Q (M,k) — 위치+반지름을 같이 봄."""
+    keep = np.zeros(len(Q), bool)
+    keep[0] = keep[-1] = True
+    stack = [(0, len(Q) - 1)]
+    while stack:
+        i, j = stack.pop()
+        if j - i < 2:
+            continue
+        a, b = Q[i], Q[j]
+        ab = b - a
+        L2 = float(ab @ ab)
+        mid = Q[i + 1:j]
+        t = np.clip(((mid - a) @ ab) / L2, 0, 1) if L2 > 0 else np.zeros(len(mid))
+        dev = np.linalg.norm(mid - (a + t[:, None] * ab), axis=1)
+        k = int(dev.argmax())
+        if dev[k] > tol:
+            m = i + 1 + k
+            keep[m] = True
+            stack += [(i, m), (m, j)]
+    return np.nonzero(keep)[0]
+
 
 def bezier(p0, p1, p2, p3, n: int = 64) -> np.ndarray:
     t = np.linspace(0, 1, n)[:, None]
@@ -532,6 +560,10 @@ def carve(dim, shape: Field, shell: float = 1.0, smooth: bool = True, only_air: 
     SX, SY, SZ = np.meshgrid(sub, sub, sub, indexing="ij")
     sub_off = np.stack([SX.ravel(), SY.ravel(), SZ.ravel()], axis=1) - 0.5  # (64,3)
     oct_of_sub = ((SX.ravel() > 0.5).astype(int) + 2 * (SZ.ravel() > 0.5) + 4 * (SY.ravel() > 0.5))
+    cg = np.arange(6) * 3 - 1 + 1.5  # 묶음 중심 (섹션 원점 기준)
+    CX, CY, CZ = np.meshgrid(cg, cg, cg, indexing="ij")
+    coarse_grid = np.stack([CX.ravel(), CY.ravel(), CZ.ravel()], axis=1)
+    band = root.lip * 2.6 + shell + 2.0  # 묶음 반대각선(1.5√3) × 립시츠 + 껍질 + 여유
     cache: dict[str, int] = {}
 
     def ids_of(states):
@@ -549,7 +581,17 @@ def carve(dim, shape: Field, shell: float = 1.0, smooth: bool = True, only_air: 
             st.skipped += 1
             continue
         P = base_grid + o
-        dd, own = root.d_owner(P, lo, hi)
+        # 1단계: 3칸 묶음(6³) 중심에서 거리 → 표면에서 먼 묶음은 그 값으로 채우고 건너뜀
+        dco, oco = root.d_owner(coarse_grid + o, lo, hi)
+        need = np.abs(dco) <= band
+        if not need.any():
+            st.skipped += 1
+            continue
+        rep = np.repeat(np.repeat(np.repeat(np.arange(216).reshape(6, 6, 6), 3, 0), 3, 1), 3, 2).ravel()
+        dd = dco[rep].copy()
+        own = oco[rep].copy()
+        fine = need[rep]
+        dd[fine], own[fine] = root.d_owner(P[fine], lo, hi)
         dd = dd.reshape(18, 18, 18)
         own = own.reshape(18, 18, 18)
         inside = dd <= 0

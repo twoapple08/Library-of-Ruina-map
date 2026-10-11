@@ -10,3 +10,13 @@
 | ![](smoke_exterior_front.png) | 외부 — 정면(남쪽에서 북쪽을 본 모습) |
 | ![](smoke_lobby_plan.png) | 로비 — 평면도 (천장을 잘라낸 모습) |
 | ![](smoke_lobby_section.png) | 로비 — 단면 |
+
+## 도형 엔진 시연 — 외부 건물 시제품 v0
+
+설계서(`design/exterior.md`) 수치로 만든 첫 시제품. 탑 11단, 창문 불빛, 정문, 끝이 말린 가지 41개, 뿌리, 원형 광장.
+(종이 물결·도시 배경·재질은 아직. Phase 1에서 다듬음)
+
+| 그림 | 내용 |
+|---|---|
+| ![](proto_exterior_v0_se.png) | 남동쪽 위에서 본 입체도 |
+| ![](proto_exterior_v0_front.png) | 정면(남쪽) — 빛나는 정문과 계단 |

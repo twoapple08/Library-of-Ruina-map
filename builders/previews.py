@@ -4,6 +4,7 @@ from __future__ import annotations
 import os
 
 from tools.preview import Palette, render_side, render_top
+from tools.render3d import iso_panel
 
 
 def _marks(b, dim):
@@ -41,4 +42,21 @@ def render_all(b, out_dir):
              "smoke_lobby_plan.png")
         save(render_side(d, pal, (-14, 60, 14, 78, 0, -14), "로비 (스모크 테스트) — 단면 (Z=0에서 자름)",
                          ["방 가운데를 자른 모습: 바닥·벽·천장·매달린 랜턴"]), "smoke_lobby_section.png")
+    return files
+
+
+def render_proto(out_dir):
+    """외부 건물 시제품 v0 (도형 엔진 시연). 아직 월드 빌드에는 안 들어감."""
+    from builders import Build, exterior
+    b = Build()
+    exterior.build(b)
+    d = b.dims["exterior"]
+    pal = Palette()
+    files = []
+    notes = ["도형 엔진 시연용 시제품 (Phase 1에서 다듬음) · 종이 물결·도시 배경은 아직 없음"]
+    for view, name, title in (("se", "proto_exterior_v0_se.png", "외부 시제품 v0 — 남동쪽에서"),
+                              ("front", "proto_exterior_v0_front.png", "외부 시제품 v0 — 정면(남쪽)")):
+        p = os.path.join(out_dir, name)
+        iso_panel(d, pal, title, notes, view=view, target=1500).save(p, optimize=True)
+        files.append(p)
     return files
