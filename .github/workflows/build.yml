@@ -63,6 +63,7 @@ jobs:
         run: |
           python -m tools.ci refs
           python -m tools.ci reports
+          python -m tools.ci colors
 
       - name: 포맷 프로브
         if: env.TASK == 'probe'

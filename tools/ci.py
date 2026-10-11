@@ -3,6 +3,7 @@
 python -m tools.ci fetch            서버 jar 다운로드, Java 버전 출력
 python -m tools.ci refs             jar에서 version.json·바닐라 JSON 추출 → ci_out/ref
 python -m tools.ci reports          데이터 생성기 reports → 블록/레지스트리 목록 → ci_out/ref
+python -m tools.ci colors           클라이언트 jar 텍스처로 블록 평균색 계산 → ci_out/ref/block_colors.json (미리보기용)
 python -m tools.ci probe            포맷 프로브: 바닐라 월드 + 우리 데이터팩 월드를 만들어 NBT 덤프
 python -m tools.ci world            실제 월드 빌드 (서버 2회 실행 + 검증 + zip)
 """
@@ -122,6 +123,108 @@ def cmd_reports():
     with open(os.path.join(ref, "reports_files.txt"), "w") as f:
         f.write("\n".join(others) + "\n")
     print(f"reports: {len(compact)} blocks, {len(small)} registries")
+
+
+# ------------------------------------------------------------------ 블록 색 (미리보기용)
+
+TINTS = {  # 바이옴 색이 곱해지는 블록 (대략값)
+    "grass": (0x79, 0xC0, 0x5A), "leaves": (0x59, 0xAE, 0x30), "vine": (0x59, 0xAE, 0x30),
+    "fern": (0x79, 0xC0, 0x5A), "lily_pad": (0x20, 0x80, 0x30), "water": (0x3F, 0x76, 0xE4),
+    "sugar_cane": (0x79, 0xC0, 0x5A),
+}
+
+
+def cmd_colors():
+    import io
+    import urllib.request
+    from PIL import Image
+    info = _info()
+    from .server import _get_json, MANIFEST
+    man = _get_json(MANIFEST)
+    entry = next(v for v in man["versions"] if v["id"] == info["id"])
+    meta = _get_json(entry["url"])
+    cpath = os.path.join(CACHE, "client.jar")
+    if not os.path.exists(cpath):
+        urllib.request.urlretrieve(meta["downloads"]["client"]["url"], cpath)
+    z = zipfile.ZipFile(cpath)
+    names = set(z.namelist())
+
+    def js(path):
+        return json.loads(z.read(path)) if path in names else None
+
+    model_cache = {}
+
+    def model_textures(ref):
+        ref = ref.split(":")[-1]
+        if ref in model_cache:
+            return model_cache[ref]
+        m = js(f"assets/minecraft/models/{ref}.json") or {}
+        tex = {}
+        if "parent" in m:
+            tex.update(model_textures(m["parent"]))
+        tex.update(m.get("textures", {}))
+        model_cache[ref] = tex
+        return tex
+
+    def resolve(tex, key, depth=0):
+        v = tex.get(key)
+        while isinstance(v, str) and v.startswith("#") and depth < 10:
+            v = tex.get(v[1:])
+            depth += 1
+        return v
+
+    def avg(texref):
+        if not texref:
+            return None
+        p = f"assets/minecraft/textures/{texref.split(':')[-1]}.png"
+        if p not in names:
+            return None
+        im = Image.open(io.BytesIO(z.read(p))).convert("RGBA")
+        w, h = im.size
+        im = im.crop((0, 0, w, min(w, h)))  # 애니메이션 텍스처는 첫 프레임
+        import numpy as np
+        a = np.asarray(im, dtype=np.float64).reshape(-1, 4)
+        alpha = a[:, 3] / 255.0
+        cover = float(alpha.mean())
+        if alpha.sum() == 0:
+            return None
+        rgb = (a[:, :3] * alpha[:, None]).sum(0) / alpha.sum()
+        return [int(round(c)) for c in rgb] + [int(round(cover * 255))]
+
+    with open(os.path.join(OUT, "ref", "blocks.json")) as f:
+        blocks = json.load(f)
+    out = {}
+    for full in blocks:
+        name = full.split(":")[1]
+        bs = js(f"assets/minecraft/blockstates/{name}.json")
+        if not bs:
+            continue
+        model = None
+        if "variants" in bs:
+            v = next(iter(bs["variants"].values()))
+            model = (v[0] if isinstance(v, list) else v).get("model")
+        elif "multipart" in bs:
+            ap = bs["multipart"][0]["apply"]
+            model = (ap[0] if isinstance(ap, list) else ap).get("model")
+        if not model:
+            continue
+        tex = model_textures(model)
+        top = next((resolve(tex, k) for k in ("top", "end", "all", "up", "texture", "cross", "plant", "particle")
+                    if resolve(tex, k)), None)
+        side = next((resolve(tex, k) for k in ("side", "all", "front", "north", "texture", "cross", "particle")
+                     if resolve(tex, k)), None)
+        ct, cs = avg(top), avg(side)
+        if ct is None and cs is None:
+            continue
+        ct, cs = ct or cs, cs or ct
+        for key, t in TINTS.items():
+            if key in name and "dead" not in name:
+                ct = [c * m // 255 for c, m in zip(ct[:3], t)] + ct[3:]
+                cs = [c * m // 255 for c, m in zip(cs[:3], t)] + cs[3:]
+        out[full] = ["#%02x%02x%02x%02x" % tuple(ct), "#%02x%02x%02x%02x" % tuple(cs)]
+    with open(os.path.join(OUT, "ref", "block_colors.json"), "w") as f:
+        json.dump(out, f, separators=(",", ":"), sort_keys=True)
+    print(f"colors: {len(out)} / {len(blocks)} blocks")
 
 
 # ------------------------------------------------------------------ 덤프 도우미
@@ -247,6 +350,8 @@ def main(argv):
         cmd_refs()
     elif c == "reports":
         cmd_reports()
+    elif c == "colors":
+        cmd_colors()
     elif c == "probe":
         cmd_probe()
     elif c == "world":

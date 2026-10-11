@@ -176,7 +176,8 @@ class Server:
             return True
         if "Test failed" in txt:
             return False
-        raise RuntimeError(f"예상 못 한 결과: {command!r} → {out}")
+        print(f"  ! 예상 못 한 결과 (실패로 처리): {out}", flush=True)
+        return False
 
     def wait_loaded(self, dim: str, x: int, y: int, z: int, timeout: float = 60) -> bool:
         end = time.time() + timeout
