@@ -31,7 +31,7 @@ class Build:
         return d
 
     # ---------------------------------------------- 서버 검증 목록
-    def block_checks(self, per_dim_chunks: int = 4, per_chunk: int = 24, seed: int = 1) -> list[dict]:
+    def block_checks(self, per_dim_chunks: int = 32, per_chunk: int = 24, seed: int = 1) -> list[dict]:
         """차원마다 몇 개 청크에서 블록을 무작위로 골라 '서버가 같은 블록을 읽는지' 확인할 목록."""
         rng = random.Random(seed)
         out = []
