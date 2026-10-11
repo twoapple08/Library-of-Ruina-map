@@ -99,6 +99,7 @@ def exterior(b):
     L.anchor("exterior_gate", d.dim, 0.5, Y0, gz + 6.5, yaw=0)
     L.spawn = "exterior_spawn"
     L.portal(d.dim, 0.5, Y0, gz + 0.5, "lobby_entrance", width=7, height=12)
+    L.walk(d.dim, (-3, Y0, gz, 3, Y0 + 3, gz), "lobby_entrance")  # 문 안쪽 한 칸에 걸어 들어가면 TP
 
 
 def lobby(b):
@@ -129,6 +130,7 @@ def lobby(b):
     L = b.links
     L.anchor("lobby_entrance", d.dim, 0.5, Y0, n - 2.5, yaw=180)
     L.portal(d.dim, 0.5, Y0, n + 0.5, "exterior_gate", width=3, height=4)
+    L.walk(d.dim, (-1, Y0, n, 1, Y0 + 2, n), "exterior_gate")
 
 
 def _b(v):

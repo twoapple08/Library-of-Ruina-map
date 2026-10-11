@@ -55,6 +55,9 @@ class Space:
     min_y: int = DIM_MIN_Y
     height: int = DIM_HEIGHT
     has_skylight: bool = True
+    # 차원 시계 시각 (멈춰 둠). 쉐이더(BSL)는 하늘을 이 시각으로 그린다 — 시계가 없으면 0(아침)으로 보임.
+    # 138000 = 6번째 날 자정 → 달 위상 '초승달(차는 중)' (바닐라 timeline/moon.json: 120000부터)
+    clock_time: int = 138000
 
     @property
     def dim(self) -> str:

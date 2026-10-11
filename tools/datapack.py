@@ -43,10 +43,31 @@ class Portal:
 
 
 @dataclass
+class Walk:
+    """걸어 들어가면 TP되는 구역 (블록 범위, 끝 포함)."""
+    dim: str
+    box: tuple   # (x0, y0, z0, x1, y1, z1)
+    dest: str
+
+    def selector(self, base: str = "@a") -> str:
+        x0, y0, z0, x1, y1, z1 = self.box
+        inner = f"x={x0},y={y0},z={z0},dx={x1 - x0},dy={y1 - y0},dz={z1 - z0}"
+        if base.endswith("]"):
+            return base[:-1] + "," + inner + "]"
+        return f"{base}[{inner}]"
+
+
+@dataclass
 class Links:
     anchors: dict = field(default_factory=dict)
     portals: list = field(default_factory=list)
+    walks: list = field(default_factory=list)
     spawn: str | None = None  # 처음 접속 위치 (Anchor 이름)
+
+    def walk(self, dim, box, dest) -> Walk:
+        w = Walk(dim, tuple(int(v) for v in box), dest)
+        self.walks.append(w)
+        return w
 
     def anchor(self, *a, **k) -> Anchor:
         an = Anchor(*a, **k)
@@ -84,12 +105,12 @@ def _fmt(n: float) -> str:
 # ------------------------------------------------------------------ JSON
 
 def dimension_type(space: config.Space) -> dict:
-    """바닐라 overworld 차원 타입을 바탕으로: 시계·타임라인 제거(시간 고정), 높이·하늘 덮어쓰기."""
+    """바닐라 overworld 차원 타입을 바탕으로: 자기 시계, 타임라인 제거(하늘은 attributes 고정값), 높이·하늘 덮어쓰기."""
     base = _read_json("vanilla", "dimension_type", "overworld.json")
     if base is None:
         raise FileNotFoundError("ref/vanilla/dimension_type/overworld.json 없음 (python -m tools.ci refs)")
     d = json.loads(json.dumps(base))
-    d.pop("default_clock", None)
+    d["default_clock"] = space.dim  # 공간마다 자기 시계 (ruina:<id>), 빌드 때 시각 고정
     d.pop("timelines", None)
     attrs = dict(d.get("attributes", {}))
     attrs.pop("minecraft:audio/ambient_sounds", None)  # 어두운 곳의 동굴 소리 끔
@@ -151,6 +172,10 @@ def functions(links: Links) -> dict:
         f"execute as @e[type=minecraft:interaction,tag={NS}.tp] if data entity @s attack run function {NS}:tp/clicked",
         f"execute as @a[tag=!{NS}.joined] at @s run function {NS}:first_join",
     ]
+    for w in links.walks:
+        if w.dest not in links.anchors:
+            raise KeyError(f"걷기 TP 목적지 {w.dest} 없음")
+        f["tick"].append(f"execute in {w.dim} as {w.selector()} run function {NS}:tp/to/{w.dest}")
     f["first_join"] = [f"tag @s add {NS}.joined"]
     if links.spawn:
         f["first_join"].append(f"execute if dimension minecraft:overworld run function {NS}:tp/to/{links.spawn}")
@@ -170,6 +195,7 @@ def functions(links: Links) -> dict:
         ]
 
     setup = [f"gamerule {k} {v}" for k, v in config.GAMERULES.items()]
+    setup += time_commands()
     if links.spawn:
         a = links.anchors[links.spawn]
         setup.append(f"execute in {a.dim} run setworldspawn {int(a.x)} {int(a.y)} {int(a.z)}")
@@ -184,6 +210,15 @@ def functions(links: Links) -> dict:
         ents.append(f"execute in {p.dim} run summon minecraft:interaction {_fmt(p.x)} {_fmt(p.y)} {_fmt(p.z)} {nbt}")
     f["build/entities"] = ents
     return f
+
+
+def time_commands() -> list[str]:
+    """공간별 시계를 정해진 시각에 멈춤."""
+    out = []
+    for s in config.SPACES:
+        out.append(f"time of {s.dim} set {s.clock_time}")
+        out.append(f"time of {s.dim} pause")
+    return out
 
 
 # ------------------------------------------------------------------ 출력
@@ -210,6 +245,7 @@ def write(out_dir: str, links: Links):
         "max_format": fmt,
     }})
     for s in config.SPACES:
+        put(f"data/{NS}/world_clock/{s.id}.json", {})
         put(f"data/{NS}/dimension_type/{s.id}.json", dimension_type(s))
         put(f"data/{NS}/dimension/{s.id}.json", dimension(s))
         put(f"data/{NS}/worldgen/biome/{s.id}.json", biome(s))

@@ -163,6 +163,27 @@ def ci_world(argv) -> int:
             rep.add(ok, f"TP 함수 ruina:tp/to/{name} → {a.dim} ({a.x}, {a.y}, {a.z})")
             srv.run("kill @e[type=minecraft:marker,tag=ruina.tptest]")
 
+        # 걷기 TP: 마커를 구역 안에 두고 같은 선택자로 함수 실행 → 도착 확인
+        for w in b.links.walks:
+            x0, y0, z0, x1, y1, z1 = w.box
+            cx, cy, cz = (x0 + x1 + 1) / 2, y0 + 0.1, (z0 + z1 + 1) / 2
+            srv.run(f"execute in {w.dim} run summon minecraft:marker {cx} {cy} {cz} {{Tags:[\"ruina.walktest\"]}}")
+            sel = w.selector("@e[type=minecraft:marker,tag=ruina.walktest]")
+            srv.run(f"execute in {w.dim} as {sel} run function ruina:tp/to/{w.dest}")
+            a = b.links.anchors[w.dest]
+            ok = srv.test(f"execute in {a.dim} positioned {a.x} {a.y} {a.z} if entity "
+                          f"@e[type=minecraft:marker,tag=ruina.walktest,distance=..0.5]")
+            rep.add(ok, f"걷기 TP {w.dim} {w.box} → {w.dest}")
+            srv.run("kill @e[type=minecraft:marker,tag=ruina.walktest]")
+
+        # 시계: 문법 확인용 도움말 + 직접 실행해서 결과 기록
+        rep.data["help_time"] = srv.run("help time")
+        tout = {}
+        for c in datapack.time_commands():
+            tout[c] = srv.run(c)
+        rep.data["time_cmds"] = tout
+        bad_t = [c for c, o in tout.items() if any(k in " ".join(o) for k in ("Unknown", "Incorrect", "Can't", "Invalid", "<--[HERE]"))]
+        rep.add(not bad_t, f"공간별 시계 고정 ({len(tout) - len(bad_t)}/{len(tout)} 명령 성공)")
         out = srv.run("function ruina:setup")
         rep.data["setup_cmd"] = out
         for dim in by_dim:
