@@ -1,0 +1,69 @@
+name: build
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "probe = 포맷 프로브, world = 월드 빌드"
+        type: choice
+        options: [world, probe]
+        default: world
+      mc_version:
+        description: "마인크래프트 버전 (비우면 최신 정식)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: 파이썬 패키지
+        run: pip install numpy pillow
+
+      - name: 서버 jar 받기
+        id: mc
+        run: python -m tools.ci fetch "${{ inputs.mc_version }}"
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ steps.mc.outputs.java }}
+
+      - name: 참고 파일 추출 (version.json, 바닐라 JSON, 블록 목록)
+        run: |
+          python -m tools.ci refs
+          python -m tools.ci reports
+
+      - name: 포맷 프로브
+        if: inputs.task == 'probe'
+        run: python -m tools.ci probe
+
+      - name: 월드 빌드
+        if: inputs.task == 'world'
+        run: python -m tools.ci world
+
+      - name: 결과를 ci-output 브랜치에 올리기
+        if: always()
+        run: |
+          [ -d ci_out ] || exit 0
+          cd ci_out
+          echo "run ${{ github.run_id }} / ${{ inputs.task }} / mc ${{ steps.mc.outputs.mc_version }} / $(date -u +%FT%TZ)" > RUN.txt
+          git init -q
+          git checkout -q -b ci-output
+          git add -A
+          git -c user.name="ruina-ci" -c user.email="ruina-ci@users.noreply.github.com" commit -qm "CI ${{ inputs.task }} run ${{ github.run_id }}"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" ci-output

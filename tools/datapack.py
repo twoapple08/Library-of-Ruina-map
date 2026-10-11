@@ -1,0 +1,239 @@
+"""데이터팩 생성: 차원·차원 타입·바이옴·함수(TP, 초기 설정).
+
+형식 근거: HANDOFF.md 2절 + 서버 jar에서 뽑은 바닐라 파일(ref/vanilla/).
+ref/vanilla/ 가 있으면 바닐라 overworld 차원 타입·the_void 바이옴을 바탕으로
+필요한 값만 덮어쓴다 (필드 이름 추측을 줄이기 위해).
+"""
+from __future__ import annotations
+
+import json
+import os
+import shutil
+from dataclasses import dataclass, field
+
+import config
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REF = os.path.join(ROOT, "ref")
+NS = config.NAMESPACE
+
+
+@dataclass
+class Anchor:
+    """TP 도착 지점."""
+    name: str
+    dim: str
+    x: float
+    y: float
+    z: float
+    yaw: float = 0.0
+    pitch: float = 0.0
+
+
+@dataclass
+class Portal:
+    """상호작용 엔티티(클릭하면 TP). x,y,z는 엔티티 발밑 중앙."""
+    dim: str
+    x: float
+    y: float
+    z: float
+    dest: str          # Anchor 이름
+    width: float = 1.0
+    height: float = 2.0
+
+
+@dataclass
+class Links:
+    anchors: dict = field(default_factory=dict)
+    portals: list = field(default_factory=list)
+    spawn: str | None = None  # 처음 접속 위치 (Anchor 이름)
+
+    def anchor(self, *a, **k) -> Anchor:
+        an = Anchor(*a, **k)
+        self.anchors[an.name] = an
+        return an
+
+    def portal(self, *a, **k) -> Portal:
+        p = Portal(*a, **k)
+        self.portals.append(p)
+        return p
+
+
+def _read_json(*parts):
+    p = os.path.join(REF, *parts)
+    if os.path.exists(p):
+        with open(p, encoding="utf-8") as f:
+            return json.load(f)
+    return None
+
+
+def pack_format():
+    v = _read_json("version.json")
+    if v and "pack_version" in v:
+        pv = v["pack_version"]
+        if isinstance(pv, dict):
+            return (pv.get("data_major", pv.get("data")), pv.get("data_minor", 0))
+        return (pv, 0)
+    return config.FALLBACK_PACK_FORMAT
+
+
+def _fmt(n: float) -> str:
+    return f"{n:g}"
+
+
+# ------------------------------------------------------------------ JSON
+
+def dimension_type(space: config.Space) -> dict:
+    base = _read_json("vanilla", "dimension_type", "overworld.json")
+    if base is None:  # HANDOFF 2절 필드 목록 기준 추정값
+        base = {
+            "coordinate_scale": 1.0,
+            "has_skylight": True,
+            "has_ceiling": False,
+            "has_ender_dragon_fight": False,
+            "ambient_light": 0.0,
+            "has_fixed_time": True,
+            "monster_spawn_block_light_limit": 0,
+            "monster_spawn_light_level": 0,
+            "logical_height": 384,
+            "min_y": -64,
+            "height": 384,
+            "infiniburn": "#minecraft:infiniburn_overworld",
+            "skybox": "overworld",
+            "cardinal_light": "default",
+            "attributes": {},
+        }
+    d = json.loads(json.dumps(base))
+    d.update({
+        "min_y": space.min_y,
+        "height": space.height,
+        "logical_height": space.height,
+        "has_skylight": space.has_skylight,
+        "monster_spawn_block_light_limit": 0,
+        "monster_spawn_light_level": 0,
+    })
+    attrs = dict(d.get("attributes", {}))
+    for k, v in space.sky.visual.items():
+        attrs[f"minecraft:visual/{k}"] = v
+    d["attributes"] = attrs
+    return d
+
+
+def biome(space: config.Space) -> dict:
+    base = _read_json("vanilla", "worldgen", "biome", "the_void.json")
+    if base is None:
+        base = {
+            "has_precipitation": False,
+            "temperature": 0.5,
+            "downfall": 0.0,
+            "effects": {"water_color": 4159204},
+            "carvers": [],
+            "features": [],
+        }
+    b = json.loads(json.dumps(base))
+    b["has_precipitation"] = False
+    b["features"] = []
+    if "carvers" in b:
+        b["carvers"] = []
+    # 바이옴 시각 속성이 차원 값을 덮어쓰므로 지운다 (HANDOFF 2절)
+    if isinstance(b.get("attributes"), dict):
+        b["attributes"] = {k: v for k, v in b["attributes"].items() if not k.startswith("minecraft:visual/")}
+    return b
+
+
+def dimension(space: config.Space) -> dict:
+    return {
+        "type": space.dim,
+        "generator": {
+            "type": "minecraft:flat",
+            "settings": {
+                "biome": space.dim,
+                "layers": [],
+                "features": False,
+                "lakes": False,
+                "structure_overrides": [],
+            },
+        },
+    }
+
+
+# ------------------------------------------------------------------ 함수
+
+def functions(links: Links) -> dict:
+    f = {}
+    f["load"] = [
+        f"# {NS} 데이터팩 로드",
+        "scoreboard objectives add ruina.state dummy",
+    ]
+    f["tick"] = [
+        f"execute as @e[type=minecraft:interaction,tag={NS}.tp] if data entity @s interaction run function {NS}:tp/clicked",
+        f"execute as @e[type=minecraft:interaction,tag={NS}.tp] if data entity @s attack run function {NS}:tp/clicked",
+        f"execute as @a[tag=!{NS}.joined] at @s run function {NS}:first_join",
+    ]
+    f["first_join"] = [f"tag @s add {NS}.joined"]
+    if links.spawn:
+        f["first_join"].append(f"execute if dimension minecraft:overworld run function {NS}:tp/to/{links.spawn}")
+
+    clicked = []
+    for name in links.anchors:
+        sel = f"@s[tag={NS}.to.{name}]"
+        clicked.append(f"execute if entity {sel} if data entity @s interaction on target run function {NS}:tp/to/{name}")
+        clicked.append(f"execute if entity {sel} if data entity @s attack on attacker run function {NS}:tp/to/{name}")
+    clicked += ["data remove entity @s interaction", "data remove entity @s attack"]
+    f["tp/clicked"] = clicked
+
+    for name, a in links.anchors.items():
+        f[f"tp/to/{name}"] = [
+            f"execute in {a.dim} run tp @s {_fmt(a.x)} {_fmt(a.y)} {_fmt(a.z)} {_fmt(a.yaw)} {_fmt(a.pitch)}",
+            f"execute at @s run playsound minecraft:item.book.page_turn master @s ~ ~ ~ 1 0.8",
+        ]
+
+    setup = [f"gamerule {k} {v}" for k, v in config.GAMERULES.items()]
+    if links.spawn:
+        a = links.anchors[links.spawn]
+        setup.append(f"execute in {a.dim} run setworldspawn {int(a.x)} {int(a.y)} {int(a.z)}")
+    f["setup"] = setup
+
+    ents = []
+    for p in links.portals:
+        if p.dest not in links.anchors:
+            raise KeyError(f"포털 목적지 {p.dest} 없음")
+        nbt = (f"{{width:{_fmt(p.width)}f,height:{_fmt(p.height)}f,response:1b,"
+               f"Tags:[\"{NS}.tp\",\"{NS}.to.{p.dest}\"]}}")
+        ents.append(f"execute in {p.dim} run summon minecraft:interaction {_fmt(p.x)} {_fmt(p.y)} {_fmt(p.z)} {nbt}")
+    f["build/entities"] = ents
+    return f
+
+
+# ------------------------------------------------------------------ 출력
+
+def write(out_dir: str, links: Links):
+    if os.path.exists(out_dir):
+        shutil.rmtree(out_dir)
+    data = os.path.join(out_dir, "data")
+
+    def put(rel, obj):
+        p = os.path.join(out_dir, rel)
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        with open(p, "w", encoding="utf-8", newline="\n") as fh:
+            if isinstance(obj, str):
+                fh.write(obj)
+            else:
+                json.dump(obj, fh, indent=2, ensure_ascii=False)
+                fh.write("\n")
+
+    fmt = list(pack_format())
+    put("pack.mcmeta", {"pack": {
+        "description": "Library of Ruina - 도서관",
+        "min_format": fmt,
+        "max_format": fmt,
+    }})
+    for s in config.SPACES:
+        put(f"data/{NS}/dimension_type/{s.id}.json", dimension_type(s))
+        put(f"data/{NS}/dimension/{s.id}.json", dimension(s))
+        put(f"data/{NS}/worldgen/biome/{s.id}.json", biome(s))
+    put("data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
+    put("data/minecraft/tags/function/tick.json", {"values": [f"{NS}:tick"]})
+    for name, lines in functions(links).items():
+        put(f"data/{NS}/function/{name}.mcfunction", "\n".join(lines) + "\n")
+    return data
