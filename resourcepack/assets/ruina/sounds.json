@@ -1,0 +1,8 @@
+{
+  "music.lobby_hall": {
+    "sounds": [{"name": "ruina:music/lobby_hall", "stream": true}]
+  },
+  "fragment.switch": {
+    "sounds": [{"name": "ruina:sfx/fragment_switch"}]
+  }
+}
