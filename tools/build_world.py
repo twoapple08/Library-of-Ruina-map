@@ -217,7 +217,7 @@ def ci_world(argv) -> int:
     with zipfile.ZipFile(zpath, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as z:
         for base, dirs, files in os.walk(wdir):
             for fn in files:
-                if fn in ("session.lock",):
+                if fn in ("session.lock", "level.dat_old"):
                     continue
                 full = os.path.join(base, fn)
                 z.write(full, os.path.join(WORLD_NAME, os.path.relpath(full, wdir)))

@@ -1,149 +1,118 @@
 # 인수인계 (HANDOFF)
 
 새 세션은 **이 문서와 `PLAN.md`를 먼저 읽고** 이어서 작업한다.
-마지막 갱신: 2026-10-11 (기반 조사 완료, 코드 작성 전).
+마지막 갱신: 2026-10-11 (Phase 0 코드·CI 완료, 테스터 확인 대기).
 
 ## 0. 사용자와 일하는 방식
 
 - 사용자는 **폰으로만 작업**한다 (안드로이드). 컴퓨터는 켜둘 수 없고, PC 맵 테스트는 **다른 사람(테스터)**이 한다.
-- 토큰 절약을 원한다. 폰으로 할 수 있는 일은 사용자에게 단계별로 맡긴다.
-- 결과 확인은 폰으로 볼 수 있는 **미리보기 이미지(위에서 본 모습, 단면)**를 레포에 올려서 받는다.
+- 토큰 절약을 원한다. 폰으로 할 수 있는 일(테스터에게 전달, 미리보기 보고 의견 주기, 결정)은 사용자에게 단계별로 맡긴다.
+- 결과 확인은 `previews/`의 **미리보기 PNG**(위에서 본 모습·정면·단면)로 한다. `previews/README.md`에 목록.
+- **커밋은 main에 바로** 해도 된다 (사용자 허락).
 - 설정은 사용자도 잘 모른다고 함 → 설정 관련은 나무위키를 직접 확인하고, 사용자의 추측은 검증 후 반영.
 - 한국어로 소통.
 
 ## 1. 현재 상태
 
-- [x] 설계 확정 (PLAN.md)
-- [x] 최신 버전·월드 형식·데이터팩 형식 조사 (아래 2절)
-- [ ] 코드 없음. 레포에는 `reference/` 이미지와 문서만 있음
-- 다음: 4절 "다음 할 일"의 Phase 0
+- [x] 설계 확정 (PLAN.md). **공간마다 별도 차원** — 사용자 확정 (2026-10-11)
+- [x] Phase 0 코드: NBT·리전·월드 모듈, 데이터팩 생성기, 서버 하네스, CI 월드 빌드, 미리보기, 단위 테스트
+- [x] CI(Actions)에서 26.3 서버로 스모크 월드 검증 **전부 통과** (블록 217/217, 블록 엔티티, TP 엔티티·함수, 조명 재계산, 로그 경고 0)
+- [x] 릴리스 `world-latest`에 `Library-of-Ruina.zip` 자동 업로드
+- [x] `TESTING.md` (테스터용 설치·확인·보고 양식)
+- [ ] **테스터 확인 대기** (TESTING.md 3절 ①~⑧). 특히 ③ BSL에서 커스텀 차원 하늘·초승달
+- 다음: 테스터 결과 반영 → Phase 1 (외부 건물)
 
-## 2. 조사 결과 (2026-10-11, minecraft.wiki 기준)
+## 2. 확인된 사실 (26.3, 포맷 프로브·서버 로그로 검증)
 
-### 버전
-- 최신 정식: **26.3 "Wilderness Bound"** (2026-09-15). **DataVersion 5023**, 데이터팩 형식 **121.0**, 리소스팩 97.1.
-- 이전: 26.2 (DV 4903, 팩 107.1), 26.1 (DV 4786, 팩 101.1). 26.4는 2026년 4분기 예정.
-- 26.4 예정 변경 (주의): 청크 `Status`→`status`, 섹션 바이옴 data 64개→4096개.
-- 26.x 서버/클라이언트는 **Java 25 필요할 가능성 높음 (미확인)**. Actions에서는 Temurin 25 사용.
+### 버전·환경
+- 26.3: DataVersion **5023**, 데이터팩 형식 **121.0**, **Java 25** (version.json `java_version: 25`)
+- 서버 jar(`META-INF/versions/26.3/server-26.3.jar`) 안에 바닐라 데이터팩 JSON이 그대로 있음 → `ref/vanilla/`에 추출해 둠
+- 26.3용 Iris(1.11.6+)·Sodium(0.9.2+) 출시됨 (2026-10 웹 검색)
 
-### 세이브 폴더 구조 (26.1부터 바뀜)
-- 루트: `level.dat`, `players/`(data, stats, advancements), `datapacks/`
-- `data/minecraft/`: `game_rules.dat`, `world_clocks.dat`, `world_gen_settings.dat`, `scoreboard.dat`, `weather.dat` 등 (예전엔 level.dat 안에 있던 것들)
-- 차원별: `dimensions/<ns>/<path>/{region,entities,poi,data}/`
-  - 오버월드도 `dimensions/minecraft/overworld/region/` (예전 루트 `region/` 아님)
-- level.dat 변경: `Player`→`singleplayer_uuid`, 난이도는 `difficulty_settings{difficulty(문자열),hardcore,locked}`, `spawn{dimension,pos,yaw,pitch}`, `version_history` 추가(26.3)
-- `world_gen_settings.dat` 등의 **정확한 NBT 구조는 문서에 없음** → level.dat을 직접 만들지 말고 **실제 서버가 월드를 생성하게 할 것** (3절)
+### 세이브 구조 (서버가 실제로 만든 것)
+- `level.dat`: `Data{GameType(Int), allowCommands(Byte), spawn{pos[I;x,y,z], yaw, pitch, dimension}, difficulty_settings{difficulty:"peaceful",...}, DataPacks{Enabled,Disabled}, version_history, DataVersion, ...}`
+  - 서버가 만든 월드는 `allowCommands 0` → 빌드 후처리에서 1로 바꿈. `GameType 1`(크리에이티브)
+  - **월드 스폰을 커스텀 차원에 둘 수 있음**: `execute in ruina:exterior run setworldspawn ...` → `spawn.dimension = "ruina:exterior"`
+- `data/minecraft/game_rules.dat`: `data{"minecraft:advance_time": 0b, ...}` — 게임룰 ID는 `minecraft:` 네임스페이스 snake_case. 전체 목록은 `ref/registries.json`의 `minecraft:game_rule`
+- 차원 폴더: `dimensions/<ns>/<id>/{region,entities,poi,data}/`
 
-### 청크 NBT (1.18+ 형식, 26.3에서도 동일한 것으로 추정)
-- 루트: `DataVersion`(Int), `xPos`/`zPos`(Int, 절대 청크좌표), `yPos`(Int, 최하단 섹션 Y), `Status`(String `"minecraft:full"`), `LastUpdate`(Long), `InhabitedTime`(Long), `sections`(List), `block_entities`(List), `Heightmaps`(Compound), `structures`, `isLightOn`(Byte)
-- 섹션: `Y`(Byte), `block_states{palette:[{Name, Properties}], data:LongArray}`, `biomes{palette:[String], data:LongArray}`, `BlockLight`/`SkyLight`(2048 bytes, 생략 가능)
-- 팔레트 패킹: 비트 수 = max(4, ceil(log2(팔레트 크기))). **인덱스는 long 경계를 넘지 않음**(남는 비트 버림). 순서 `index = y*256 + z*16 + x`. 팔레트 1개면 data 생략.
-- 바이옴: 4×4×4 = 64개, 최소 비트 제한 없음(1개면 data 생략).
-- 하이트맵: 생략 시 로드할 때 재계산될 것으로 예상 (**미검증**)
-- `isLightOn: 0B` → 로드 시 조명 재계산 기대 (**미검증**, 문서에 언급 없음)
-- 리전 파일 `.mca`: 4KiB 섹터, 헤더(오프셋 테이블 + 타임스탬프), 청크마다 [길이 4바이트][압축 타입 1바이트(2=zlib)][데이터]
-- 섹션이 없는 Y는 공기로 처리됨. 바이옴이 없는 섹션은 기본 바이옴(plains일 가능성)이 들어갈 수 있으니, **구역 범위 안의 청크는 모든 섹션에 바이옴 팔레트를 써줄 것** (block_states는 air 하나만)
+### 청크 NBT (가장 중요)
+- 루트: `DataVersion, xPos, zPos, yPos, Status:"minecraft:full", LastUpdate, InhabitedTime, isLightOn, sections, block_entities, Heightmaps, fluid_ticks, block_ticks, PostProcessing(섹션 수만큼 빈 리스트), structures{References,starts}`
+- **블록 팔레트 항목 = either(블록 ID 문자열, `{id, properties}`)**
+  - 예전 `{Name, Properties}`는 **안 읽힘** ("No key id")
+  - 문자열은 속성 없는 기본 상태만 (`"minecraft:oak_stairs[facing=east]"` 같은 문자열은 오류)
+  - 문자열과 Compound가 섞이면 문자열을 `{"": "minecraft:air"}`로 감쌈 (26.x NBT의 섞인 리스트 규칙)
+- 바이옴 팔레트: 문자열 리스트 `["ruina:lobby"]`. 청크를 쓸 땐 모든 섹션에 바이옴을 써야 함(없으면 plains)
+- `Heightmaps: {}`(비움) → 로드 시 재계산됨 (검증됨)
+- `isLightOn: 0b` + 빛 배열 없음 → **로드 시 조명 재계산됨** (랜턴 옆 블록 빛 14 확인)
+- 블록 엔티티: `{id, x, y, z, keepPacked, components{}, Items:[{Slot:0b, id, count:Int}]}` (조각된 책장 책 3권 검증)
+- 엔티티 파일(`entities/r.x.z.mca`): `{Position:[I;cx,cz], DataVersion, Entities:[...]}` — 엔티티는 직접 쓰지 않고 **서버에서 summon** 시켜 저장
 
-### 데이터팩 (26.x)
-- 폴더 이름 단수: `function/`, `tags/function/`, `dimension/`, `dimension_type/`, `worldgen/biome/`, `world_clock/`, `timeline/`
-- `pack.mcmeta` (형식 추정, **검증 필요**):
-  ```json
-  {"pack": {"description": "Ruina Library", "min_format": [121, 0], "max_format": [121, 0]}}
-  ```
-- load/tick: `data/minecraft/tags/function/load.json`, `tick.json`
+### 데이터팩
+- `pack.mcmeta`: `{"pack": {"description", "min_format": [121,0], "max_format": [121,0]}}` — 동작함 (값은 version.json에서 자동)
+- 폴더 이름 단수(`function/`, `dimension/`, `dimension_type/`, `worldgen/biome/`) — 동작함
+- 차원: flat 생성기 `{"biome", "layers": [], "features": false, "lakes": false, "structure_overrides": []}` — 동작함
+- 차원 타입: **바닐라 overworld.json을 복사해서** `default_clock`·`timelines` 제거, 높이·attributes 덮어씀 (`tools/datapack.py`)
+- 바이옴: 바닐라 the_void.json 복사 → `features: []`, 시각 속성 제거 (바닐라 the_void에 `visual/sky_color`가 있어서 차원 하늘을 덮어씀)
 
-### dimension_type (26.x 필드)
-`coordinate_scale, has_skylight, has_ceiling, has_ender_dragon_fight, ambient_light, has_fixed_time(Boolean), monster_spawn_block_light_limit, monster_spawn_light_level, logical_height, min_y(16배수, -2032~2031), height(16배수, 16~4064, min_y+height-1 ≤ 2031), infiniburn, skybox("overworld"/"end"/"none"), cardinal_light("default"/"nether"), attributes{}, default_clock, timelines`
-- `effects` 삭제됨 (→ skybox, cardinal_light), `fixed_time`(Int) → `has_fixed_time`(Boolean)
-- 높이 확장은 별도 데이터팩 없이 **dimension_type의 min_y/height로 해결**
+### 하늘·시간 (환경 속성)
+- 속성 전체 목록: `ref/registries.json` → `minecraft:environment_attribute` (예: `visual/block_light_tint`, `visual/ambient_particles`도 있음)
+- 바닐라 낮/밤은 `timeline/day.json`이 시계(`world_clock`)에 맞춰 속성을 바꾸는 방식. 한밤중(18000) 값: `sun_angle 180`, `moon_angle 0`(머리 위), `star_angle 180`, `star_brightness 0.5`, `sky_light_factor 0.24`, `sky_light_color #7a7aff`, `gameplay/sky_light_level 0.2667`, 하늘·안개색에 검정 곱함
+- 우리 방식: **시계·타임라인 없이 차원 attributes에 밤 값을 고정** (`config.night_sky()`). 외관 = 보라 하늘 `#3b2370` + `moon_phase "waxing_crescent"` + `moon_angle 35`
+  - 서버에서는 오류 없음. **클라이언트·BSL에서 실제로 어떻게 보이는지는 테스터 확인 필요**
+- `/time query daytime` → 오류 (26.3에서 문법이 바뀜. 필요하면 `/time` 도움말 확인)
 
-### 환경 속성 (environment attributes) — 층별 하늘의 핵심
-- dimension_type `attributes`에 넣으면 그 차원 전체에 적용. 우선순위: 차원 < 바이옴 < 타임라인 < 날씨.
-- 시각 속성 (`minecraft:visual/...`): `sky_color`, `fog_color`(RGB "#RRGGBB"), `fog_start_distance`, `fog_end_distance`, `sky_fog_end_distance`, `cloud_color`(ARGB), `cloud_height`, `sky_light_color`, `sky_light_factor`, `sun_angle`, `moon_angle`, `star_angle`, `star_brightness`, `moon_phase`(override 전용: `waxing_crescent` 등 8종, overworld 스카이박스에서만), `sunrise_sunset_color`, `ambient_light_color`, `water_fog_color`, `ambient_particles`
-- **바이옴이 차원 값을 덮어씀** → 바닐라 바이옴(the_void 등)은 자체 시각 속성이 있을 수 있으므로 **시각 속성이 없는 커스텀 바이옴**을 써야 차원 설정이 먹힌다.
-- 아이디어: `default_clock` 없이 attributes로 sun/moon 각도·별 밝기·달 위상을 고정하면 **시계 없이 정적인 밤하늘**을 층마다 다르게 만들 수 있음 (미검증).
+### CI·GitHub 접근 (이 작업 환경 기준)
+- 작업 환경에서는 Mojang·minecraft.wiki·나무위키 접속 불가. **GitHub Actions에서는 Mojang 접속 가능**
+- `gh api`의 runs 조회는 되지만 일부 Actions 경로·아티팩트 다운로드(blob 저장소)는 막힘 → **결과는 CI가 `ci-output` 브랜치에 push**, `git fetch origin ci-output`으로 읽음
+- 실패 로그: GitHub MCP `get_job_logs(run_id, failed_only=true)`
+- 워크플로 실행: MCP `actions_run_trigger(run_workflow, build.yml, inputs {task: world|probe})`, 또는 관련 경로 push 시 자동
+- 릴리스 다운로드(`release-assets.githubusercontent.com`)는 작업 환경에서도 됨
 
-### 커스텀 바이옴 (최소 형식, 미검증)
-```json
-{"has_precipitation": false, "temperature": 0.5, "downfall": 0.0,
- "effects": {"water_color": 4159204}, "carvers": [], "features": []}
+## 3. 코드 구조
+
 ```
-- 1.21.11에서 effects의 sky/fog 색 등은 삭제되고 `attributes`로 이동. 26.3 snap4에서 `spawners`, `spawn_costs`, `creature_spawn_probability` 삭제.
-
-### 차원 정의 (void, 미검증)
-`data/ruina/dimension/<id>.json`
-```json
-{"type": "ruina:<id>", "generator": {"type": "minecraft:flat", "settings": {
-  "biome": "ruina:<id>", "layers": [{"block": "minecraft:air", "height": 1}],
-  "features": false, "lakes": false, "structure_overrides": []}}}
+config.py               공간 목록·크기·높이·하늘(night_sky)·게임룰 (수치는 PLAN.md 근거)
+build.py                로컬: python build.py previews | datapack | check
+builders/__init__.py    Build(차원별 블록 저장소, TP 연결, 서버 검증 목록 자동 생성)
+builders/smoke.py       Phase 0 스모크 월드 (임시 — Phase 1~2에서 exterior.py/lobby.py로 교체)
+builders/previews.py    공간별 미리보기 목록
+tools/nbt.py            NBT 읽기/쓰기 (+ to_snbt 덤프)
+tools/region.py         .mca 읽기/쓰기 (255섹터 초과 시 .mcc)
+tools/world.py          Dimension: set/fill/place(numpy 배열)/place_mask, 블록 이름 검사(ref/blocks.json), 청크 NBT
+tools/datapack.py       차원·차원타입·바이옴·함수(TP, setup, 엔티티 소환) 생성
+tools/preview.py        위에서 본 모습(높이 음영)·입면·단면 PNG (색: ref/block_colors.json)
+tools/server.py         서버 jar 다운로드, 콘솔 명령 하네스
+tools/ci.py             CI 단계: fetch, refs, reports, colors, probe, world
+tools/build_world.py    CI 월드 빌드: 1차 실행 → 청크 쓰기 → 2차 실행 검증 → level.dat 수정 → zip
+tests/test_tools.py     python -m unittest discover -s tests
+ref/                    26.3 서버에서 뽑은 참고 자료 (blocks.json=블록·속성, registries.json, block_colors.json, vanilla/)
+previews/               미리보기 PNG (폰 확인용)
+.github/workflows/build.yml
 ```
 
-### 시간
-- 26.1부터 시간은 **월드 시계(world clock)** 기반. 시계 정의: `data/<ns>/world_clock/<id>.json` = `{}` (추가 시 재시작 필요, /reload 안 됨). 기본 시계: `minecraft:overworld`, `minecraft:the_end`.
-- `/time [of <clock>] (add|set|pause|resume|rate|query) ...`, 시간 마커: `day`(1000), `noon`, `night`(13000), `midnight`(18000). 기본 시계가 없는 차원에서 `of` 없이 쓰면 오류.
-
-### 게임룰 (1.21.11부터 snake_case)
-`advance_time, advance_weather, spawn_mobs, random_tick_speed, fire_spread_radius_around_player(0=끔), keep_inventory, command_block_output, show_advancement_messages, respawn_radius, mob_griefing, spawn_patrols, spawn_wandering_traders, entity_drops, block_drops, fall_damage, send_command_feedback, water_source_conversion, lava_source_conversion`
-- 관상용 기본값 제안: `advance_time false, advance_weather false, spawn_mobs false, spawn_patrols false, spawn_wandering_traders false, random_tick_speed 0, fire_spread_radius_around_player 0, mob_griefing false`
-
-## 3. 기술 방식 (결정)
-
-### 3-1. 공간마다 별도 차원 (사용자에게 아직 확인 안 함 — 진행 전 한 줄로 알릴 것)
-- 이유: 사용자가 원한 "층별로 다른 시간·하늘"은 한 차원 안에서는 불가능. 차원을 나누면 층별 하늘색·안개·달·별·높이를 각각 설정할 수 있고, 구역 사이가 사실상 무한히 떨어져서 "아주 크게 떨어뜨리기" 요구도 충족.
-- 차원 ID 안: `ruina:exterior, ruina:lobby, ruina:history, ruina:technology, ruina:literature, ruina:art, ruina:natural_science, ruina:language, ruina:social_science, ruina:philosophy, ruina:religion, ruina:general`
-- 모든 차원 높이 공통 제안: `min_y -64, height 640` (최대 Y 575). 층별로 바꿔도 됨.
-- 오버월드는 사용하지 않고, load 함수에서 처음 접속한 플레이어를 `ruina:exterior` 정문 앞으로 보냄.
-- **리스크**: Iris/BSL이 커스텀 차원과 attributes로 만든 하늘을 어떻게 그리는지 모름 → 테스터 확인 1순위. 안 되면 한 차원 + 좌표 분리(구역 간 10,000칸 이상)로 대체.
-
-### 3-2. 월드 생성 파이프라인
-- **Claude 작업 환경에서는 Mojang 서버(piston-meta.mojang.com)가 막혀 있음** → 서버 jar로 검증 불가. **GitHub Actions에서는 인터넷이 됨** → Actions에서 실제 서버를 돌린다.
-- 흐름 (`.github/workflows/build.yml`, workflow_dispatch + 관련 경로 push):
-  1. Temurin 25 + Python 설정
-  2. version_manifest_v2.json에서 최신 release 서버 jar 다운로드 (jar는 재배포 금지라 아티팩트에 넣지 말 것)
-  3. `eula=true`, `server.properties`(level-type `minecraft:flat`, 빈 void 설정, online-mode는 무관) 작성, 데이터팩을 `world/datapacks/`에 복사
-  4. 서버 1차 실행 → "Done" 후 `stop` → **실제 26.3 level.dat·폴더 구조 확보**
-  5. 파이썬 생성기가 `world/dimensions/ruina/<id>/region/*.mca` 작성
-  6. 서버 2차 실행: 검증 함수(`execute in ... if block ...` 결과를 로그로 출력)로 블록이 제대로 읽히는지 확인, 로그에서 청크/데이터팩 오류 검사 → 실패 시 워크플로 실패
-  7. `session.lock` 빼고 zip → 아티팩트 + Releases 업로드 (공간별 zip 분리, 2GB 제한 대비)
-  8. 처음 한 번은 **포맷 프로브**: 서버가 직접 만든 청크(.mca)와 level.dat을 아티팩트로 올려서 실제 NBT 구조를 확인하고 생성기와 비교
-- 미리보기 PNG(위에서 본 모습, 단면)는 생성기 데이터로 렌더링해서 `previews/`에 커밋 → 사용자가 폰으로 확인.
-
-### 3-3. 생성기 구조 (제안)
-- `tools/nbt.py` 최소 NBT 쓰기/읽기 (외부 의존성 없이)
-- `tools/region.py` .mca 쓰기
-- `tools/world.py` 공간별 희소 블록 저장소(청크 섹션 단위 numpy 배열 + 팔레트), 블록엔티티
-- `builders/<공간>.py` 공간별 생성 코드, `config.py`에 PLAN.md 수치(스케일, 구역 크기, 차원 높이)
-- `datapack/` 소스 (차원, 바이옴, load/tick, TP 함수)
-- `tools/preview.py` 미리보기 렌더러
-
-### 3-4. GitHub 접근 (Claude 세션 기준)
-- 레포는 세션에 push 권한으로 연결됨. `gh auth status`는 "invalid"로 나오지만 **`gh api`는 프록시 덕분에 동작함** (repos API 확인됨). 워크플로 실행·로그·아티팩트도 `gh api`로 다루면 됨.
-- 사용자가 Actions 허용 + Workflow permissions "Read and write" 설정 완료.
-- 워크플로 파일 push가 권한(workflow scope) 때문에 거부되면, 파일 내용을 사용자에게 주고 GitHub 앱에서 붙여넣게 한다.
+- TP: 빌더에서 `b.links.anchor(이름, 차원, x,y,z, yaw)` / `b.links.portal(차원, x,y,z, 목적지, width, height)`
+  → 데이터팩 `ruina:tp/to/<이름>`, `ruina:tp/clicked`(상호작용 엔티티 우클릭/좌클릭 처리), `ruina:build/entities`(CI가 실행해 엔티티 소환)
+- 처음 접속: 월드 스폰이 `b.links.spawn` 앵커 (커스텀 차원). 혹시 오버월드에 나타나면 tick의 `first_join`이 TP
+- 게임룰: `ruina:setup` (CI 2차 실행에서 한 번 적용. 테스터도 다시 실행 가능)
+- 서버 검증: `Build.block_checks()`(차원마다 청크 4개×블록 24개 무작위 + 블록 엔티티), `light_checks()`, `extra_checks`
 
 ## 4. 다음 할 일
 
-### Phase 0: 기반 (노력 높게 권장)
-1. `tools/` NBT·리전·월드 모듈 작성 + 로컬 단위 테스트 (자기 자신이 쓴 .mca를 다시 읽어 비교)
-2. 데이터팩 생성 (차원 12개, 바이옴, pack.mcmeta, load 함수: 게임룰·스폰·TP)
-3. `build.yml` 작성 (포맷 프로브 포함) → 실행 → 로그로 데이터팩 오류, 청크 로드 확인 → 수정 반복
-4. 스모크 테스트 월드: `ruina:exterior`에 작은 받침대와 TP 엔티티, `ruina:lobby`에 작은 방. 서버 검증 통과 확인
-5. `TESTING.md` 작성 (테스터용): 설치 목록, 월드 넣는 법, 확인 항목, 보고 양식
-6. 테스터에게 스모크 월드 확인 요청: ① 월드가 열리는지 ② TP 동작 ③ BSL이 커스텀 차원·하늘색·초승달을 어떻게 그리는지 ④ 조명이 제대로 계산됐는지 ⑤ 프레임
+### Phase 0 마무리
+1. 사용자 → 테스터에게 `TESTING.md` 링크 전달, 결과(보고 양식+스크린샷) 받기
+2. 결과 반영:
+   - ③ BSL이 attributes 하늘을 무시하면: 바이옴 attributes로 옮겨 보기 → 안 되면 쉐이더 쪽 대안(BSL 설정) 또는 한 차원 + 좌표 분리로 대체 (PLAN 2절 TP 방식은 그대로)
+   - 초승달이 안 보이거나 위치가 이상하면 `moon_angle` 조정 (0 = 머리 위)
+   - 배경음악: 지금은 바닐라 크리에이티브 음악이 그대로 나옴 (사용자에게 끌지 물어볼 것)
+
 ### Phase 1~: PLAN.md 3절 순서대로 (외부 → 로비 → 역사 → … → 총류)
+- 외부 건물 착수 전 준비: `builders/shapes.py`(원통·테이퍼·곡선 가지·소용돌이 등 numpy 마스크 도형), 큰 공간용 성능(리전 단위 생성, 멀티프로세스 쓰기)
+- 외부 스케일: PLAN 5절 (정문 24×15, 탑 지름 72, 높이 330, 가지 반지름 180, 도시 실루엣 300~750) — `config.EXTERIOR_SCALE`
+- 각 층 착수 시 원화(`reference/`) 보고 하늘 값 결정 → PLAN.md 7절에 기록
 
-## 5. 테스터 설치 목록 (TESTING.md 초안 재료)
-1. 마인크래프트 Java 최신 정식 (26.3)
-2. Fabric Loader + Fabric API
-3. Sodium, Iris (26.3 지원 버전)
-4. 선택: Lithium, FerriteCore, ImmediatelyFast, Distant Horizons
-5. BSL Shaders 최신판 → `shaderpacks`
-6. Releases의 월드 zip → `saves`에 압축 해제
-(정확한 모드 버전 링크는 작성 시점에 확인)
-
-## 6. 미해결 질문 / 리스크
-- 차원 분리 방식에 대한 사용자 동의 (3-1)
-- Iris/BSL + 커스텀 차원/attributes 하늘 호환 (테스터 확인)
-- 26.3 pack.mcmeta 정확한 형식, 커스텀 바이옴·차원 JSON 유효성 (Actions 로그로 확인)
-- 하이트맵 생략·`isLightOn 0` 재조명이 26.3에서 동작하는지 (포맷 프로브 + 테스터)
-- 층별 시간·하늘 값은 각 층 착수 시 원화 보고 결정해서 PLAN.md 7절에 기록
+## 5. 미해결 질문 / 리스크
+- Iris/BSL + 커스텀 차원/attributes 하늘 호환 (테스터 ③)
+- 큰 공간(최대 3072×3072) 생성 시간·메모리: 지금 구조는 섹션 dict라 수십만 섹션이면 GB 단위 → Phase 1 전에 리전 단위 스트리밍 검토
+- 릴리스 zip 2GB 제한 → 공간별 zip 분리 필요할 수 있음
+- 배경음악·환경음 (사용자 결정)
