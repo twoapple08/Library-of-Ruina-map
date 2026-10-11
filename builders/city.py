@@ -113,7 +113,7 @@ def build_city(d, r0: float, r1: float, seed: int = 81, ground_y: int = -40, h_m
             h = int(np.clip(h, 30, h_max * 1.3))
             wall = _pick(rng, *pal["walls"])
             st = Style(rng, d, wall, _pick(rng, *pal["trim"]), _pick(rng, *pal["lit"]),
-                       rng.uniform(0.12, 0.4))
+                       rng.uniform(*pal.get("lit_ratio", (0.12, 0.4))))
             x0, z0 = int(cx - w / 2), int(cz - l / 2)
             y0 = ground_y
             height_total = h - ground_y if ground_y < 0 else h

@@ -45,3 +45,53 @@
 |---|---|
 | ![](literature_compare_walkway.png) | 원화(위) / 맵(아래) — 보도 옆에서 북쪽: 나무 보도, 엇갈린 에스컬레이터형 책장, 매달린 전구, 나무 탑(눈높이 창 안의 큰 전구) |
 | ![](literature_compare_room.png) | 원화(위) / 맵(아래) — 호드 방 (책장 기둥, 매달린 전구, 책상·의자, 팔각 문틀 복도) |
+
+## 예술의 층 (1차)
+
+| 그림 | 내용 |
+|---|---|
+| ![](art_compare_stage.png) | 원화(위) / 맵(아래) — 쓰러진 나무줄기 무대, 수면, 책장 박힌 거대 나무들, 눈 셋 괴생물체 |
+| ![](art_compare_room.png) | 원화(위) / 맵(아래) — 네짜흐 방 |
+
+## 자연과학의 층 (1차)
+
+| 그림 | 내용 |
+|---|---|
+| ![](natural_science_compare_stage.png) | 원화(위) / 맵(아래) — 황금 돔·감실·겹 아치·받침대, 무대·휘장 |
+| ![](natural_science_compare_variant.png) | 원화(위) / 맵(아래) — 마그마크림 F — 색 바뀐 판 |
+| ![](natural_science_compare_room.png) | 원화(위) / 맵(아래) — 티페리트 방 |
+
+## 언어의 층 (1차)
+
+| 그림 | 내용 |
+|---|---|
+| ![](language_compare_stage.png) | 원화(위) / 맵(아래) — 강철 발판, 쇳물 국자, 달아오른 기계 숲, 용암 |
+| ![](language_compare_room.png) | 원화(위) / 맵(아래) — 게부라 방 |
+
+## 사회과학의 층 (1차)
+
+| 그림 | 내용 |
+|---|---|
+| ![](social_science_compare_stage.png) | 원화(위) / 맵(아래) — 난파선 갑판, 소용돌이 물결·빛기둥, 잠긴 도시 |
+| ![](social_science_compare_room.png) | 원화(위) / 맵(아래) — 헤세드 방 |
+
+## 철학의 층 (1차)
+
+| 그림 | 내용 |
+|---|---|
+| ![](philosophy_compare_stage.png) | 원화(위) / 맵(아래) — 돌 포장 다리, 은하수 띠, 아래 도시 야경 |
+| ![](philosophy_compare_room.png) | 원화(위) / 맵(아래) — 비나 방 |
+
+## 종교의 층 (1차)
+
+| 그림 | 내용 |
+|---|---|
+| ![](religion_compare_stage.png) | 원화(위) / 맵(아래) — 돌판 무대, 거대 시계들, 진자, 발코니 복도 |
+| ![](religion_compare_room.png) | 원화(위) / 맵(아래) — 호크마 방 (나선계단) |
+
+## 총류의 층 (1차)
+
+| 그림 | 내용 |
+|---|---|
+| ![](general_compare_stage.png) | 원화(위) / 맵(아래) — 책더미 다리, 비틀린 책탑, 책장 빌딩 |
+| ![](general_compare_room.png) | 원화(위) / 맵(아래) — 롤랑 방 |

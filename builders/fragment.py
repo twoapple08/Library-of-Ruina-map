@@ -26,14 +26,15 @@ def take(pred: str) -> str:
     return f"clear @s {pred}"
 
 
-def setup(L, key: str, dim: str, pred: str, b_box: str, to_a: list, to_b: list):
-    """L: datapack.Links. b_box: 'B 쪽에 있음'을 가리는 선택자 범위 (x=..,dx=..). to_a/to_b: 이동 명령 목록 (@s, at @s)."""
+def setup(L, key: str, dim: str, pred: str, b_box: str, to_a: list, to_b: list, area: str = ""):
+    """L: datapack.Links. b_box: 'B 쪽에 있음'을 가리는 선택자 범위 (x=..,dx=..). to_a/to_b: 이동 명령 목록 (@s, at @s).
+    area: 이 범위 안에서만 작동 (선택자 인자, 예: 지정사서 방 밖에서만)."""
     up = f"{NS}.{key}_up"
     for sc in (f"{NS}.{key}", f"{NS}.ok"):
         if sc not in L.scores:
             L.scores.append(sc)
     L.tick += [
-        f"execute as @a[tag=!{NS}.fading,tag=!{up}] at @s if dimension {dim} "
+        f"execute as @a[tag=!{NS}.fading,tag=!{up}{',' + area if area else ''}] at @s if dimension {dim} "
         f"if items entity @s weapon.offhand {pred} run function {NS}:{key}/switch",
         f"execute as @a[tag={up}] run function {NS}:{key}/tick",
     ]
@@ -83,13 +84,68 @@ def fixed(anchor: str) -> list:
     return [f"function {NS}:tp/to/{anchor}"]
 
 
-SILVER_P, SILVER = item("silver", "minecraft:iron_nugget", "은조각")
-GOLD_P, GOLD = item("gold", "minecraft:gold_nugget", "금조각")
-IRON_P, IRON = item("iron", "minecraft:iron_ingot", "철괴")   # 기술과학의 층 (사용자 지정: 철괴)
-COPPER_P, COPPER = item("copper", "minecraft:copper_ingot", "구리 주괴")   # 문학의 층 (주홍빛 전구와 어울리게)
-ALL = [(SILVER_P, SILVER), (GOLD_P, GOLD), (IRON_P, IRON), (COPPER_P, COPPER)]
+# 층 순서대로 (사용자 지정, 2026-10-12): 철조각, 금조각, 철괴, 금괴, 철발판, 금발판, 철블럭, 금블럭, 모루, 황금사과.
+# 로비부터 하나씩. 총류는 목록이 모자라 임시로 마법이 부여된 황금사과 (사용자 확인 필요)
+SILVER_P, SILVER = item("silver", "minecraft:iron_nugget", "철조각")                 # 로비 (예전 이름 '은조각')
+GOLD_P, GOLD = item("gold", "minecraft:gold_nugget", "금조각")                       # 역사
+IRON_P, IRON = item("iron", "minecraft:iron_ingot", "철괴")                          # 기술과학
+GOLDBAR_P, GOLDBAR = item("goldbar", "minecraft:gold_ingot", "금괴")                 # 문학
+IPLATE_P, IPLATE = item("iplate", "minecraft:heavy_weighted_pressure_plate", "철발판")  # 예술
+GPLATE_P, GPLATE = item("gplate", "minecraft:light_weighted_pressure_plate", "금발판")  # 자연과학
+IBLOCK_P, IBLOCK = item("iblock", "minecraft:iron_block", "철블럭")                  # 언어
+GBLOCK_P, GBLOCK = item("gblock", "minecraft:gold_block", "금블럭")                  # 사회과학
+ANVIL_P, ANVIL = item("anvil", "minecraft:anvil", "모루")                            # 철학
+APPLE_P, APPLE = item("apple", "minecraft:golden_apple", "황금사과")                  # 종교
+EAPPLE_P, EAPPLE = item("eapple", "minecraft:enchanted_golden_apple", "마법이 부여된 황금사과")  # 총류 (임시)
+MAGMA_P, MAGMA = item("magma", "minecraft:magma_cream", "마그마크림")                 # 자연과학 색감 전환
+ALL = [(SILVER_P, SILVER), (GOLD_P, GOLD), (IRON_P, IRON), (GOLDBAR_P, GOLDBAR), (IPLATE_P, IPLATE),
+       (GPLATE_P, GPLATE), (IBLOCK_P, IBLOCK), (GBLOCK_P, GBLOCK), (ANVIL_P, ANVIL), (APPLE_P, APPLE),
+       (EAPPLE_P, EAPPLE), (MAGMA_P, MAGMA)]
 
 
-def exchange(keep_p: str, keep: str) -> list:
-    """그 층에 도착하면: 다른 조각은 회수, 그 층 조각은 없으면 1개."""
-    return [take(p) for p, _ in ALL if p != keep_p] + [give_if_missing(keep_p, keep)]
+def exchange(*keeps) -> list:
+    """그 층에 도착하면: 다른 조각은 회수, 그 층 조각(들)은 없으면 1개. keeps = (pred, give), ..."""
+    if len(keeps) == 2 and isinstance(keeps[0], str):
+        keeps = (keeps,)
+    keep_p = {p for p, _ in keeps}
+    return [take(p) for p, _ in ALL if p not in keep_p] + [give_if_missing(p, g) for p, g in keeps]
+
+
+ROOM_BOX = "x=3800,y=-64,z=-1024,dx=400,dy=1024,dz=2048"   # 지정사서 방은 x 4000 둘레
+
+
+def floor(b, d, key, item_pg, title, entrance, room, ret_zone, ret_dest, room_y=None, extra_keep=()):
+    """층 공통 연결: 도착 자리(제목), 지정사서 방 자리, 돌아가는 구역 → 이전 층 문, 조각 F 전환 + 서버 검사.
+    entrance/room = (x, y, z, yaw). 반환: 도착 시 명령(arrive)."""
+    L = b.links
+    name = d.dim.split(":")[1]            # 자리 이름은 층 이름 (예: art_entrance, art_room, art_door)
+    arrive = exchange(item_pg, *extra_keep)
+    ex, ey, ez, eyaw = entrance
+    rx, ry, rz, ryaw = room
+    L.anchor(f"{name}_entrance", d.dim, ex, ey, ez, yaw=eyaw, title=title, on_arrive=arrive)
+    L.anchor(f"{name}_room", d.dim, rx, ry, rz, yaw=ryaw, on_arrive=arrive)
+    L.walk(d.dim, ret_zone, ret_dest, fade=True)
+    setup(L, key, d.dim, item_pg[0], ROOM_BOX, to_a=fixed(f"{name}_entrance"), to_b=fixed(f"{name}_room"))
+    tag = f"ruina.t{key}"
+    b.extra_checks += [
+        {"what": f"{title} 조각 전환 접대→방",
+         "setup": [f"execute in {d.dim} run summon minecraft:marker {ex} {ey} {ez} {{Tags:[\"{tag}\"]}}",
+                   f"execute in {d.dim} as @e[type=minecraft:marker,tag={tag}] at @s run function ruina:{key}/switch"],
+         "cmd": f"execute in {d.dim} positioned {rx} {ry} {rz} if entity @e[type=minecraft:marker,tag={tag},distance=..0.5]",
+         "expect": True},
+        {"what": f"{title} 조각 전환 방→접대",
+         "setup": [f"execute in {d.dim} as @e[type=minecraft:marker,tag={tag}] at @s run function ruina:{key}/switch"],
+         "cmd": f"execute in {d.dim} positioned {ex} {ey} {ez} if entity @e[type=minecraft:marker,tag={tag},distance=..0.5]",
+         "expect": True},
+    ]
+    return arrive
+
+
+def door(b, d, key, zone, next_entrance, anchor, title):
+    """지정사서 방의 출구(원화 속 빛나는 문) → 다음 층. anchor = 다음 층에서 돌아올 때 설 자리 (x, y, z, yaw)."""
+    L = b.links
+    name = d.dim.split(":")[1]
+    L.walk(d.dim, zone, next_entrance, fade=True)
+    x, y, z, yaw = anchor
+    arrive = L.anchors[f"{name}_room"].on_arrive
+    L.anchor(f"{name}_door", d.dim, x, y, z, yaw=yaw, title=title, on_arrive=arrive)

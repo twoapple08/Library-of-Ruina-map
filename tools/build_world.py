@@ -135,6 +135,11 @@ def ci_world(argv) -> int:
             by_dim.setdefault(p.dim, set()).add((int(p.x) >> 4, int(p.z) >> 4))
         for a in b.links.anchors.values():
             by_dim.setdefault(a.dim, set()).add((int(a.x) >> 4, int(a.z) >> 4))
+        for w in b.links.walks:   # 걷기 구역 (마커 소환·검사용)
+            x0, _, z0, x1, _, z1 = w.box
+            for x in (x0, x1):
+                for z in (z0, z1):
+                    by_dim.setdefault(w.dim, set()).add((x >> 4, z >> 4))
         for dim, x, z in b.forceload:
             by_dim.setdefault(dim, set()).add((int(x) >> 4, int(z) >> 4))
         for dim, chunks in by_dim.items():

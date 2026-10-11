@@ -183,6 +183,24 @@ def render_literature(b, out_dir, pal):
     return files
 
 
+FLOORS = {}   # 층 이름 → 미리보기 설정 (각 층 모듈의 PREVIEW)
+
+
+def render_floor(b, out_dir, pal, sid, pv):
+    """층 공통 미리보기: 접대 공간(원화 구도) 비교 + 지정사서 방 비교 (+ 추가 장면)."""
+    d = b.dims[sid]
+    files = []
+    for shot in pv:
+        kw = dict(shot["kw"])
+        img = render_persp(d, pal, cam=shot["cam"], look=shot["look"], W=1000, H=562, **kw)
+        img = _compare(shot["ref"], img, shot["title"], shot["notes"], crop=shot.get("crop")) if shot.get("ref") \
+            else _frame(img, shot["title"], shot["notes"])
+        p = os.path.join(out_dir, shot["file"])
+        img.save(p, optimize=True)
+        files.append(p)
+    return files
+
+
 def render_all(b, out_dir):
     os.makedirs(out_dir, exist_ok=True)
     pal = Palette()
@@ -197,4 +215,9 @@ def render_all(b, out_dir):
         files += render_technology(b, out_dir, pal)
     if "literature" in b.dims:
         files += render_literature(b, out_dir, pal)
+    import importlib
+    for sid in ("art", "natural_science", "language", "social_science", "philosophy", "religion", "general"):
+        if sid in b.dims:
+            mod = importlib.import_module(f"builders.{sid}")
+            files += render_floor(b, out_dir, pal, sid, mod.PREVIEW)
     return files

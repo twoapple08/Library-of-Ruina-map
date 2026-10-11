@@ -1,4 +1,4 @@
-"""문학의 층 (호드). 접대 공간(나무 보도) ↔ 지정사서 방 (구리 주괴 F).
+"""문학의 층 (호드). 접대 공간(나무 보도) ↔ 지정사서 방 (금괴 F).
 
 참고: reference/문학의 층 전경.png, reference/문학의 층 지정사서 방.png, PLAN.md 8절 나무위키 요약
 ("광원은 모두 주홍빛 전구, 천장이 크기 제각각인 전구로 도배, 에스컬레이터형 책장으로 책 이동, 접대실 기둥 안에 특히 큰 전구").
@@ -271,23 +271,10 @@ def build(b):
     hanging_bulbs(d, rng)
     hod_room(d)
 
-    L = b.links
-    arrive = F.exchange(F.COPPER_P, F.COPPER)
-    L.anchor("literature_entrance", d.dim, ARRIVE_X + 0.5, Y0, 0.5, yaw=-90, title="문학의 층", on_arrive=arrive)
-    L.anchor("literature_room", d.dim, ROOM_X + 0.5, RY, RD - 2.5, yaw=180, on_arrive=arrive)
-    L.walk(d.dim, (-BX + 4, Y0, -HW + 1, -BX + 7, Y0 + 3, HW - 1), "technology_door", fade=True)
-    F.setup(L, "copper", d.dim, F.COPPER_P, f"x={ROOM_X - 200},y=-64,z=-1024,dx=400,dy=1024,dz=2048",
-            to_a=F.fixed("literature_entrance"), to_b=F.fixed("literature_room"))
-    b.extra_checks += [
-        {"what": "호드 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:literature_room",
-         "expect": True},
-        {"what": "구리 주괴 전환 보도→방",
-         "setup": [f"execute in {d.dim} run summon minecraft:marker {ARRIVE_X + 0.5} {Y0} 0.5 {{Tags:[\"ruina.csw\"]}}",
-                   f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.csw] at @s run function ruina:copper/switch"],
-         "cmd": f"execute in {d.dim} positioned {ROOM_X + 0.5} {RY} {RD - 2.5} if entity @e[type=minecraft:marker,tag=ruina.csw,distance=..0.5]",
-         "expect": True},
-        {"what": "구리 주괴 전환 방→보도",
-         "setup": [f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.csw] at @s run function ruina:copper/switch"],
-         "cmd": f"execute in {d.dim} positioned {ARRIVE_X + 0.5} {Y0} 0.5 if entity @e[type=minecraft:marker,tag=ruina.csw,distance=..0.5]",
-         "expect": True},
-    ]
+    F.floor(b, d, "goldbar", (F.GOLDBAR_P, F.GOLDBAR), "문학의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90),
+            (ROOM_X + 0.5, RY, RD - 2.5, 180), (-BX + 4, Y0, -HW + 1, -BX + 7, Y0 + 3, HW - 1), "technology_door")
+    # 호드 방 팔각 문틀 복도 끝(빛) → 예술의 층. 돌아오면 복도 입구 안쪽에서 방 쪽(서쪽)을 봄
+    x1 = ROOM_X + RW + 1
+    F.door(b, d, "goldbar", (x1 + 44, RY, -5, x1 + 47, RY + 3, 1), "art_entrance", (x1 + 3.5, RY, -1.5, 90), "문학의 층")
+    b.extra_checks.append({"what": "호드 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:literature_room",
+                           "expect": True})

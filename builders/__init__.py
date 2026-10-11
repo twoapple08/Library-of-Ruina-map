@@ -85,12 +85,20 @@ class Build:
 
 
 def build_all(only: list[str] | None = None) -> Build:
-    """월드에 들어가는 전체. 외부 + 로비 (전환 전 방 ↔ 전환 후 홀) + 역사의 층 + 기술과학의 층 + 문학의 층."""
-    from . import exterior, history, literature, lobby, technology
+    """월드에 들어가는 전체. 외부 + 로비 (전환 전 방 ↔ 전환 후 홀) + 역사 ~ 총류의 층 (10개)."""
+    from . import (art, exterior, general, history, language, literature, lobby, natural_science, philosophy,
+                   religion, social_science, technology)
     b = Build()
     exterior.build(b)
     lobby.build(b)
     history.build(b)
     technology.build(b)
     literature.build(b)
+    art.build(b)
+    natural_science.build(b)
+    language.build(b)
+    social_science.build(b)
+    philosophy.build(b)
+    religion.build(b)
+    general.build(b)
     return b

@@ -123,6 +123,88 @@ LIT_ROOM_SKY = {
     "minecraft:visual/fog_end_distance": 70.0,
 }
 
+# 예술의 층 (reference/예술의 층 전경.png, 지정사서 방.png)
+ART_SKY = night_sky("#b4cc52", "#a2b648", stars=0.0, sky_light_level=0.6, light_factor=0.8, light_color="#e8ff9a",
+                    extra={"minecraft:visual/fog_start_distance": 25.0, "minecraft:visual/fog_end_distance": 300.0,
+                           "minecraft:visual/water_fog_color": "#6f8f1e", "minecraft:visual/water_fog_end_distance": 24.0})
+ART_ROOM_SKY = {
+    "minecraft:visual/sky_color": "#1e2608",
+    "minecraft:visual/fog_color": "#3a4a10",
+    "minecraft:visual/fog_start_distance": 8.0,
+    "minecraft:visual/fog_end_distance": 60.0,
+}
+
+# 자연과학의 층 (reference/자연과학의 층 전경.png, 전경 (색 바뀐 판).jpg, 지정사서 방.png)
+NS_SKY = night_sky("#5a4520", "#a07a36", stars=0.0, sky_light_level=0.8, light_color="#ffe0a0", extra={
+    "minecraft:visual/fog_start_distance": 60.0, "minecraft:visual/fog_end_distance": 260.0})
+NS_TEAL_SKY = {
+    "minecraft:visual/sky_color": "#1a262a",
+    "minecraft:visual/fog_color": "#2e4044",
+    "minecraft:visual/fog_start_distance": 60.0,
+    "minecraft:visual/fog_end_distance": 260.0,
+}
+NS_ROOM_SKY = {
+    "minecraft:visual/sky_color": "#6a4a1c",
+    "minecraft:visual/fog_color": "#a07a3a",
+    "minecraft:visual/fog_start_distance": 10.0,
+    "minecraft:visual/fog_end_distance": 80.0,
+}
+
+# 언어의 층 (reference/언어의 층 전경.png, 지정사서 방.png)
+LANG_SKY = night_sky("#2a0c06", "#5a1a0a", stars=0.0, sky_light_level=0.2, light_color="#ff7a3a", extra={
+    "minecraft:visual/fog_start_distance": 40.0, "minecraft:visual/fog_end_distance": 300.0,
+    "minecraft:visual/block_light_tint": "#ff8a3a"})
+LANG_ROOM_SKY = {
+    "minecraft:visual/sky_color": "#200804",
+    "minecraft:visual/fog_color": "#4a1406",
+    "minecraft:visual/fog_start_distance": 6.0,
+    "minecraft:visual/fog_end_distance": 50.0,
+}
+
+# 사회과학의 층 (reference/사회과학의 층 전경.png, 지정사서 방.png)
+SOC_SKY = night_sky("#0a2a5a", "#124a8a", stars=0.0, sky_light_level=0.35, light_color="#7ab8ff", extra={
+    "minecraft:visual/fog_start_distance": 15.0, "minecraft:visual/fog_end_distance": 220.0,
+    "minecraft:visual/block_light_tint": "#8ad0ff"})
+SOC_ROOM_SKY = {
+    "minecraft:visual/sky_color": "#06101e",
+    "minecraft:visual/fog_color": "#0c2036",
+    "minecraft:visual/fog_start_distance": 6.0,
+    "minecraft:visual/fog_end_distance": 50.0,
+}
+
+# 철학의 층 (reference/철학의 층 전경.png, 지정사서 방.png)
+PHIL_SKY = night_sky("#0c0a14", "#2a2018", moon_phase="waxing_crescent", moon_angle=10.0, stars=1.0, sky_light_level=0.2,
+                     light_color="#a08060", extra={"minecraft:visual/fog_start_distance": 120.0,
+                                                   "minecraft:visual/fog_end_distance": 520.0})
+PHIL_ROOM_SKY = {
+    "minecraft:visual/sky_color": "#120a04",
+    "minecraft:visual/fog_color": "#3a2408",
+    "minecraft:visual/fog_start_distance": 6.0,
+    "minecraft:visual/fog_end_distance": 60.0,
+}
+
+# 종교의 층 (reference/종교의 층 전경.png, 지정사서 방.png) — 흑백
+REL_SKY = night_sky("#c8c8c8", "#b4b4b4", stars=0.0, sky_light_level=0.8, light_factor=0.9, light_color="#e8e8e8",
+                    extra={"minecraft:visual/fog_start_distance": 40.0, "minecraft:visual/fog_end_distance": 420.0,
+                           "minecraft:visual/block_light_tint": "#e8e8e8"})
+REL_ROOM_SKY = {
+    "minecraft:visual/sky_color": "#d8d8d8",
+    "minecraft:visual/fog_color": "#d0d0d0",
+    "minecraft:visual/fog_start_distance": 10.0,
+    "minecraft:visual/fog_end_distance": 70.0,
+}
+
+# 총류의 층 (reference/총류의 층 전경.png, 전경 (배경만).png, 지정사서 방.png)
+GEN_SKY = night_sky("#a8a49a", "#9a968c", stars=0.0, sky_light_level=0.7, light_factor=0.9, light_color="#f0e8d8",
+                    extra={"minecraft:visual/fog_start_distance": 40.0, "minecraft:visual/fog_end_distance": 380.0,
+                           "minecraft:visual/water_fog_color": "#101828"})
+GEN_ROOM_SKY = {
+    "minecraft:visual/sky_color": "#6a6862",
+    "minecraft:visual/fog_color": "#7a776e",
+    "minecraft:visual/fog_start_distance": 10.0,
+    "minecraft:visual/fog_end_distance": 140.0,
+}
+
 SPACES = [
     # 날리는 종이: 하얀 창백한참나무 잎 + 금빛 포플러 잎 파티클 (떨어지며 흔들림)
     Space("exterior", "외부", "", 1536, 400, EXTERIOR_SKY,
@@ -142,13 +224,29 @@ SPACES = [
     Space("literature", "문학의 층", "호드", 1536, 400, LIT_SKY, particles=[("minecraft:white_ash", 0.002),
                                                                      ("minecraft:firefly", 0.001)],
           biomes={"literature_room": {"attributes": LIT_ROOM_SKY, "particles": [("minecraft:white_ash", 0.002)]}}),
-    Space("art", "예술의 층", "네짜흐", 1536, 400),
-    Space("natural_science", "자연과학의 층", "티페리트", 1024, 400),
-    Space("language", "언어의 층", "게부라", 1536, 400),
-    Space("social_science", "사회과학의 층", "헤세드", 2048, 400),
-    Space("philosophy", "철학의 층", "비나", 2048, 400),
-    Space("religion", "종교의 층", "호크마", 3072, 512),
-    Space("general", "총류의 층", "롤랑", 2048, 512),
+    # 예술의 층: 연두·노랑 빛 안개(나무 사이로 새는 빛), 반딧불이, 연두빛 물. 네짜흐 방은 어두운 숲빛
+    Space("art", "예술의 층", "네짜흐", 1536, 400, ART_SKY, particles=[("minecraft:firefly", 0.006)],
+          biomes={"art_room": {"attributes": ART_ROOM_SKY, "particles": [("minecraft:firefly", 0.004)]}}),
+    # 자연과학의 층: 금빛 실내 (돔). 색 바뀐 판은 같은 차원 다른 자리 (바이옴 natural_science_teal)
+    Space("natural_science", "자연과학의 층", "티페리트", 1024, 400, NS_SKY, particles=[("minecraft:white_ash", 0.001)],
+          biomes={"natural_science_room": {"attributes": NS_ROOM_SKY, "particles": [("minecraft:white_ash", 0.002)]},
+                  "natural_science_teal": {"attributes": NS_TEAL_SKY, "particles": [("minecraft:white_ash", 0.001)]}}),
+    # 언어의 층: 검붉은 용광로 안개, 블록 빛 주황. 게부라 방은 붉은 빛 어두운 서재
+    Space("language", "언어의 층", "게부라", 1536, 400, LANG_SKY, particles=[("minecraft:ash", 0.006), ("minecraft:lava", 0.0004)],
+          biomes={"language_room": {"attributes": LANG_ROOM_SKY, "particles": [("minecraft:ash", 0.002)]}}),
+    # 사회과학의 층: 깊은 바닷속 (짙은 푸른 안개, 떠다니는 입자). 헤세드 방은 푸른 어둠
+    Space("social_science", "사회과학의 층", "헤세드", 2048, 400, SOC_SKY,
+          particles=[("minecraft:white_ash", 0.006), ("minecraft:underwater", 0.01)],
+          biomes={"social_science_room": {"attributes": SOC_ROOM_SKY, "particles": [("minecraft:white_ash", 0.002)]}}),
+    # 철학의 층: 맑은 밤하늘 (별 밝게, 초승달), 아래 도시 안개. 비나 방은 금빛 어둠
+    Space("philosophy", "철학의 층", "비나", 2048, 400, PHIL_SKY, particles=[("minecraft:white_ash", 0.001)],
+          biomes={"philosophy_room": {"attributes": PHIL_ROOM_SKY, "particles": []}}),
+    # 종교의 층: 흑백 잿빛 안개 (원화가 흑백). 호크마 방은 흰빛 안개
+    Space("religion", "종교의 층", "호크마", 3072, 512, REL_SKY, particles=[("minecraft:white_ash", 0.004)],
+          biomes={"religion_room": {"attributes": REL_ROOM_SKY, "particles": [("minecraft:white_ash", 0.003)]}}),
+    # 총류의 층: 옅은 잿빛 안개 (책장 빌딩 사이 빛), 떨어지는 종이. 롤랑 방도 잿빛
+    Space("general", "총류의 층", "롤랑", 2048, 512, GEN_SKY, particles=[("minecraft:white_ash", 0.006)],
+          biomes={"general_room": {"attributes": GEN_ROOM_SKY, "particles": [("minecraft:white_ash", 0.004)]}}),
 ]
 
 SPACE_BY_ID = {s.id: s for s in SPACES}
