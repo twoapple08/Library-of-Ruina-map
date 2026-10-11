@@ -20,10 +20,10 @@ from .nbt import Byte, Int, List, Long
 
 AIR = "minecraft:air"
 
-# 26.3 블록 팔레트 항목 = either(블록 ID 문자열, {Name, Properties}) (2026-10-11 서버 로그로 확인).
-# 문자열은 속성 없는 기본 상태만 가능. NBT 리스트는 한 가지 타입이어야 하므로
-# "mixed": 섹션 팔레트에 속성 있는 블록이 하나라도 있으면 전부 Compound, 없으면 전부 문자열.
-PALETTE_FORMAT = "mixed"
+# 26.3 블록 팔레트 항목 = either(블록 ID 문자열, {id, properties}) (2026-10-11 포맷 프로브로 확인).
+# 문자열은 속성 없는 기본 상태. 문자열과 Compound가 섞인 리스트는 26.x NBT 규칙대로
+# 문자열을 {"": "minecraft:air"} 로 감싼다 (서버가 직접 저장한 청크와 같은 모양).
+PALETTE_FORMAT = "26.3"
 _STATE_RE = re.compile(r"^([a-z0-9_.\-]+:)?([a-z0-9_./\-]+)(?:\[(.*)\])?$")
 
 
@@ -229,20 +229,17 @@ class Dimension:
             sec = {"Y": Byte(sy)}
             s = self.sections.get((cx, sy, cz))
             if s is None or not s.any():
-                sec["block_states"] = {"palette": List([AIR if PALETTE_FORMAT == "mixed" else {"Name": AIR}])}
+                sec["block_states"] = {"palette": List([AIR])}
             else:
                 uniq, inv = np.unique(s.ravel(), return_inverse=True)
                 pal = List()
-                as_str = PALETTE_FORMAT == "mixed" and not any("[" in self.palette[u] for u in uniq)
+                mixed = any("[" in self.palette[u] for u in uniq)
                 for u in uniq:
-                    if as_str:
-                        pal.append(self.palette[u])
+                    name, props = parse_state(self.palette[u])
+                    if not props:
+                        pal.append({"": name} if mixed else name)
                     else:
-                        name, props = parse_state(self.palette[u])
-                        e = {"Name": name}
-                        if props:
-                            e["Properties"] = props
-                        pal.append(e)
+                        pal.append({"id": name, "properties": props})
                 bs = {"palette": pal}
                 if len(uniq) > 1:
                     bs["data"] = pack_indices(inv.astype(np.uint64), block_bits(len(uniq)))
@@ -296,11 +293,14 @@ def decode_section_blocks(sec: dict) -> np.ndarray | None:
         return None
     pal = []
     for e in bs["palette"]:
+        if isinstance(e, dict) and set(e) == {""}:  # 섞인 리스트에서 감싼 문자열
+            e = e[""]
         if isinstance(e, str):
             pal.append(canonical(e))
             continue
-        props = e.get("Properties", {})
-        pal.append(e["Name"] + ("[" + ",".join(f"{k}={props[k]}" for k in sorted(props)) + "]" if props else ""))
+        name = e.get("id", e.get("Name"))
+        props = e.get("properties", e.get("Properties", {}))
+        pal.append(name + ("[" + ",".join(f"{k}={props[k]}" for k in sorted(props)) + "]" if props else ""))
     if "data" not in bs:
         return np.full((16, 16, 16), pal[0], dtype=object)
     idx = unpack_indices(bs["data"], block_bits(len(pal)), 4096)
