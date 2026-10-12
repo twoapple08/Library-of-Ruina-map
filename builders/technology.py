@@ -304,8 +304,8 @@ def build(b):
     gears_and_tower(d, rng)
     yesod_room(d)
 
-    # 철괴 F: 다리 ↔ 예소드 방. 층 사이 이동은 조각 F (fragment.finish), 빛나는 유리문은 조형물로만
-    F.stage(b, d, "iron", (F.IRON_P, F.IRON), "기술과학의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
+    # 방전환: 다리 ↔ 예소드 방. 층 사이 이동은 세피라 아이템 (모드), 빛나는 유리문은 조형물로만
+    F.stage(b, d, "iron", "기술과학의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
     b.extra_checks += [
         {"what": "예소드 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:technology_room",
          "expect": True},

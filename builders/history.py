@@ -381,9 +381,9 @@ def build(b):
     malkuth_room(d)
 
     L = b.links
-    # 금조각 F: 접대 공간 ↔ 말쿠트 방 (고정 자리). 층 사이 이동은 조각 F (fragment.finish).
+    # 방전환: 접대 공간 ↔ 말쿠트 방 (고정 자리). 층 사이 이동은 세피라 아이템 (모드).
     # 도착 자리 뒤 내려가는 계단·말쿠트 방 금빛 틈은 조형물로만 남김
-    F.stage(b, d, "gold", (F.GOLD_P, F.GOLD), "역사의 층", (0.5, Y0, ARRIVE_Z + 0.5, 180), (ROOM_X + 0.5, Y0, RD - 2.5, 180),
+    F.stage(b, d, "gold", "역사의 층", (0.5, Y0, ARRIVE_Z + 0.5, 180), (ROOM_X + 0.5, Y0, RD - 2.5, 180),
             room_box=f"x={ROOM_X - 200},y=-64,z=-1024,dx=400,dy=1024,dz=2048")
     # 진열장 속 책 (도착 자리 둘레만 — 엔티티 최소화)
     for x, y, z in books:

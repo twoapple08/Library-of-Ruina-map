@@ -178,7 +178,7 @@ def build(b):
                                         (300, 90, 180, 12), (-160, -220, 260, 16), (200, -230, 240, 15), (0, -260, 280, 18))):
         book_tower(d, rng, cx, cz, h, w0=w, seed=i)
     roland_room(d, rng)
-    F.stage(b, d, "eapple", (F.EAPPLE_P, F.EAPPLE), "총류의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
+    F.stage(b, d, "eapple", "총류의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
     b.extra_checks.append({"what": "롤랑 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:general_room",
                            "expect": True})
 

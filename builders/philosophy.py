@@ -167,8 +167,8 @@ def build(b):
     d.fill(-420, -1, -420, 420, -1, 420, "minecraft:black_concrete")
     milky_way(d, rng)
     binah_room(d)
-    F.stage(b, d, "anvil", (F.ANVIL_P, F.ANVIL), "철학의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
-    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 조각 F (fragment.finish)
+    F.stage(b, d, "anvil", "철학의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
+    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 세피라 아이템 (모드)
     b.extra_checks.append({"what": "비나 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:philosophy_room",
                            "expect": True})
 

@@ -1,0 +1,23 @@
+{
+	"schemaVersion": 1,
+	"id": "ruina",
+	"version": "${version}",
+	"name": "Library of Ruina - 도서관",
+	"description": "라이브러리 오브 루이나의 도서관(외부·로비·10개 층)을 어느 월드에나 추가합니다. 크리에이티브 탭 '도서관'의 초대장으로 들어갑니다.",
+	"authors": ["twoapple08"],
+	"contact": {
+		"sources": "https://github.com/twoapple08/Library-of-Ruina-map"
+	},
+	"license": "All-Rights-Reserved",
+	"icon": "assets/ruina/textures/item/invitation.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["ruina.library.RuinaMod"]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

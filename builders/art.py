@@ -281,8 +281,8 @@ def build(b):
     netzach_room(d)
     spirits(b, d)
 
-    F.stage(b, d, "iplate", (F.IPLATE_P, F.IPLATE), "예술의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
-    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 조각 F (fragment.finish)
+    F.stage(b, d, "iplate", "예술의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
+    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 세피라 아이템 (모드)
     b.extra_checks += [
         {"what": "네짜흐 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:art_room", "expect": True},
         {"what": "정령 (block_display)", "cmd": f"execute in {d.dim} if entity @e[type=minecraft:block_display,tag=ruina.spirit]",

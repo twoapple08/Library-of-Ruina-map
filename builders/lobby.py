@@ -318,10 +318,9 @@ def build(b):
     build_room(d)
     build_hall(d)
     L = b.links
-    # 은조각(철조각)을 왼손으로 들면(F) 번쩍 → 방 ↔ 홀 (같은 상대 위치, 막혀 있으면 기본 자리).
-    # 로비는 이전 층이 없음: 방 = 철조각만, 홀(지정사서 방 자리) = 철조각 + 금조각 → 금조각 F 로 역사의 층 (fragment.finish).
+    # 방전환 우클릭: 번쩍 → 방 ↔ 홀 (같은 상대 위치, 막혀 있으면 기본 자리). 홀 = 지정사서 방 자리.
     # 흰 대계단 꼭대기 빛은 조형물로만 남김
-    F.stage(b, d, "silver", (F.SILVER_P, F.SILVER), "로비", (0.5, Y0, RZ - 2.5, 180), (HALL_DX + 0.5, Y0, RZ - 2.5, 180),
+    F.stage(b, d, "silver", "로비", (0.5, Y0, RZ - 2.5, 180), (HALL_DX + 0.5, Y0, RZ - 2.5, 180),
             room_box=f"x={HALL_DX // 2},y=-64,z=-1024,dx=4096,dy=1024,dz=2048",
             to_a=F.relative(-HALL_DX, "lobby_entrance"), to_b=F.relative(HALL_DX, "lobby_hall"),
             scene_name="lobby_entrance", room_name="lobby_hall")

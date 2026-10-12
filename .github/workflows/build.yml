@@ -1,7 +1,8 @@
 name: build
 
-# 월드 빌드: 실제 마인크래프트 서버(최신 정식)로 월드를 만들고 검증한 뒤 릴리스(world-latest)에 올린다.
-# 결과 보고서·로그는 ci-output 브랜치에 올라간다.
+# 월드 빌드: 실제 마인크래프트 서버(최신 정식)로 월드를 만들고 검증 → 그 건축물을 담아 모드(Fabric) 빌드
+# → 실제 클라이언트로 게임 테스트(아이템 사용·이동·도착 화면 스크린샷) → 릴리스(world-latest)에 올린다.
+# 결과 보고서·로그·스크린샷은 ci-output 브랜치에 올라간다 (world/, mod/).
 on:
   workflow_dispatch:
     inputs:
@@ -23,6 +24,7 @@ on:
       - "ref/**"
       - "resourcepack/**"
       - "shaderpack/**"
+      - "mod/**"
       - ".github/workflows/build.yml"
 
 permissions:
@@ -75,19 +77,57 @@ jobs:
         if: env.TASK == 'world'
         run: python -m tools.ci world
 
-      - name: 릴리스(world-latest)에 월드 올리기
+      - uses: gradle/actions/setup-gradle@v6
+        if: env.TASK == 'world'
+
+      - name: 모드 빌드
+        if: env.TASK == 'world'
+        working-directory: mod
+        run: ./gradlew build --stacktrace
+
+      - name: 모드 게임 테스트 (실제 클라이언트, 가상 화면)
+        id: gametest
+        if: env.TASK == 'world'
+        continue-on-error: true     # 실패해도 모드는 올리고, 결과는 릴리스 노트·ci-output/mod 에
+        working-directory: mod
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q xvfb libgl1-mesa-dri mesa-vulkan-drivers
+          mkdir -p build/run/clientGameTest
+          xvfb-run -a -s "-screen 0 1920x1080x24" ./gradlew runClientGameTest --stacktrace
+
+      - name: 게임 테스트 결과 정리 (스크린샷 → jpg)
+        if: always() && env.TASK == 'world'
+        env:
+          GAMETEST_OUTCOME: ${{ steps.gametest.outcome }}
+        run: python -m tools.ci modtest
+
+      - name: 릴리스(world-latest)에 모드·월드 올리기
         if: env.TASK == 'world' && success()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG=world-latest
+          # 데이터팩 시절 마지막 월드(4차 테스트 통과)는 따로 보관 (한 번만)
+          if ! gh release view world-datapack-final >/dev/null 2>&1 && gh release view "$TAG" >/dev/null 2>&1; then
+            mkdir -p backup && gh release download "$TAG" -D backup
+            gh release create world-datapack-final backup/* --title "데이터팩 시절 마지막 월드 (4차 테스트 통과, 백업)" \
+              --notes "모드화 전 마지막 월드 파일·리소스팩·BSL. 이제는 world-latest 의 모드(Ruina.jar)를 쓰세요." --target "${{ github.sha }}"
+          fi
           gh release view "$TAG" >/dev/null 2>&1 || \
             gh release create "$TAG" --title "최신 월드 (자동 빌드)" --notes "준비 중" --target "${{ github.sha }}"
+          cp mod/build/libs/Ruina-*.jar out/release/Ruina.jar
+          FAPI=$(grep '^fabric_api_version=' mod/gradle.properties | cut -d= -f2)
+          curl -fsSL -o "out/release/fabric-api-$FAPI.jar" \
+            "https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/$FAPI/fabric-api-$FAPI.jar"
+          gh release upload "$TAG" out/release/Ruina.jar "out/release/fabric-api-$FAPI.jar" --clobber
           gh release upload "$TAG" out/release/Library-of-Ruina.zip out/release/Ruina_resources.zip --clobber
           python -m tools.shaderpack                      # 맵 전용 BSL 개조판
           gh release upload "$TAG" out/release/BSL_v10.1.6_Ruina.zip --clobber
           {
             echo "자동 빌드: $(date -u +%F' '%H:%M) UTC / Minecraft ${{ steps.mc.outputs.mc_version }} / 커밋 ${GITHUB_SHA::7}"
+            echo
+            cat ci_out/mod/SUMMARY.md 2>/dev/null || true
             echo
             cat ci_out/world/SUMMARY.md
           } > notes.md

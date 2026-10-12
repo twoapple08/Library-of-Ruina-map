@@ -44,7 +44,7 @@ def night_sky(sky="#2a1850", fog="#2a1a4f", *, moon_phase="waxing_crescent", moo
     return a
 
 
-# 모든 공간이 오버월드 시계를 같이 쓰고, 이 시각에 멈춰 둔다 (tools/datapack.time_commands).
+# 모든 공간이 도서관 시계(ruina:library)를 같이 쓰고, 이 시각에 멈춰 둔다 (tools/datapack.time_commands).
 # 쉐이더(BSL)는 하늘을 이 시각으로 그린다. 138000 = 6번째 날 자정 → 달 위상 '초승달(차는 중)'
 CLOCK_TIME = 138000
 # 차원 기본 밝기 (0 = 오버월드, 0.1 = 네더). 테스트 3차 '쉐이더를 빼도 어두움' → 모든 공간 조금 밝게
@@ -277,3 +277,34 @@ GAMERULES = {
     "spawn_monsters": "false",
     "spawn_phantoms": "false",
 }
+
+
+# 모드 아이템 (docs/mod/기초구성.md). 크리에이티브 모드 탭에서만 (제작법·자동 지급 없음), 아이콘 = 이름 글자.
+# (id, 이름, 종류, 층 공간 id). 종류: invitation 초대장 / room 방전환 / sephirah 그 층 전경으로 / deco 기능 없음
+MOD_ITEMS = [
+    ("invitation", "초대장", "invitation", None),
+    ("room_switch", "방전환", "room", None),
+    ("malkuth", "말쿠트", "sephirah", "history"),
+    ("yesod", "예소드", "sephirah", "technology"),
+    ("hod", "호드", "sephirah", "literature"),
+    ("netzach", "네짜흐", "sephirah", "art"),
+    ("tiphereth", "티페리트", "sephirah", "natural_science"),   # 자연과학 차원에서 왼손(F) = 돔 색 전환
+    ("gebura", "게부라", "sephirah", "language"),
+    ("chesed", "헤세드", "sephirah", "social_science"),
+    ("binah", "비나", "sephirah", "philosophy"),
+    ("hokma", "호크마", "sephirah", "religion"),
+    ("keter", "케테르", "sephirah", "general"),
+    # 예전 조각 (기능 없음, 장식용)
+    ("iron_nugget", "철조각", "deco", None),
+    ("gold_nugget", "금조각", "deco", None),
+    ("iron_ingot", "철괴", "deco", None),
+    ("gold_ingot", "금괴", "deco", None),
+    ("iron_plate", "철발판", "deco", None),
+    ("gold_plate", "금발판", "deco", None),
+    ("iron_block", "철블럭", "deco", None),
+    ("gold_block", "금블럭", "deco", None),
+    ("anvil", "모루", "deco", None),
+    ("golden_apple", "황금사과", "deco", None),
+    ("enchanted_golden_apple", "마법이 부여된 황금사과", "deco", None),
+    ("magma_cream", "마그마크림", "deco", None),
+]

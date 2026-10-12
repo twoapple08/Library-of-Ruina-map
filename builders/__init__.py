@@ -102,6 +102,6 @@ def build_all(only: list[str] | None = None) -> Build:
     philosophy.build(b)
     religion.build(b)
     general.build(b)
-    fragment.finish(b)      # 층 사슬 (조각 교환·이전/다음 층 F)
+    fragment.finish(b)      # 방전환 디스패처 (모드 전용 함수)
     b.light_stats = lighting.light_all(b)   # 걸어 다니는 곳에 보이지 않는 빛 블록 (테스트 3차: 너무 어두움)
     return b

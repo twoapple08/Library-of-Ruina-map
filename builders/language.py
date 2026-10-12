@@ -208,8 +208,8 @@ def build(b):
     machinery(d, rng)
     ladle(d)
     gebura_room(d)
-    F.stage(b, d, "iblock", (F.IBLOCK_P, F.IBLOCK), "언어의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
-    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 조각 F (fragment.finish)
+    F.stage(b, d, "iblock", "언어의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
+    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 세피라 아이템 (모드)
     b.extra_checks.append({"what": "게부라 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:language_room",
                            "expect": True})
 

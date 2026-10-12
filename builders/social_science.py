@@ -214,8 +214,8 @@ def build(b):
     currents(d, rng)
     floating(b, d, rng)
     chesed_room(d)
-    F.stage(b, d, "gblock", (F.GBLOCK_P, F.GBLOCK), "사회과학의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
-    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 조각 F (fragment.finish)
+    F.stage(b, d, "gblock", "사회과학의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
+    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 세피라 아이템 (모드)
     b.extra_checks += [
         {"what": "헤세드 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:social_science_room", "expect": True},
         {"what": "떠다니는 폐차·물고기 (디스플레이)", "cmd": f"execute in {d.dim} if entity @e[type=minecraft:item_display,tag=ruina.fish]",

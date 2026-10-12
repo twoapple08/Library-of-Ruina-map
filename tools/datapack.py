@@ -16,7 +16,7 @@ import config
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REF = os.path.join(ROOT, "ref")
 NS = config.NAMESPACE
-CLOCK = "minecraft:overworld"   # 모든 공간이 쓰는 시계
+CLOCK = f"{NS}:library"   # 모든 공간이 쓰는 도서관 시계 (오버월드 시계는 건드리지 않음 — 모드는 어느 월드에나 들어감)
 
 
 @dataclass
@@ -72,7 +72,11 @@ class Links:
     tick_end: list = field(default_factory=list)    # tick 맨 끝에 실행할 명령 (상태 기록)
     scores: list = field(default_factory=list)      # 빌더가 쓰는 점수판 이름
     entity_cmds: list = field(default_factory=list) # 빌드 때 한 번 소환할 엔티티 명령 (build/entities)
-    jumps: list = field(default_factory=list)       # 조각 F 층 이동 (차원, 출발 Anchor, 목적지 이름) — CI 암전 TP 검사용
+    jumps: list = field(default_factory=list)       # 세피라 층 이동 (차원, 출발 Anchor, 목적지 이름) — CI 암전 TP 검사용
+    # 모드 전용 (모드 아이템 ID를 쓰는 명령: 바닐라 서버에서는 읽히지 않아 CI 월드 데이터팩에서는 뺌)
+    mod_functions: dict = field(default_factory=dict)
+    mod_tick: list = field(default_factory=list)
+    mod_tick_end: list = field(default_factory=list)
 
     def walk(self, dim, box, dest, fade: bool = False) -> Walk:
         w = Walk(dim, tuple(int(v) for v in box), dest, fade)
@@ -120,8 +124,8 @@ def dimension_type(space: config.Space) -> dict:
     if base is None:
         raise FileNotFoundError("ref/vanilla/dimension_type/overworld.json 없음 (python -m tools.ci refs)")
     d = json.loads(json.dumps(base))
-    # 기본(오버월드) 시계를 같이 씀: 쉐이더(BSL/Iris)는 기본 시계 시각으로 하늘을 그리는 듯 (Phase 1 테스트 ③ 노을)
-    # → 오버월드 시계를 자정에 멈춰 둠 (time_commands). 하늘 색 자체는 attributes 고정값
+    # 도서관 시계(ruina:library)를 씀: 쉐이더(BSL/Iris)는 차원 시계 시각으로 하늘을 그리는 듯 (Phase 1 테스트 ③ 노을)
+    # → 도서관 시계를 자정에 멈춰 둠 (time_commands, load 마다). 하늘 색 자체는 attributes 고정값
     d["default_clock"] = CLOCK
     d.pop("timelines", None)
     attrs = dict(d.get("attributes", {}))
@@ -183,8 +187,8 @@ def dimension(space: config.Space) -> dict:
 
 # ------------------------------------------------------------------ 함수
 
-FADE_IN = 10      # 암전 시작 후 TP까지 (틱) — 어둠 효과가 짙어질 시간 (3차: 6틱은 너무 빨라 안 보임)
-FADE_MIN = 16     # 최소 암전 시간 (틱) — 2차 '좀 길음'(20) / 3차 '너무 빠름'(12) 사이
+FADE_IN = 20      # 암흑 1초 → 이동 (4차 뒤 결정)
+FADE_MIN = 40     # 도착지에서 1초 뒤 풀림 (청크가 불러와졌을 때)
 FADE_MAX = 200    # 청크가 안 불러와져도 이 시간이 지나면 해제
 LOAD_R = 48       # 도착지 둘레 이만큼(블록)의 청크가 서버에 불러와졌으면 '로딩 끝'
 FADE_EFFECT = "minecraft:darkness"   # 테스트 ⑬: 실명 대신 어둠 효과 (사용자 지정)
@@ -196,12 +200,10 @@ def functions(links: Links) -> dict:
         f"# {NS} 데이터팩 로드",
         "scoreboard objectives add ruina.state dummy",
         f"scoreboard objectives add {NS}.fade dummy",
-        f"scoreboard objectives add {NS}.deaths deathCount",
-    ] + [f"scoreboard objectives add {sc} dummy" for sc in links.scores]
+    ] + [f"scoreboard objectives add {sc} dummy" for sc in links.scores] + time_commands()
     f["tick"] = [
         f"execute as @e[type=minecraft:interaction,tag={NS}.tp] if data entity @s interaction run function {NS}:tp/clicked",
         f"execute as @e[type=minecraft:interaction,tag={NS}.tp] if data entity @s attack run function {NS}:tp/clicked",
-        f"execute as @a[tag=!{NS}.joined] at @s run function {NS}:first_join",
         f"execute as @a[tag={NS}.fading] at @s run function {NS}:tp/fade_tick",
     ]
     for w in links.walks:
@@ -210,15 +212,8 @@ def functions(links: Links) -> dict:
         kind = "fade" if w.fade else "to"
         f["tick"].append(f"execute in {w.dim} as {w.selector(f'@a[tag=!{NS}.fading]')} run function {NS}:tp/{kind}/{w.dest}")
     f["tick"] += links.tick
-    if links.spawn:   # 죽으면 (keep_inventory) 다시 살아난 뒤 스폰 자리로 (보는 방향·조각 정리) — 테스트 3차 ②
-        f["tick"].append(f"execute as @a[scores={{{NS}.deaths=1..}}] if data entity @s {{DeathTime:0s}} "
-                         f"run function {NS}:respawn")
-        f["respawn"] = [f"scoreboard players reset @s {NS}.deaths", f"function {NS}:tp/to/{links.spawn}"]
     f["tick"] += links.tick_end
-    f["first_join"] = [f"tag @s add {NS}.joined"]
-    if links.spawn:
-        # 월드 스폰(커스텀 차원)에 바로 나타나도 보는 방향이 기본값(남쪽)이라 자리로 한 번 옮김 (테스트 "스폰 위치 이상")
-        f["first_join"].append(f"function {NS}:tp/to/{links.spawn}")
+    # 처음 접속·리스폰 처리는 모드가 함 (모드는 어느 월드에나 들어가므로 데이터팩이 플레이어를 옮기지 않음)
 
     clicked = []
     for name in links.anchors:
@@ -279,13 +274,24 @@ def functions(links: Links) -> dict:
 
 
 def time_commands() -> list[str]:
-    """기본(오버월드) 시계를 자정에 멈춤 (모든 공간 공통)."""
+    """도서관 시계를 자정에 멈춤 (모든 공간 공통)."""
     return [f"time of {CLOCK} set {config.CLOCK_TIME}", f"time of {CLOCK} pause"]
 
 
 # ------------------------------------------------------------------ 출력
 
-def write(out_dir: str, links: Links):
+def mod_functions(links: Links) -> dict:
+    """모드 전용 함수 (모드 jar 의 데이터에만). tick 태그에 mod_tick 추가."""
+    f = dict(links.mod_functions)
+    f["mod_tick"] = list(links.mod_tick) + list(links.mod_tick_end)
+    return f
+
+
+WORLD_ONLY = ("setup", "build/entities")   # 월드 파일용 (모드에는 넣지 않음: 남의 월드 게임룰·스폰을 바꾸지 않게)
+
+
+def write(out_dir: str, links: Links, mod: bool = False):
+    """데이터팩 쓰기. mod=True: 모드 jar 용 (모드 전용 함수 포함, 월드 전용 함수 제외)."""
     if os.path.exists(out_dir):
         shutil.rmtree(out_dir)
     data = os.path.join(out_dir, "data")
@@ -313,7 +319,15 @@ def write(out_dir: str, links: Links):
         for bid, extra in s.biomes.items():
             put(f"data/{NS}/worldgen/biome/{bid}.json", biome(s, extra.get("attributes"), extra.get("particles", [])))
     put("data/minecraft/tags/function/load.json", {"values": [f"{NS}:load"]})
-    put("data/minecraft/tags/function/tick.json", {"values": [f"{NS}:tick"]})
-    for name, lines in functions(links).items():
+    put(f"data/{NS}/world_clock/library.json", _read_json("vanilla", "world_clock", "overworld.json") or {})
+    funcs = functions(links)
+    ticks = [f"{NS}:tick"]
+    if mod:
+        for k in WORLD_ONLY:
+            funcs.pop(k, None)
+        funcs.update(mod_functions(links))
+        ticks.append(f"{NS}:mod_tick")
+    put("data/minecraft/tags/function/tick.json", {"values": ticks})
+    for name, lines in funcs.items():
         put(f"data/{NS}/function/{name}.mcfunction", "\n".join(lines) + "\n")
     return data

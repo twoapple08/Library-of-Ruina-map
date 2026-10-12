@@ -235,22 +235,22 @@ def build(b):
     d.set_biome(VARIANT_DX - 200, -200, VARIANT_DX + 200, 200, "ruina:natural_science_teal")
     tiphereth_room(d)
     ax, ay, az, ayaw = ARRIVE
-    F.stage(b, d, "gplate", (F.GPLATE_P, F.GPLATE), "자연과학의 층", ARRIVE, (ROOM_X + 0.5, RY, RD - 2.5, 180), extra_keep=[(F.MAGMA_P, F.MAGMA)])
-    # 마그마크림 F: 금빛 돔 ↔ 색 바뀐 돔 (같은 상대 위치) — 지정사서 방 밖에서만
-    F.setup(b.links, "magma", d.dim, F.MAGMA_P, f"x={VARIANT_DX // 2},y=-64,z=-1024,dx={VARIANT_DX + 400},dy=1024,dz=2048",
-            to_a=F.relative(-VARIANT_DX, "natural_science_entrance"), to_b=F.relative(VARIANT_DX, "natural_science_entrance"),
-            area="x=-2000,y=-64,z=-2000,dx=5700,dy=1024,dz=4000")
-    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 조각 F (fragment.finish)
+    F.stage(b, d, "gplate", "자연과학의 층", ARRIVE, (ROOM_X + 0.5, RY, RD - 2.5, 180))
+    # 티페리트 F(왼손): 제자리에서 돔 색 전환 금빛 ↔ 청록 (같은 상대 위치의 색 바뀐 돔으로) — 지정사서 방 밖에서만
+    F.setup(b.links, "tiphereth", d.dim, f"x={VARIANT_DX // 2},y=-64,z=-1024,dx={VARIANT_DX + 400},dy=1024,dz=2048",
+            to_a=F.relative(-VARIANT_DX, "natural_science_entrance"), to_b=F.relative(VARIANT_DX, "natural_science_entrance"))
+    F.tiphereth_f(b.links, d.dim, "tiphereth/switch", area="x=-2000,y=-64,z=-2000,dx=5700,dy=1024,dz=4000")
+    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 세피라 아이템 (모드)
     b.extra_checks += [
         {"what": "티페리트 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:natural_science_room",
          "expect": True},
-        {"what": "마그마크림 전환 금빛→청록 (같은 상대 위치)",
+        {"what": "티페리트 F 전환 금빛→청록 (같은 상대 위치)",
          "setup": [f"execute in {d.dim} run summon minecraft:marker {ax} {ay} {az} {{Tags:[\"ruina.msw\"]}}",
-                   f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.msw] at @s run function ruina:magma/switch"],
+                   f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.msw] at @s run function ruina:tiphereth/switch"],
          "cmd": f"execute in {d.dim} positioned {ax + VARIANT_DX} {ay} {az} if entity @e[type=minecraft:marker,tag=ruina.msw,distance=..0.5]",
          "expect": True},
-        {"what": "마그마크림 전환 청록→금빛",
-         "setup": [f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.msw] at @s run function ruina:magma/switch"],
+        {"what": "티페리트 F 전환 청록→금빛",
+         "setup": [f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.msw] at @s run function ruina:tiphereth/switch"],
          "cmd": f"execute in {d.dim} positioned {ax} {ay} {az} if entity @e[type=minecraft:marker,tag=ruina.msw,distance=..0.5]",
          "expect": True},
     ]

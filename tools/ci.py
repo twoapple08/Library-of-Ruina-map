@@ -346,6 +346,53 @@ def cmd_probe():
         ("dimensions/ruina/exterior/region/r.0.0.mca", 0, 0)])
 
 
+def cmd_modtest():
+    """모드 게임 테스트 결과 → ci_out/mod/: 스크린샷 jpg·한 장 모음(sheet.jpg)·보고서·로그 끝부분."""
+    from PIL import Image
+    run = os.path.join(ROOT, "mod", "build", "run", "clientGameTest")
+    out = os.path.join(ROOT, "ci_out", "mod")
+    shutil.rmtree(out, ignore_errors=True)
+    os.makedirs(out, exist_ok=True)
+    shots = sorted(glob.glob(os.path.join(run, "screenshots", "*.png")))
+    thumbs = []
+    for p in shots:
+        im = Image.open(p).convert("RGB")
+        im.save(os.path.join(out, os.path.basename(p)[:-4] + ".jpg"), quality=85)
+        thumbs.append((os.path.basename(p)[:-4], im.resize((320, 180))))
+    if thumbs:
+        from PIL import ImageDraw
+        cols = 4
+        sheet = Image.new("RGB", (cols * 324, ((len(thumbs) + cols - 1) // cols) * 200), (24, 22, 28))
+        d = ImageDraw.Draw(sheet)
+        for i, (name, t) in enumerate(thumbs):
+            x, y = (i % cols) * 324 + 2, (i // cols) * 200 + 2
+            sheet.paste(t, (x, y))
+            d.text((x + 4, y + 182), name, fill=(236, 214, 166))
+        sheet.save(os.path.join(out, "sheet.jpg"), quality=85)
+    report = []
+    rp = os.path.join(run, "ruina_test.txt")
+    if os.path.exists(rp):
+        with open(rp, encoding="utf-8") as f:
+            report = [l.rstrip() for l in f if l.strip()]
+    lp = os.path.join(run, "logs", "latest.log")
+    log_lines = []
+    if os.path.exists(lp):
+        with open(lp, encoding="utf-8", errors="replace") as f:
+            log_lines = f.readlines()
+        with open(os.path.join(out, "latest_tail.log"), "w", encoding="utf-8") as f:
+            f.writelines(log_lines[-3000:])
+        bad = [l for l in log_lines if ("/ERROR]" in l or "/WARN]" in l) and ("ruina" in l.lower() or "function" in l.lower())]
+        with open(os.path.join(out, "problems.log"), "w", encoding="utf-8") as f:
+            f.writelines(bad[:500])
+    outcome = os.environ.get("GAMETEST_OUTCOME", "?")
+    lines = ["## 모드 게임 테스트 (실제 클라이언트)", "",
+             f"- {'✅' if outcome == 'success' else '❌'} 결과: {outcome}, 스크린샷 {len(shots)}장 (ci-output 브랜치 mod/)"]
+    lines += [f"- {l}" for l in report if not l.startswith("📷")]
+    with open(os.path.join(out, "SUMMARY.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+    print("\n".join(lines))
+
+
 def main(argv):
     if not argv:
         print(__doc__)
@@ -361,6 +408,8 @@ def main(argv):
         cmd_colors()
     elif c == "probe":
         cmd_probe()
+    elif c == "modtest":
+        cmd_modtest()
     elif c == "world":
         from .build_world import ci_world
         return ci_world(argv[1:])

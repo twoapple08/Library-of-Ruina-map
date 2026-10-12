@@ -249,6 +249,8 @@ def ci_world(argv) -> int:
         rep.add(not bad_q, f"차원별 시각 = 자정 {config.CLOCK_TIME} (어긋남: {bad_q})")
         out = srv.run("function ruina:setup")
         rep.data["setup_cmd"] = out
+        for dim in by_dim:   # 검사용 마커 정리 (모드에 들어가는 엔티티 파일에 남지 않게)
+            srv.run(f"execute in {dim} run kill @e[type=minecraft:marker]")
         for dim in by_dim:
             srv.run(f"execute in {dim} run forceload remove all")
         srv.run("save-all flush", timeout=300)
@@ -322,6 +324,12 @@ def ci_world(argv) -> int:
                 z.write(full, os.path.join(WORLD_NAME, os.path.relpath(full, wdir)))
                 n += 1
     rep.info(f"zip {os.path.getsize(zpath) / 1e6:.1f} MB, 파일 {n}개")
+
+    # ---------------------------------------------- 모드 리소스 (mod/build/generated/ruina)
+    from tools import mod_pack
+    build_id = (os.environ.get("GITHUB_SHA", "local")[:12] + "-" + time.strftime("%Y%m%d%H%M%S", time.gmtime()))
+    st = mod_pack.pack(b.links, wdir, build_id)
+    rep.info(f"모드 리소스: 건축물 {st['files']}파일 {st['bytes'] / 1e6:.1f} MB, 빌드 {build_id}")
 
     with open(os.path.join(OUT, "report.json"), "w") as f:
         json.dump({"ok": rep.ok, "lines": rep.lines, **rep.data}, f, indent=2, ensure_ascii=False, default=str)
