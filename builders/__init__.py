@@ -86,7 +86,8 @@ class Build:
 
 def build_all(only: list[str] | None = None) -> Build:
     """월드에 들어가는 전체. 외부 + 로비 (전환 전 방 ↔ 전환 후 홀) + 역사 ~ 총류의 층 (10개)."""
-    from . import (art, exterior, fragment, general, history, language, literature, lobby, natural_science, philosophy,
+    from . import (art, exterior, fragment, general, history, language, lighting, literature, lobby, natural_science,
+                   philosophy,
                    religion, social_science, technology)
     b = Build()
     exterior.build(b)
@@ -102,4 +103,5 @@ def build_all(only: list[str] | None = None) -> Build:
     religion.build(b)
     general.build(b)
     fragment.finish(b)      # 층 사슬 (조각 교환·이전/다음 층 F)
+    b.light_stats = lighting.light_all(b)   # 걸어 다니는 곳에 보이지 않는 빛 블록 (테스트 3차: 너무 어두움)
     return b

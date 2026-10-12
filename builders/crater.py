@@ -240,8 +240,7 @@ def light_spire(d, top_y: int, y_end: int | None = None, seed=131):
     """탑 꼭대기에서 하늘 끝까지 솟는 빛기둥 건축물 (신호기 대신, 테스터 의견).
 
     - 받침: 꼭대기 테두리에서 가운데 기둥으로 모이는 검은 갈비살 8개 + 금빛 고리 (등불 갓 모양)
-    - 기둥: 발광 블록 심(겉 한 겹만) + 노란 스테인드글라스 겹 + 흰 스테인드글라스 겹 (사이는 빈칸 → 빛이 번져 보임)
-    - 위로 갈수록 가늘어짐 (흰 유리 반지름 15 → 6), 24칸마다 금빛 테 (마디)
+    - 기둥: 발광 블록 (겉 한 겹만), 위로 갈수록 가늘어짐 (반지름 15 → 6). 유리 겹·금 테는 없앰 (테스트 3차)
     반환: 기둥 꼭대기 y
     """
     rng = np.random.default_rng(seed)
@@ -258,20 +257,14 @@ def light_spire(d, top_y: int, y_end: int | None = None, seed=131):
     rr = np.hypot(X, Z)
     for y in range(y0, y_end + 1):
         t = (y - y0) / max(1, y_end - y0)
-        rc = 5.5 - 3.5 * t ** 0.6          # 심 반지름 5.5 → 2
-        ry = rc + 3.0 - 1.0 * t             # 노란 유리
-        rw = rc + 9.5 - 5.5 * t ** 0.8      # 흰 유리 (아래는 넓게)
+        # 테스트 3차 ⑫: 유리 겉감싸기·금 테 없이 원화처럼 빛나는 기둥만 (반지름 15 → 6, 겉 한 겹만)
+        rc = 15.0 - 9.0 * t ** 0.8
         layer = np.full(X.shape, -1, np.int32)
         h = S.hash01(X, np.full_like(X, y), Z, seed=seed)
-        core = rr <= rc
-        core_skin = core & (rr > rc - 1.3)
-        layer[core_skin] = core_ids[np.searchsorted(cw, h[core_skin]).clip(0, len(core_ids) - 1)]
-        layer[(rr > ry - 0.8) & (rr <= ry)] = yel
-        layer[(rr > rw - 0.8) & (rr <= rw)] = white
-        if (y - y0) % 24 == 0 and y > y0:  # 금빛 테
-            layer[(rr > rw - 0.8) & (rr <= rw + 0.7)] = band
+        skin = (rr <= rc) & (rr > rc - 1.3)
+        layer[skin] = core_ids[np.searchsorted(cw, h[skin]).clip(0, len(core_ids) - 1)]
         if y == y0:
-            layer[rr <= rw] = band
+            layer[rr <= rc] = band
         d.place(-R, y, -R, layer[:, None, :])
     # 받침 갈비살: 몸통 꼭대기 테두리 → 기둥 (y0 + 40)
     from builders.exterior import STONE, body_radius

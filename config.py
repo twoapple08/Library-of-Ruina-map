@@ -47,6 +47,8 @@ def night_sky(sky="#2a1850", fog="#2a1a4f", *, moon_phase="waxing_crescent", moo
 # 모든 공간이 오버월드 시계를 같이 쓰고, 이 시각에 멈춰 둔다 (tools/datapack.time_commands).
 # 쉐이더(BSL)는 하늘을 이 시각으로 그린다. 138000 = 6번째 날 자정 → 달 위상 '초승달(차는 중)'
 CLOCK_TIME = 138000
+# 차원 기본 밝기 (0 = 오버월드, 0.1 = 네더). 테스트 3차 '쉐이더를 빼도 어두움' → 모든 공간 조금 밝게
+AMBIENT_LIGHT = 0.1
 
 
 @dataclass

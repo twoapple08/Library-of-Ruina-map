@@ -69,6 +69,7 @@ class Links:
     spawn: str | None = None  # 처음 접속 위치 (Anchor 이름)
     functions: dict = field(default_factory=dict)   # 빌더가 추가하는 함수 {이름: [명령]}
     tick: list = field(default_factory=list)        # 빌더가 추가하는 tick 명령
+    tick_end: list = field(default_factory=list)    # tick 맨 끝에 실행할 명령 (상태 기록)
     scores: list = field(default_factory=list)      # 빌더가 쓰는 점수판 이름
     entity_cmds: list = field(default_factory=list) # 빌드 때 한 번 소환할 엔티티 명령 (build/entities)
     jumps: list = field(default_factory=list)       # 조각 F 층 이동 (차원, 출발 Anchor, 목적지 이름) — CI 암전 TP 검사용
@@ -133,6 +134,7 @@ def dimension_type(space: config.Space) -> dict:
         "logical_height": space.height,
         "has_skylight": space.has_skylight,
         "has_fixed_time": True,
+        "ambient_light": config.AMBIENT_LIGHT,
         "monster_spawn_block_light_limit": 0,
         "monster_spawn_light_level": 0,
         "attributes": dict(sorted(attrs.items())),
@@ -181,8 +183,8 @@ def dimension(space: config.Space) -> dict:
 
 # ------------------------------------------------------------------ 함수
 
-FADE_IN = 6       # 암전 시작 후 TP까지 (틱)
-FADE_MIN = 12     # 최소 암전 시간 (틱) — 테스트 ⑬ '좀 길음' (예전 20)
+FADE_IN = 10      # 암전 시작 후 TP까지 (틱) — 어둠 효과가 짙어질 시간 (3차: 6틱은 너무 빨라 안 보임)
+FADE_MIN = 16     # 최소 암전 시간 (틱) — 2차 '좀 길음'(20) / 3차 '너무 빠름'(12) 사이
 FADE_MAX = 200    # 청크가 안 불러와져도 이 시간이 지나면 해제
 LOAD_R = 48       # 도착지 둘레 이만큼(블록)의 청크가 서버에 불러와졌으면 '로딩 끝'
 FADE_EFFECT = "minecraft:darkness"   # 테스트 ⑬: 실명 대신 어둠 효과 (사용자 지정)
@@ -194,6 +196,7 @@ def functions(links: Links) -> dict:
         f"# {NS} 데이터팩 로드",
         "scoreboard objectives add ruina.state dummy",
         f"scoreboard objectives add {NS}.fade dummy",
+        f"scoreboard objectives add {NS}.deaths deathCount",
     ] + [f"scoreboard objectives add {sc} dummy" for sc in links.scores]
     f["tick"] = [
         f"execute as @e[type=minecraft:interaction,tag={NS}.tp] if data entity @s interaction run function {NS}:tp/clicked",
@@ -207,6 +210,11 @@ def functions(links: Links) -> dict:
         kind = "fade" if w.fade else "to"
         f["tick"].append(f"execute in {w.dim} as {w.selector(f'@a[tag=!{NS}.fading]')} run function {NS}:tp/{kind}/{w.dest}")
     f["tick"] += links.tick
+    if links.spawn:   # 죽으면 (keep_inventory) 다시 살아난 뒤 스폰 자리로 (보는 방향·조각 정리) — 테스트 3차 ②
+        f["tick"].append(f"execute as @a[scores={{{NS}.deaths=1..}}] if data entity @s {{DeathTime:0s}} "
+                         f"run function {NS}:respawn")
+        f["respawn"] = [f"scoreboard players reset @s {NS}.deaths", f"function {NS}:tp/to/{links.spawn}"]
+    f["tick"] += links.tick_end
     f["first_join"] = [f"tag @s add {NS}.joined"]
     if links.spawn:
         # 월드 스폰(커스텀 차원)에 바로 나타나도 보는 방향이 기본값(남쪽)이라 자리로 한 번 옮김 (테스트 "스폰 위치 이상")
@@ -251,7 +259,7 @@ def functions(links: Links) -> dict:
     setup += time_commands()
     if links.spawn:
         a = links.anchors[links.spawn]
-        setup.append(f"execute in {a.dim} run setworldspawn {int(a.x)} {int(a.y)} {int(a.z)}")
+        setup.append(f"execute in {a.dim} run setworldspawn {int(a.x)} {int(a.y)} {int(a.z)} {_fmt(a.yaw)}")   # 보는 방향 (탑 쪽)
     setup.append('tellraw @a {"text":"ruina:setup 완료 (게임룰·시계·스폰)","color":"#ecd6a6"}')
     f["setup"] = setup
 

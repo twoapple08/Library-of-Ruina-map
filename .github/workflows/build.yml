@@ -83,7 +83,7 @@ jobs:
           TAG=world-latest
           gh release view "$TAG" >/dev/null 2>&1 || \
             gh release create "$TAG" --title "최신 월드 (자동 빌드)" --notes "준비 중" --target "${{ github.sha }}"
-          gh release upload "$TAG" out/release/Library-of-Ruina.zip --clobber
+          gh release upload "$TAG" out/release/Library-of-Ruina.zip out/release/Ruina_resources.zip --clobber
           python -m tools.shaderpack                      # 맵 전용 BSL 개조판
           gh release upload "$TAG" out/release/BSL_v10.1.6_Ruina.zip --clobber
           {

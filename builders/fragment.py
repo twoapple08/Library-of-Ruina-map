@@ -28,24 +28,28 @@ def take(pred: str) -> str:
     return f"clear @s {pred}"
 
 
-UP = f"{NS}.f_up"        # 조각을 왼손으로 든 직후 (다시 발동 막기, 몇 틱 뒤 오른손으로 돌려줌)
+PREV = f"{NS}.fprev"     # 지난 틱 끝 왼손 조각 번호 (ALL 순서 + 1, 없으면 0) — 그 조각이 새로 들어온 순간에만 발동
 
 
 def _common(L):
-    """모든 조각 공용: 왼손 → 오른손 되돌리기, 효과 함수."""
-    for sc in (f"{NS}.f_t", f"{NS}.held", f"{NS}.ok"):
-        if sc not in L.scores:
-            L.scores.append(sc)
-    if "frag/tick" in L.functions:
+    """모든 조각 공용: 왼손 조각 기록(틱 끝), 되돌리기, 효과 함수."""
+    if PREV not in L.scores:
+        L.scores.append(PREV)
+    if f"{NS}.ok" not in L.scores:
+        L.scores.append(f"{NS}.ok")
+    if "frag/prev" in L.functions:
         return
-    L.tick.append(f"execute as @a[tag={UP}] run function {NS}:frag/tick")
-    L.functions["frag/up"] = [f"tag @s add {UP}", f"scoreboard players set @s {NS}.f_t 0"]
-    L.functions["frag/tick"] = (
-        [f"scoreboard players add @s {NS}.f_t 1", f"scoreboard players set @s {NS}.held 0"]
-        + [f"execute if items entity @s weapon.offhand {p} run scoreboard players set @s {NS}.held 1" for p, _ in ALL]
-        + [f"execute if score @s {NS}.f_t matches 6.. if score @s {NS}.held matches 1 "
-           f"unless items entity @s weapon.mainhand * run function {NS}:fx/hand_back",
-           f"execute if score @s {NS}.held matches 0 run tag @s remove {UP}"])
+    L.tick_end.append(f"execute as @a run function {NS}:frag/prev")
+    L.functions["frag/prev"] = (
+        [f"scoreboard players set @s {PREV} 0"]
+        + [f"execute if items entity @s weapon.offhand {p} run scoreboard players set @s {PREV} {i + 1}"
+           for i, (p, _) in enumerate(ALL)])
+    # F 직후 바로 오른손으로 되돌림 (테스트 3차: 몇 틱 기다리는 사이 새 조각이 빈 오른손에 들어가
+    # 왼손 조각이 못 돌아오고 전환이 반복됨). 그 뒤에 조각을 주므로 새 조각은 다른 칸으로
+    L.functions["frag/up"] = [
+        f"function {NS}:frag/prev",       # 지금 왼손 조각 번호 → 이번 틱 남은 감지에서 다시 발동 안 함
+        "execute unless items entity @s weapon.mainhand * run function ruina:fx/hand_back",
+    ]
     L.functions["fx/hand_back"] = [
         "item replace entity @s weapon.mainhand from entity @s weapon.offhand",
         "item replace entity @s weapon.offhand with minecraft:air",
@@ -61,11 +65,13 @@ def _common(L):
 
 
 def trigger(L, dim: str, pred: str, func: str, area: str = ""):
-    """dim 차원에서 pred 조각을 왼손으로 들면(F) func 실행. area: 이 범위 안에서만 (선택자 인자).
-    위치 인자가 있는 선택자는 실행 차원 안에서만 찾으므로 'execute in dim' 으로 차원을 맞춘다."""
+    """dim 차원에서 pred 조각을 왼손으로 든 순간(F) func 실행 (계속 들고 있어도 다시 발동 안 함).
+    area: 이 범위 안에서만 (선택자 인자). 위치 인자가 있는 선택자는 실행 차원 안에서만 찾으므로 'execute in dim'."""
     _common(L)
-    L.tick.append(f"execute in {dim} as @a[tag=!{NS}.fading,tag=!{UP}{',' + area if area else ''}] at @s "
-                  f"if dimension {dim} if items entity @s weapon.offhand {pred} run function {NS}:{func}")
+    k = [p for p, _ in ALL].index(pred) + 1
+    L.tick.append(f"execute in {dim} as @a[tag=!{NS}.fading{',' + area if area else ''}] at @s "
+                  f"if dimension {dim} if items entity @s weapon.offhand {pred} unless score @s {PREV} matches {k} "
+                  f"run function {NS}:{func}")
 
 
 def setup(L, key: str, dim: str, pred: str, b_box: str, to_a: list, to_b: list, area: str = ""):

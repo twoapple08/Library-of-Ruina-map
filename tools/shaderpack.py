@@ -90,6 +90,19 @@ def _patch_settings(s: str) -> str:
     return s
 
 
+def _patch_properties(s: str) -> str:
+    """program.world0/<프로그램>.enabled=... 줄을 ruina 폴더에도 (없으면 그 프로그램이 항상 켜져서
+    다색 블록빛 끈 상태의 shadowcomp 가 컴파일 실패 — 테스트 3차 ⑭)."""
+    lines = s.split("\n")
+    out = []
+    for line in lines:
+        out.append(line)
+        if line.startswith("program.world0/"):
+            out.append(line.replace("program.world0/", f"program.{NS}/", 1))
+    assert any(l.startswith(f"program.{NS}/shadowcomp") for l in out)
+    return "\n".join(out)
+
+
 def _patch_sky_color(s: str) -> str:
     """RUINA 공간은 바닐라 하늘색 (= 우리 환경 속성 하늘·안개색). 옵션 SKY_VANILLA 는 건드리지 않음 (설정 메뉴용)."""
     s = _guard_fog(s)
@@ -121,6 +134,8 @@ def build(spaces: list[str]) -> str:
             data = _patch_sky_color(data.decode()).encode()
         elif n in ("shaders/lib/atmospherics/waterFog.glsl", "shaders/lib/color/netherColor.glsl"):
             data = _guard_fog(data.decode()).encode()
+        elif n == "shaders/shaders.properties":
+            data = _patch_properties(data.decode()).encode()
         elif n == "shaders/lib/settings.glsl":
             data = _patch_settings(data.decode()).encode()
         out[n] = data

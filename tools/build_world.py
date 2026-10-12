@@ -305,6 +305,8 @@ def ci_world(argv) -> int:
                         continue
                     full = os.path.join(base, fn)
                     z.write(full, os.path.relpath(full, rp))
+        os.makedirs(RELEASE, exist_ok=True)   # 따로 받아 resourcepacks 에 넣는 판 (3차: 월드의 resources.zip 은 묻는 창이 안 뜸)
+        shutil.copy(rz, os.path.join(RELEASE, "Ruina_resources.zip"))
         rep.info(f"resources.zip {os.path.getsize(rz) / 1e6:.1f} MB")
 
     # ---------------------------------------------- zip
