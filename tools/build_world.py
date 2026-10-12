@@ -44,7 +44,8 @@ class Report:
 def _bad_lines(srv: Server) -> list[str]:
     """서버 로그 중 WARN/ERROR 줄 (오프라인 모드 안내 경고 제외). 압축 해제·JVM 경고는 로그 형식이 아니라 빠짐."""
     skip = ("OFFLINE/INSECURE", "authenticate usernames", "hackers to connect", '"online-mode"',
-            "Can't keep up!")  # 빌드 중 청크를 한꺼번에 불러올 때 나는 성능 경고 (무해)
+            "Can't keep up!",  # 빌드 중 청크를 한꺼번에 불러올 때 나는 성능 경고 (무해)
+            "Minecraft Services Discovery")  # Mojang 인증 서버에 못 닿는 환경 (작업 환경, 오프라인 서버라 무해)
     out = []
     for l in srv.lines:
         m = LOG_LINE.match(l)

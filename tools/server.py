@@ -56,6 +56,7 @@ SERVER_PROPERTIES = {
     "generator-settings": '{"layers":[],"biome":"minecraft\\:the_void","features":false,"lakes":false,"structure_overrides":[]}',
     "generate-structures": "false",
     "online-mode": "false",
+    "max-tick-time": "-1",          # 감시견 끔: 큰 월드 save-all 이 60초를 넘으면 서버가 스스로 죽음 (느린 작업 환경에서 확인)
     "spawn-protection": "0",
     "max-players": "1",
     "view-distance": "4",
