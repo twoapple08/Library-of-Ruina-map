@@ -30,7 +30,8 @@ public class RuinaClientTest implements FabricClientGameTest {
 			{"chesed", "ruina:social_science", "사회과학"}, {"binah", "ruina:philosophy", "철학"},
 			{"hokma", "ruina:religion", "종교"}, {"keter", "ruina:general", "총류"},
 	};
-	private static final int VARIANT_DX = 1400;   // builders/natural_science.py 의 색 바뀐 돔 거리
+	private static final int VARIANT_DX = 1400;
+	private static final int GLFW_KEY_F1 = 290;   // builders/natural_science.py 의 색 바뀐 돔 거리
 
 	private final List<String> log = new ArrayList<>();
 	private int fails = 0;
@@ -40,10 +41,8 @@ public class RuinaClientTest implements FabricClientGameTest {
 	public void runTest(ClientGameTestContext ctx) {
 		try (TestSingleplayerContext sp = ctx.worldBuilder()
 				.adjustSettings(c -> c.setGameMode(WorldCreationUiState.SelectedGameMode.CREATIVE)).create()) {
-			ctx.runOnClient(c -> {
-				c.options.renderDistance().set(12);
-				c.options.hideGui = true;
-			});
+			ctx.runOnClient(c -> c.options.renderDistance().set(12));
+			ctx.getInput().pressKey(GLFW_KEY_F1);   // 화면 글자·손 숨기기 (원화 비교용)
 			render(sp);
 			screenshot(ctx, "overworld");
 			String overworld = dim(ctx);

@@ -384,10 +384,21 @@ def cmd_modtest():
         bad = [l for l in log_lines if ("/ERROR]" in l or "/WARN]" in l) and ("ruina" in l.lower() or "function" in l.lower())]
         with open(os.path.join(out, "problems.log"), "w", encoding="utf-8") as f:
             f.writelines(bad[:500])
+    gl = os.path.join(ROOT, "mod", "build", "gametest_gradle.log")
+    gradle_err = []
+    if os.path.exists(gl):
+        shutil.copy(gl, os.path.join(out, "gradle.log"))
+        with open(gl, encoding="utf-8", errors="replace") as f:
+            gl_lines = f.readlines()
+        for i, l in enumerate(gl_lines):   # 컴파일 오류는 아래 3줄까지 (기호 이름·위치)
+            if "error:" in l or "FAILED" in l:
+                gradle_err += [x.rstrip() for x in gl_lines[i:i + (4 if "error:" in l else 1)]]
     outcome = os.environ.get("GAMETEST_OUTCOME", "?")
     lines = ["## 모드 게임 테스트 (실제 클라이언트)", "",
              f"- {'✅' if outcome == 'success' else '❌'} 결과: {outcome}, 스크린샷 {len(shots)}장 (ci-output 브랜치 mod/)"]
     lines += [f"- {l}" for l in report if not l.startswith("📷")]
+    if gradle_err:
+        lines += ["", "```"] + gradle_err[:60] + ["```"]
     with open(os.path.join(out, "SUMMARY.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
     print("\n".join(lines))

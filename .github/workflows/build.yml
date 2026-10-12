@@ -94,7 +94,8 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y -q xvfb libgl1-mesa-dri mesa-vulkan-drivers
           mkdir -p build/run/clientGameTest
-          xvfb-run -a -s "-screen 0 1920x1080x24" ./gradlew runClientGameTest --stacktrace
+          set -o pipefail
+          xvfb-run -a -s "-screen 0 1920x1080x24" ./gradlew runClientGameTest 2>&1 | tee build/gametest_gradle.log
 
       - name: 게임 테스트 결과 정리 (스크린샷 → jpg)
         if: always() && env.TASK == 'world'
