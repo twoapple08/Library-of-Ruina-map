@@ -289,7 +289,7 @@ MOD_ITEMS = [
     ("yesod", "예소드", "sephirah", "technology"),
     ("hod", "호드", "sephirah", "literature"),
     ("netzach", "네짜흐", "sephirah", "art"),
-    ("tiphereth", "티페리트", "sephirah", "natural_science"),   # 자연과학 차원에서 왼손(F) = 돔 색 전환
+    ("tiphereth", "티페리트", "sephirah", "natural_science"),   # 왼손(F) 돔 색 전환은 나중에 (지금은 만들지 않음)
     ("gebura", "게부라", "sephirah", "language"),
     ("chesed", "헤세드", "sephirah", "social_science"),
     ("binah", "비나", "sephirah", "philosophy"),

@@ -10,9 +10,6 @@ import java.util.function.Function;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.server.level.ServerPlayer;
 
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
@@ -33,7 +30,6 @@ public class RuinaClientTest implements FabricClientGameTest {
 			{"chesed", "ruina:social_science", "사회과학"}, {"binah", "ruina:philosophy", "철학"},
 			{"hokma", "ruina:religion", "종교"}, {"keter", "ruina:general", "총류"},
 	};
-	private static final int VARIANT_DX = 1400;   // builders/natural_science.py 의 색 바뀐 돔 거리
 
 	private final List<String> log = new ArrayList<>();
 	private int fails = 0;
@@ -78,9 +74,6 @@ public class RuinaClientTest implements FabricClientGameTest {
 				check(ctx, f[0] + " → " + f[2] + "의 층 전경", f[1]);
 				render(sp);
 				screenshot(ctx, sp, f[1].substring(6));
-				if (f[0].equals("tiphereth")) {
-					tiphereth(ctx, sp);
-				}
 				double sx = x(ctx);
 				useItem(ctx, sp, "room_switch");
 				expect(f[2] + " 방전환 → 지정사서 방 (x " + (int) sx + " → " + (int) x(ctx) + ")", Math.abs(x(ctx) - sx) > 100);
@@ -101,47 +94,6 @@ public class RuinaClientTest implements FabricClientGameTest {
 		if (fails > 0) {
 			throw new AssertionError("도서관 테스트 실패 " + fails + "건 (ruina_test.txt)");
 		}
-	}
-
-	/** 티페리트를 왼손으로(F): 같은 자리의 색 바뀐 돔으로 → 다시 F 로 돌아옴. */
-	private void tiphereth(ClientGameTestContext ctx, TestSingleplayerContext sp) {
-		sp.getServer().runCommand("item replace entity @a weapon.mainhand with ruina:tiphereth");
-		ctx.waitTicks(5);
-		double x0 = x(ctx);
-		swapToOffhand(sp);
-		ctx.waitTicks(10);
-		boolean moved = Math.abs(x(ctx) - x0 - VARIANT_DX) < 2;
-		expect("티페리트 F → 청록 돔 (x " + (int) x0 + " → " + (int) x(ctx) + ")", moved);
-		if (!moved) {   // 원인 찾기: 손 상태, 같은 상대 위치 블록, 전환 함수 직접 실행
-			log.add("ℹ️ " + sp.getServer().computeOnServer(server -> {
-				ServerPlayer p = server.getPlayerList().getPlayers().getFirst();
-				BlockPos head = BlockPos.containing(p.getX() + VARIANT_DX, p.getY() + 1, p.getZ());
-				BlockPos below = BlockPos.containing(p.getX() + VARIANT_DX, p.getY() - 0.5, p.getZ());
-				return "왼손 " + BuiltInRegistries.ITEM.getKey(p.getOffhandItem().getItem())
-						+ " / 오른손 " + BuiltInRegistries.ITEM.getKey(p.getMainHandItem().getItem())
-						+ " / 위치 " + String.format("%.2f %.2f %.2f", p.getX(), p.getY(), p.getZ())
-						+ " / +1400 머리 " + p.level().getBlockState(head) + " 발밑 " + p.level().getBlockState(below);
-			}));
-			sp.getServer().runCommand("execute as @a at @s run function ruina:tiphereth/switch");
-			ctx.waitTicks(5);
-			log.add("ℹ️ 전환 함수 직접 실행 뒤 x " + (int) x(ctx));
-		}
-		render(sp);
-		screenshot(ctx, sp, "natural_science_teal");
-		sp.getServer().runCommand("item replace entity @a weapon.mainhand with ruina:tiphereth");
-		ctx.waitTicks(5);
-		swapToOffhand(sp);   // 다시 왼손으로
-		ctx.waitTicks(10);
-		expect("티페리트 F → 금빛 돔으로 돌아옴", Math.abs(x(ctx) - x0) < 2);
-	}
-
-	/**
-	 * F(왼손으로 바꾸기)와 같은 결과를 서버에서 만듦. 게임 테스트의 가상 F 키 입력은 처리되지 않았음
-	 * (CI 기록: 왼손 비어 있음·오른손 티페리트). 실제 게임의 F 는 4차 테스트에서 동작 확인됨.
-	 */
-	private void swapToOffhand(TestSingleplayerContext sp) {
-		sp.getServer().runCommand("item replace entity @a weapon.offhand from entity @a weapon.mainhand");
-		sp.getServer().runCommand("item replace entity @a weapon.mainhand with minecraft:air");
 	}
 
 	/** 아이템을 오른손에 들고 하늘을 보며 우클릭 (블록을 보면 블록 사용이 먼저라). 암전 이동이 끝날 때까지 기다림. */

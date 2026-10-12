@@ -35,7 +35,6 @@ public final class Library {
 	private static final int FADE_IN = 20;     // 암흑 1초 → 이동
 	private static final int FADE_OUT = 40;    // 도착지에서 1초 뒤 풀림
 	private static final Map<UUID, Integer> lastUse = new HashMap<>();
-	private static final java.util.Set<UUID> offhandBefore = new java.util.HashSet<>();   // 지난 틱 왼손에 티페리트
 	private static final List<Fade> fades = new ArrayList<>();
 
 	private record Fade(UUID player, String tp, int start) {
@@ -108,7 +107,6 @@ public final class Library {
 
 	static void tick(MinecraftServer server) {
 		int now = server.getTickCount();
-		tipherethSwap(server);
 		for (Iterator<Fade> it = fades.iterator(); it.hasNext(); ) {
 			Fade f = it.next();
 			ServerPlayer player = server.getPlayerList().getPlayer(f.player());
@@ -124,30 +122,6 @@ public final class Library {
 				Fx.send(player, "fade_out", "");
 				runAs(server, player, "tag @s remove ruina.fading");
 				it.remove();
-			}
-		}
-	}
-
-	/**
-	 * 티페리트를 왼손으로 든 순간(F): 자연과학의 층(지정사서 방 밖)에서 돔 색 전환 (ruina:tiphereth/switch, 같은 상대 위치).
-	 * 오른손이 비어 있으면 티페리트를 오른손으로 되돌림. 계속 들고 있어도 다시 발동하지 않음.
-	 */
-	private static void tipherethSwap(MinecraftServer server) {
-		if (RuinaMod.tiphereth == null) {
-			return;
-		}
-		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-			boolean has = player.getOffhandItem().is(RuinaMod.tiphereth);
-			if (has && !offhandBefore.contains(player.getUUID()) && player.getX() < 3700
-					&& player.level().dimension().identifier().toString().equals(RuinaMod.MOD_ID + ":natural_science")) {
-				runAs(server, player, "execute unless items entity @s weapon.mainhand * run function ruina:fx/hand_back");
-				runAs(server, player, "execute unless entity @s[tag=ruina.fading] run function ruina:tiphereth/switch");
-				has = player.getOffhandItem().is(RuinaMod.tiphereth);
-			}
-			if (has) {
-				offhandBefore.add(player.getUUID());
-			} else {
-				offhandBefore.remove(player.getUUID());
 			}
 		}
 	}

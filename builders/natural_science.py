@@ -11,7 +11,7 @@ reference/자연과학의 층 지정사서 방.png, PLAN.md 8절 ("매우 넓고
 둥근 탁자·안락의자로, 양옆 체크무늬 바닥, 갈비 천장, 왼쪽 어두운 아치 문, A자 사다리.
 
 크기 (1024×400, 사람 기준): 돔 반지름 90·높이 130, 무대 300×15 (서 있는 Y 100), 휘장 Y 30까지.
-색감 전환: 같은 접대 공간을 VARIANT_DX 만큼 떨어진 곳에 바뀐 색으로 한 벌 더 → 마그마크림 F로 같은 상대 위치 이동.
+색감 전환(티페리트 F, 청록 돔)은 지금 만들지 않음 (사용자 2026-10-12). 청록 색표 TEAL·VARIANT_DX 는 나중을 위해 남김.
 """
 from __future__ import annotations
 
@@ -231,27 +231,11 @@ def build(b):
     from . import fragment as F
     d = b.dim("natural_science")
     reception(d, 0, GOLD)
-    reception(d, VARIANT_DX, TEAL)
-    d.set_biome(VARIANT_DX - 200, -200, VARIANT_DX + 200, 200, "ruina:natural_science_teal")
     tiphereth_room(d)
-    ax, ay, az, ayaw = ARRIVE
     F.stage(b, d, "gplate", "자연과학의 층", ARRIVE, (ROOM_X + 0.5, RY, RD - 2.5, 180))
-    # 티페리트 F(왼손): 제자리에서 돔 색 전환 금빛 ↔ 청록 (같은 상대 위치의 색 바뀐 돔으로) — 지정사서 방 밖에서만
-    F.setup(b.links, "tiphereth", d.dim, f"x={VARIANT_DX // 2},y=-64,z=-1024,dx={VARIANT_DX + 400},dy=1024,dz=2048",
-            to_a=F.relative(-VARIANT_DX, "natural_science_entrance"), to_b=F.relative(VARIANT_DX, "natural_science_entrance"))
-    # 왼손(F) 감지는 모드 Java (Library.tipherethSwap, x < 3700 = 지정사서 방 밖)
     # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 세피라 아이템 (모드)
     b.extra_checks += [
         {"what": "티페리트 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:natural_science_room",
-         "expect": True},
-        {"what": "티페리트 F 전환 금빛→청록 (같은 상대 위치)",
-         "setup": [f"execute in {d.dim} run summon minecraft:marker {ax} {ay} {az} {{Tags:[\"ruina.msw\"]}}",
-                   f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.msw] at @s run function ruina:tiphereth/switch"],
-         "cmd": f"execute in {d.dim} positioned {ax + VARIANT_DX} {ay} {az} if entity @e[type=minecraft:marker,tag=ruina.msw,distance=..0.5]",
-         "expect": True},
-        {"what": "티페리트 F 전환 청록→금빛",
-         "setup": [f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.msw] at @s run function ruina:tiphereth/switch"],
-         "cmd": f"execute in {d.dim} positioned {ax} {ay} {az} if entity @e[type=minecraft:marker,tag=ruina.msw,distance=..0.5]",
          "expect": True},
     ]
 
@@ -262,11 +246,6 @@ PREVIEW = [
      "look": (0.5, Y0 + 22, -60), "kw": dict(fov=78, max_dist=400, fog_dist=300, **_GOLDSKY),
      "title": "자연과학의 층 — 원화(위) / 맵(아래): 무대 앞에서 돔 쪽",
      "notes": ["황금 반원 돔(갈비살·촛불 감실·빛 구멍), 겹 아치 끝 빛나는 문, 받침대 금잔", "무대(모자이크·붉은 카펫), 금테 유리판, 파랑/주황 휘장"]},
-    {"file": "natural_science_compare_variant.png", "ref": "자연과학의 층 전경 (색 바뀐 판).jpg",
-     "cam": (VARIANT_DX + 0.5, Y0 + 3, 40), "look": (VARIANT_DX + 0.5, Y0 + 22, -60),
-     "kw": dict(fov=78, max_dist=400, fog_dist=300, sky=((20, 30, 34), (40, 56, 60)), fog=(40, 56, 60), stars=0),
-     "title": "자연과학의 층 (마그마크림 F) — 색 바뀐 판: 원화(위) / 맵(아래)",
-     "notes": ["같은 자리, 돔이 어두운 청록, 감실·문 빛이 차가운 흰빛"]},
     {"file": "natural_science_compare_room.png", "ref": "자연과학의 층 지정사서 방.png", "cam": (ROOM_X + 0.5, RY + 2.5, RD - 1),
      "look": (ROOM_X + 0.5, RY + 8, -RD), "kw": dict(fov=80, max_dist=120, sky=((60, 44, 20), (120, 90, 40)),
                                                       fog=(120, 90, 40), fog_dist=70, stars=0),

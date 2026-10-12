@@ -186,7 +186,7 @@ previews/               미리보기 PNG (폰 확인용)
 #### ① 에서 만든 것 (2026-10-12)
 - `mod/` Fabric 26.3 모드 (Loom 1.18, loader 0.19.5, fabric-api 0.162.0+26.3 — `FabricMC/fabric-example-mod` 26.3 브랜치 기준)
   - `RuinaMod` 아이템 등록(목록은 jar 안 `/ruina/items.json` ← `tools/mod_pack.py` ← `config.MOD_ITEMS`), 크리에이티브 탭 '도서관'
-  - `Library` 아이템 동작: 초대장(야생→`tp/fade/exterior_spawn`, 자리 기록 = 플레이어 attachment `ruina:return_point` / 도서관 안→기록한 자리, 없으면 월드 스폰),
+  - `Library` 아이템 동작 (티페리트는 다른 세피라와 같음, F 기능 없음): 초대장(야생→`tp/fade/exterior_spawn`, 자리 기록 = 플레이어 attachment `ruina:return_point` / 도서관 안→기록한 자리, 없으면 월드 스폰),
     방전환(`ruina:mod/room` = 차원별 `<key>/switch`), 세피라(`tp/fade/<층>_entrance`), 도서관에서 죽으면 `tp/to/exterior_spawn`
   - `WorldInstaller` 서버 시작 때 `/ruina/world.zip`(CI 가 검증한 차원별 region·entities)을 `<월드>/dimensions/ruina/` 로, `ruina_build.txt` 의 빌드 번호가 다르면 교체
   - `Fx`·`FxPayload`·`client/FxOverlay` 모드 전용 화면 이펙트 (잉크빛 암전·층 이름 카드·번쩍임), 데이터팩 명령 `ruina fx <fade_in|fade_out|flash|title 글자>`
@@ -201,7 +201,9 @@ previews/               미리보기 PNG (폰 확인용)
 
 #### CI 게임 테스트 결과 (2026-10-12)
 - 초대장(야생→외부→처음 자리), 방전환 11곳, 세피라 10종 모두 통과. 실행 약 15분 (청크 그리기 대기 30초, 렌더 거리 10. 3분이면 1시간 17분)
-- 티페리트 F: 가상 F 키 입력이 게임 테스트에서 처리되지 않음(왼손 비어 있음 기록) → 테스트는 서버에서 왼손으로 옮겨 확인. 실제 F 는 4차 테스트에서 동작
+- **티페리트 F·청록 돔은 지금 만들지 않음 (사용자 결정)** — 빌드·데이터팩·모드·테스트에서 뺌 (`natural_science.TEAL`·`VARIANT_DX` 색표만 남김).
+  나중에 만들 때 알아둘 것: 게임 테스트의 가상 F 키는 처리 안 됨(서버에서 왼손으로 옮겨 시험), 데이터팩 tick 감지는 손만 돌아오고 전환 안 됨
+  (같은 함수를 execute as/at 으로 직접 실행하면 됨) → 모드 Java 에서 왼손 감지 후 직접 실행할 것
 - 같은 상대 위치 판정(`fragment.relative`)은 머리 칸 공기 + 발밑이 공기가 아님 (반블록 위에서 발 칸이 늘 막힘이던 문제)
 - 스크린샷은 HUD 숨김(`RuinaTestClient.clean`, `HudElementRegistry.replaceElement`)·빈손. 26.3 에는 `options.hideGui` 없음, F1 가상 입력도 안 먹음
 - 결과: `ci-output` 브랜치 `mod/` — `sheet.jpg`(전체 모음), `NN_<공간>.jpg`, `SUMMARY.md`(✅/❌ + 실패 원인 기록), `gradle.log`

@@ -41,7 +41,6 @@ public class RuinaMod implements ModInitializer {
 	/** 초대장 도착 자리 (데이터팩 ruina:tp/fade/&lt;spawn&gt;). */
 	public static String spawnAnchor = "exterior_spawn";
 	public static final List<Item> ITEMS = new ArrayList<>();
-	public static Item tiphereth;   // 자연과학의 층에서 왼손(F) = 돔 색 전환 (Library.tipherethSwap)
 
 	public static Identifier id(String path) {
 		return Identifier.fromNamespaceAndPath(MOD_ID, path);
@@ -60,9 +59,6 @@ public class RuinaMod implements ModInitializer {
 			Item item = new RuinaItem(new Item.Properties().setId(key).stacksTo(1), kind, anchor);
 			Registry.register(BuiltInRegistries.ITEM, key, item);
 			ITEMS.add(item);
-			if (id.equals("tiphereth")) {
-				tiphereth = item;
-			}
 		}
 
 		// 크리에이티브 모드 탭에서만 (제작법·자동 지급 없음)

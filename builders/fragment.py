@@ -3,8 +3,8 @@
 - 층마다 두 장소: 전경(scene, 도착 자리) ↔ 지정사서 방(room). 로비는 전환 전 방 = 전경, 넓은 홀 = 방.
 - 아이템은 모드가 가짐 (config.MOD_ITEMS): 방전환 우클릭 → `ruina:mod/room` (차원별로 그 층 `<key>/switch`),
   세피라 우클릭 → 모드가 `ruina:tp/fade/<층>_entrance` 실행. 조각 F·층 사슬·조각 교환·자동 지급은 없앰.
-- 티페리트를 왼손으로(F): 자연과학의 층 돔 색 전환 = `tiphereth/switch`. 감지는 모드 Java (Library.tipherethSwap):
-  데이터팩 tick 감지는 CI 게임 테스트에서 손만 돌아오고 전환이 안 됐음 (전환 함수를 직접 실행하면 됨).
+- 티페리트 F(자연과학 돔 색 전환)는 지금 만들지 않음 (사용자 2026-10-12). 나중에 만들 때: 데이터팩 tick 감지는
+  CI 게임 테스트에서 손만 돌아오고 전환이 안 됐음 → 모드 Java 에서 왼손을 감지해 전환 함수를 직접 실행할 것.
 """
 from __future__ import annotations
 
