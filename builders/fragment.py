@@ -77,10 +77,11 @@ def tiphereth_f(L, dim: str, func: str, area: str = ""):
 
 
 def relative(dx: int, fallback: str) -> list:
-    """같은 상대 위치(x + dx)로, 발밑·머리 칸이 막혔으면 기본 자리로."""
+    """같은 상대 위치(x + dx)로. 머리 칸이 막혔거나 발밑이 비었으면 기본 자리로.
+    (발 칸 대신 머리 칸·발밑을 봄: 반블록 위에 서면 발 칸이 반블록이라 늘 '막힘'이 됨 — CI 게임 테스트 티페리트 F)"""
     return [
         f"scoreboard players set @s {NS}.ok 0",
-        f"execute positioned ~{dx} ~ ~ if block ~ ~ ~ minecraft:air if block ~ ~1 ~ minecraft:air "
+        f"execute positioned ~{dx} ~ ~ if block ~ ~1 ~ minecraft:air unless block ~ ~-0.5 ~ minecraft:air "
         f"run scoreboard players set @s {NS}.ok 1",
         f"execute if score @s {NS}.ok matches 1 positioned ~{dx} ~ ~ run tp @s ~ ~ ~",
         f"execute if score @s {NS}.ok matches 0 run function {NS}:tp/to/{fallback}",

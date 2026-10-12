@@ -30,8 +30,7 @@ public class RuinaClientTest implements FabricClientGameTest {
 			{"chesed", "ruina:social_science", "사회과학"}, {"binah", "ruina:philosophy", "철학"},
 			{"hokma", "ruina:religion", "종교"}, {"keter", "ruina:general", "총류"},
 	};
-	private static final int VARIANT_DX = 1400;
-	private static final int GLFW_KEY_F1 = 290;   // builders/natural_science.py 의 색 바뀐 돔 거리
+	private static final int VARIANT_DX = 1400;   // builders/natural_science.py 의 색 바뀐 돔 거리
 
 	private final List<String> log = new ArrayList<>();
 	private int fails = 0;
@@ -41,17 +40,18 @@ public class RuinaClientTest implements FabricClientGameTest {
 	public void runTest(ClientGameTestContext ctx) {
 		try (TestSingleplayerContext sp = ctx.worldBuilder()
 				.adjustSettings(c -> c.setGameMode(WorldCreationUiState.SelectedGameMode.CREATIVE)).create()) {
-			ctx.runOnClient(c -> c.options.renderDistance().set(12));
-			ctx.getInput().pressKey(GLFW_KEY_F1);   // 화면 글자·손 숨기기 (원화 비교용)
+			ctx.runOnClient(c -> c.options.renderDistance().set(10));
+			RuinaTestClient.clean = true;   // 핫바·조준점 등 숨김 (원화 비교용)
 			render(sp);
-			screenshot(ctx, "overworld");
+			screenshot(ctx, sp, "overworld");
 			String overworld = dim(ctx);
 
 			// 초대장: 야생 → 외부
 			useItem(ctx, sp, "invitation");
 			check(ctx, "초대장 → 외부", "ruina:exterior");
+			screenshot(ctx, sp, "exterior_title_card");   // 모드 이펙트: 도착 직후 층 이름 카드 '도서관'
 			render(sp);
-			screenshot(ctx, "exterior");
+			screenshot(ctx, sp, "exterior");
 
 			// 방전환: 외부에는 방이 없음 → 그대로
 			useItem(ctx, sp, "room_switch");
@@ -62,19 +62,19 @@ public class RuinaClientTest implements FabricClientGameTest {
 			ctx.waitTicks(20);
 			check(ctx, "로비", "ruina:lobby");
 			render(sp);
-			screenshot(ctx, "lobby");
+			screenshot(ctx, sp, "lobby");
 			double x0 = x(ctx);
 			useItem(ctx, sp, "room_switch");
 			expect("로비 방전환 → 홀 (x " + (int) x0 + " → " + (int) x(ctx) + ")", x(ctx) - x0 > 100);
 			render(sp);
-			screenshot(ctx, "lobby_hall");
+			screenshot(ctx, sp, "lobby_hall");
 
 			// 세피라 10종: 그 층 전경 → 방전환 → 지정사서 방
 			for (String[] f : FLOORS) {
 				useItem(ctx, sp, f[0]);
 				check(ctx, f[0] + " → " + f[2] + "의 층 전경", f[1]);
 				render(sp);
-				screenshot(ctx, f[1].substring(6));
+				screenshot(ctx, sp, f[1].substring(6));
 				if (f[0].equals("tiphereth")) {
 					tiphereth(ctx, sp);
 				}
@@ -82,7 +82,7 @@ public class RuinaClientTest implements FabricClientGameTest {
 				useItem(ctx, sp, "room_switch");
 				expect(f[2] + " 방전환 → 지정사서 방 (x " + (int) sx + " → " + (int) x(ctx) + ")", Math.abs(x(ctx) - sx) > 100);
 				render(sp);
-				screenshot(ctx, f[1].substring(6) + "_room");
+				screenshot(ctx, sp, f[1].substring(6) + "_room");
 			}
 
 			// 초대장: 도서관 안 → 기록한 자리 (야생)
@@ -102,12 +102,14 @@ public class RuinaClientTest implements FabricClientGameTest {
 
 	/** 티페리트를 왼손으로(F): 같은 자리의 색 바뀐 돔으로 → 다시 F 로 돌아옴. */
 	private void tiphereth(ClientGameTestContext ctx, TestSingleplayerContext sp) {
+		sp.getServer().runCommand("item replace entity @a weapon.mainhand with ruina:tiphereth");
+		ctx.waitTicks(5);
 		double x0 = x(ctx);
 		press(ctx, o -> o.keySwapOffhand);
 		ctx.waitTicks(10);
 		expect("티페리트 F → 청록 돔 (x " + (int) x0 + " → " + (int) x(ctx) + ")", Math.abs(x(ctx) - x0 - VARIANT_DX) < 2);
 		render(sp);
-		screenshot(ctx, "natural_science_teal");
+		screenshot(ctx, sp, "natural_science_teal");
 		press(ctx, o -> o.keySwapOffhand);   // 오른손으로 돌아온 티페리트를 다시 왼손으로
 		ctx.waitTicks(10);
 		expect("티페리트 F → 금빛 돔으로 돌아옴", Math.abs(x(ctx) - x0) < 2);
@@ -129,13 +131,14 @@ public class RuinaClientTest implements FabricClientGameTest {
 
 	private void render(TestSingleplayerContext sp) {
 		try {
-			sp.getConnection().waitForChunksRender(true, 20 * 180);
+			sp.getConnection().waitForChunksRender(true, 20 * 30);
 		} catch (Throwable t) {
 			log.add("ℹ️ 청크 그리기 대기 시간 초과 (그대로 촬영)");
 		}
 	}
 
-	private void screenshot(ClientGameTestContext ctx, String name) {
+	private void screenshot(ClientGameTestContext ctx, TestSingleplayerContext sp, String name) {
+		sp.getServer().runCommand("item replace entity @a weapon.mainhand with minecraft:air");   // 손에 아이템이 안 보이게
 		// 도착 자리의 보는 방향 그대로 (원화 구도 비교용). 하늘을 본 채면 수평으로
 		ctx.getInput().lookAt(ctx.computeOnClient(c -> c.player.getYRot()), 0f);
 		ctx.waitTicks(5);

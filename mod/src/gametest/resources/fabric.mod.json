@@ -5,7 +5,8 @@
 	"name": "Ruina client game test",
 	"environment": "*",
 	"entrypoints": {
-		"fabric-client-gametest": ["ruina.library.test.RuinaClientTest"]
+		"fabric-client-gametest": ["ruina.library.test.RuinaClientTest"],
+		"client": ["ruina.library.test.RuinaTestClient"]
 	},
 	"depends": {
 		"ruina": "*"
