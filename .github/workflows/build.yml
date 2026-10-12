@@ -73,9 +73,9 @@ jobs:
         if: env.TASK == 'probe'
         run: python -m tools.ci probe
 
-      - name: 월드 빌드
+      - name: 월드 빌드 (건축물 코드가 그대로면 릴리스의 것 재사용, tools/world_cache.py)
         if: env.TASK == 'world'
-        run: python -m tools.ci world
+        run: python -m tools.world_cache fetch || { python -m tools.ci world && python -m tools.world_cache save; }
 
       - uses: gradle/actions/setup-gradle@v6
         if: env.TASK == 'world'
@@ -139,7 +139,9 @@ jobs:
           curl -fsSL -o "out/release/fabric-api-$FAPI.jar" \
             "https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/$FAPI/fabric-api-$FAPI.jar"
           gh release upload "$TAG" out/release/Ruina.jar "out/release/fabric-api-$FAPI.jar" --clobber
-          gh release upload "$TAG" out/release/Library-of-Ruina.zip out/release/Ruina_resources.zip --clobber
+          for f in Library-of-Ruina.zip Ruina_resources.zip Ruina_generated.zip; do   # 월드를 재사용한 실행에는 없음
+            [ -f "out/release/$f" ] && gh release upload "$TAG" "out/release/$f" --clobber
+          done
           [ -f out/release/BSL_v10.1.6_Ruina.zip ] || python -m tools.shaderpack   # 맵 전용 BSL 개조판
           gh release upload "$TAG" out/release/BSL_v10.1.6_Ruina.zip --clobber
           {
@@ -147,7 +149,7 @@ jobs:
             echo
             cat ci_out/mod/SUMMARY.md 2>/dev/null || true
             echo
-            cat ci_out/world/SUMMARY.md
+            cat ci_out/world/SUMMARY.md 2>/dev/null || echo "건축물: 코드가 그대로라 지난 빌드 재사용"
           } > notes.md
           gh release edit "$TAG" --notes-file notes.md
 
