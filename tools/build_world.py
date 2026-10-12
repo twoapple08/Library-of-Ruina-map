@@ -194,17 +194,18 @@ def ci_world(argv) -> int:
             srv.run("kill @e[type=minecraft:marker,tag=ruina.walktest]")
 
         # 암전 TP: 마커로 시작 → fade_tick 을 직접 여러 번 실행 (tick 은 플레이어만 처리) → 도착 + 암전 해제 확인
-        for w in [w for w in b.links.walks if w.fade]:
-            a = b.links.anchors[w.dest]
-            x0, y0, z0, x1, y1, z1 = w.box
+        fades = [(f"암전 TP {w.dim} {w.box}", w.dim, (w.box[0] + w.box[3] + 1) / 2, w.box[1] + 0.1,
+                  (w.box[2] + w.box[5] + 1) / 2, w.dest) for w in b.links.walks if w.fade]
+        fades += [(f"조각 F 층 이동 {sa.name}", dim, sa.x, sa.y, sa.z, dest) for dim, sa, dest in b.links.jumps]
+        for label, sdim, sx, sy, sz, dest in fades:
+            a = b.links.anchors[dest]
             # 플레이어가 없으니 도착지 둘레 청크를 직접 불러옴 (게임에서는 플레이어가 불러옴)
             r = datapack.LOAD_R
             fl = srv.run(f"execute in {a.dim} run forceload add {int(a.x) - r} {int(a.z) - r} {int(a.x) + r} {int(a.z) + r}")
             corners = [srv.wait_loaded(a.dim, int(a.x) + dx, int(a.y), int(a.z) + dz, timeout=90)
                        for dx in (-r, r) for dz in (-r, r)]
-            srv.run(f"execute in {w.dim} run summon minecraft:marker {(x0 + x1 + 1) / 2} {y0 + 0.1} {(z0 + z1 + 1) / 2} "
-                    f"{{Tags:[\"ruina.fadetest\"]}}")
-            srv.run(f"execute as @e[type=minecraft:marker,tag=ruina.fadetest] run function ruina:tp/fade/{w.dest}")
+            srv.run(f"execute in {sdim} run summon minecraft:marker {sx} {sy} {sz} {{Tags:[\"ruina.fadetest\"]}}")
+            srv.run(f"execute as @e[type=minecraft:marker,tag=ruina.fadetest] run function ruina:tp/fade/{dest}")
             outs = []
             for _ in range(datapack.FADE_MIN + 2):
                 outs.append(srv.run("execute as @e[type=minecraft:marker,tag=ruina.fadetest] at @s run function ruina:tp/fade_tick"))
@@ -218,10 +219,10 @@ def ci_world(argv) -> int:
                 "loaded": srv.test(f"execute in {a.dim} positioned {a.x} {a.y} {a.z} if loaded ~-{r} ~ ~-{r} "
                                    f"if loaded ~{r} ~ ~{r}"),
             }
-            rep.data.setdefault("fade_diag", {})[w.dest] = diag
+            rep.data.setdefault("fade_diag", {})[dest] = diag
             ok = srv.test(f"execute in {a.dim} positioned {a.x} {a.y} {a.z} if entity "
                           f"@e[type=minecraft:marker,tag=ruina.fadetest,tag=!ruina.fading,distance=..0.5]")
-            rep.add(ok, f"암전 TP {w.dim} {w.box} → {w.dest} (도착 + 로딩 확인 후 해제)")
+            rep.add(ok, f"{label} → {dest} (도착 + 로딩 확인 후 해제)")
             srv.run("kill @e[type=minecraft:marker,tag=ruina.fadetest]")
 
         # 시계: 문법 확인용 도움말 + 직접 실행해서 결과 기록

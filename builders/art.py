@@ -280,11 +280,8 @@ def build(b):
     netzach_room(d)
     spirits(b, d)
 
-    F.floor(b, d, "iplate", (F.IPLATE_P, F.IPLATE), "예술의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90),
-            (ROOM_X + 0.5, RY, RD - 2.5, 180), (-BX + 4, Y0, -6, -BX + 7, Y0 + 3, 6), "literature_door")
-    # 네짜흐 방 빛나는 큰 문(이젤 그림) → 자연과학의 층. 돌아오면 문 앞에서 방 쪽(남쪽)을 봄
-    F.door(b, d, "iplate", (ROOM_X + 5, RY, -RD, ROOM_X + 11, RY + 3, -RD), "natural_science_entrance",
-           (ROOM_X + 3.5, RY, -RD + 6.5, 0), "예술의 층")
+    F.stage(b, d, "iplate", (F.IPLATE_P, F.IPLATE), "예술의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
+    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 조각 F (fragment.finish)
     b.extra_checks += [
         {"what": "네짜흐 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:art_room", "expect": True},
         {"what": "정령 (block_display)", "cmd": f"execute in {d.dim} if entity @e[type=minecraft:block_display,tag=ruina.spirit]",

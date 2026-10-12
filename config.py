@@ -78,6 +78,12 @@ EXTERIOR_SKY = night_sky("#3b2370", "#2c1b52", moon_phase="waxing_crescent", moo
 # sky_light_level 은 차원 단위만 됨 (바이옴에 넣으면 서버 오류) → 차원은 밝게, 방은 천장이 가려서 어두움
 LOBBY_ROOM_SKY = night_sky("#120a05", "#1c1008", stars=0.0, sky_light_level=1.0, extra={
     "minecraft:visual/fog_start_distance": 4.0, "minecraft:visual/fog_end_distance": 48.0})
+def music(sound: str) -> dict:
+    """바이옴 배경 음악 (바닐라 the_end.json 형식). 크리에이티브도 같은 곡, 곡이 끝나면 1~3초 뒤 다시."""
+    m = {"max_delay": 60, "min_delay": 20, "replace_current_music": True, "sound": sound}
+    return {"minecraft:audio/background_music": {"creative": dict(m), "default": dict(m)}}
+
+
 LOBBY_HALL_SKY = {
     "minecraft:visual/sky_color": "#f4e2bd",
     "minecraft:visual/fog_color": "#e9cf9c",
@@ -86,6 +92,7 @@ LOBBY_HALL_SKY = {
     "minecraft:visual/sky_light_factor": 1.0,
     "minecraft:visual/sky_light_color": "#fff0d0",
     "minecraft:visual/star_brightness": 0.0,
+    **music("ruina:music.lobby_hall"),      # 로비 홀 테마 (resourcepack/, 사용자 제공)
 }
 
 # 역사의 층 (reference/역사의 층 전경.png, 지정사서 방.png)
@@ -262,6 +269,7 @@ GAMERULES = {
     "fire_spread_radius_around_player": "0",
     "mob_griefing": "false",
     "respawn_radius": "0",
+    "keep_inventory": "true",          # 죽어도 조각 유지
     "spawn_monsters": "false",
     "spawn_phantoms": "false",
 }

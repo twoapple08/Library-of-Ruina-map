@@ -208,11 +208,8 @@ def build(b):
     machinery(d, rng)
     ladle(d)
     gebura_room(d)
-    F.floor(b, d, "iblock", (F.IBLOCK_P, F.IBLOCK), "언어의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90),
-            (ROOM_X + 0.5, RY, RD - 2.5, 180), (-BX + 4, Y0, -HW + 1, -BX + 7, Y0 + 3, HW - 1), "natural_science_door")
-    # 게부라 방 큰 창(용광로 빛) → 사회과학의 층. 돌아오면 창 앞에서 방 쪽(남쪽)을 봄
-    F.door(b, d, "iblock", (ROOM_X - 8, RY, -RD, ROOM_X + 0, RY + 3, -RD), "social_science_entrance",
-           (ROOM_X - 4.5, RY, -RD + 5.5, 0), "언어의 층")
+    F.stage(b, d, "iblock", (F.IBLOCK_P, F.IBLOCK), "언어의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
+    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 조각 F (fragment.finish)
     b.extra_checks.append({"what": "게부라 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:language_room",
                            "expect": True})
 

@@ -109,7 +109,7 @@ def exit_stairs(d):
     z0 = ARRIVE_Z + 6
     for k in range(6):
         z = z0 + k
-        d.fill(-3, Y0 - 1 - k, z, 3, Y0 - 1 - k, z, "minecraft:spruce_stairs[facing=south]")
+        d.fill(-3, Y0 - 1 - k, z, 3, Y0 - 1 - k, z, "minecraft:spruce_stairs[facing=north]")
         d.fill(-3, Y0 - k, z, 3, Y0 + 3, z, "minecraft:air")
         d.fill(-4, Y0 - 1 - k, z, -4, Y0 + 1, z, RAIL)
         d.fill(4, Y0 - 1 - k, z, 4, Y0 + 1, z, RAIL)
@@ -371,7 +371,7 @@ def build(b):
     rng = np.random.default_rng(701)
     books = []
     stage(d, rng, books)
-    zone = exit_stairs(d)
+    exit_stairs(d)
     towers(d, rng)
     cabinet(d, rng)
     stone_pillar(d, rng)
@@ -380,17 +380,10 @@ def build(b):
     malkuth_room(d)
 
     L = b.links
-    arrive = F.exchange(F.GOLD_P, F.GOLD)
-    L.anchor("history_entrance", d.dim, 0.5, Y0, ARRIVE_Z + 0.5, yaw=180, title="역사의 층", on_arrive=arrive)
-    L.anchor("history_room", d.dim, ROOM_X + 0.5, Y0, RD - 2.5, yaw=180, on_arrive=arrive)
-    L.walk(d.dim, zone, "lobby_stairs", fade=True)
-    # 말쿠트 방 오른쪽 금빛 틈 안쪽으로 걸어 들어가면 → 기술과학의 층. 돌아오면 틈 앞(방 안)에서 서쪽을 봄
-    gx = ROOM_X + RW + 1
-    L.walk(d.dim, (gx + 5, Y0, -6, gx + 8, Y0 + 3, 0), "technology_entrance", fade=True)
-    L.anchor("history_gap", d.dim, gx - 3 + 0.5, Y0, -2.5, yaw=90, title="역사의 층", on_arrive=arrive)
-    # 금조각 F: 접대 공간 ↔ 말쿠트 방 (고정 자리)
-    F.setup(L, "gold", d.dim, F.GOLD_P, f"x={ROOM_X - 200},y=-64,z=-1024,dx=400,dy=1024,dz=2048",
-            to_a=F.fixed("history_entrance"), to_b=F.fixed("history_room"))
+    # 금조각 F: 접대 공간 ↔ 말쿠트 방 (고정 자리). 층 사이 이동은 조각 F (fragment.finish).
+    # 도착 자리 뒤 내려가는 계단·말쿠트 방 금빛 틈은 조형물로만 남김
+    F.stage(b, d, "gold", (F.GOLD_P, F.GOLD), "역사의 층", (0.5, Y0, ARRIVE_Z + 0.5, 180), (ROOM_X + 0.5, Y0, RD - 2.5, 180),
+            room_box=f"x={ROOM_X - 200},y=-64,z=-1024,dx=400,dy=1024,dz=2048")
     # 진열장 속 책 (도착 자리 둘레만 — 엔티티 최소화)
     for x, y, z in books:
         b.forceload.append((d.dim, x, z))
@@ -404,13 +397,4 @@ def build(b):
          "expect": True},
         {"what": "진열장 책 (item_display)", "cmd": f"execute in {d.dim} if entity @e[type=minecraft:item_display,tag=ruina.case]",
          "expect": True, "after_entities": True},
-        {"what": "금조각 전환 접대→방",
-         "setup": [f"execute in {d.dim} run summon minecraft:marker 0.5 {Y0} {ARRIVE_Z + 0.5} {{Tags:[\"ruina.gsw\"]}}",
-                   f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.gsw] at @s run function ruina:gold/switch"],
-         "cmd": f"execute in {d.dim} positioned {ROOM_X + 0.5} {Y0} {RD - 2.5} if entity @e[type=minecraft:marker,tag=ruina.gsw,distance=..0.5]",
-         "expect": True},
-        {"what": "금조각 전환 방→접대",
-         "setup": [f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.gsw] at @s run function ruina:gold/switch"],
-         "cmd": f"execute in {d.dim} positioned 0.5 {Y0} {ARRIVE_Z + 0.5} if entity @e[type=minecraft:marker,tag=ruina.gsw,distance=..0.5]",
-         "expect": True},
     ]

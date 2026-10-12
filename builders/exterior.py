@@ -500,8 +500,10 @@ def build(b, city: bool = True, clouds: bool = True):
 
     L = b.links
     zb = int(R_PLINTH - 4)
-    L.anchor("exterior_spawn", d.dim, 0.5, 0, 100.5, yaw=180)   # 광장 남쪽, 탑을 바라봄
-    L.anchor("exterior_gate", d.dim, 0.5, 0, stair_end + 2.5, yaw=0)       # 로비에서 나오면 계단 앞
+    from . import fragment as F
+    clear_all = [F.take(p) for p, _ in F.ALL]     # 외부에서는 조각 없음 (테스트 ⑮: 로비에서 나올 때 은조각 회수)
+    L.anchor("exterior_spawn", d.dim, 0.5, 0, 100.5, yaw=180, on_arrive=clear_all)   # 광장 남쪽, 탑을 바라봄
+    L.anchor("exterior_gate", d.dim, 0.5, 0, stair_end + 2.5, yaw=0, on_arrive=clear_all)   # 로비에서 나오면 계단 앞
     L.spawn = "exterior_spawn"
     # 정문: 빛나는 문 앞 홈에 걸어 들어가면 로비로 (클릭도 됨). 홈 바닥 전체(문 앞 4칸)를 구역으로
     # (Phase 1 테스트 ④: 문 앞 2칸만이라 TP 안 됨 → 넓힘, 바닥이 막혀 있지 않은지 gate_walkable 로 확인)

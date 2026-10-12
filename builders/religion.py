@@ -196,12 +196,9 @@ def build(b):
     balconies(d, rng)
     balconies(d, rng, n=10, rmin=500, rmax=1000)
     framework(d, rng)
-    tx, tz, ty = hokma_room(d)
-    F.floor(b, d, "apple", (F.APPLE_P, F.APPLE), "종교의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90),
-            (ROOM_X + 0.5, RY, RD - 2.5, 180), (-BX + 4, Y0, -HW + 1, -BX + 7, Y0 + 3, HW - 1), "philosophy_door")
-    # 호크마 방 나선계단 꼭대기 → 총류의 층 (위층으로 이어지는 나선계단). 돌아오면 계단 아래 책상 앞
-    F.door(b, d, "apple", (tx - 6, ty - 2, tz - 6, tx + 6, ty + 2, tz + 6), "general_entrance",
-           (tx + 0.5, RY, tz + 10.5, 0), "종교의 층")
+    hokma_room(d)
+    F.stage(b, d, "apple", (F.APPLE_P, F.APPLE), "종교의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
+    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 조각 F (fragment.finish)
     b.extra_checks.append({"what": "호크마 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:religion_room",
                            "expect": True})
 

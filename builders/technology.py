@@ -304,29 +304,10 @@ def build(b):
     gears_and_tower(d, rng)
     yesod_room(d)
 
-    L = b.links
-    arrive = F.exchange(F.IRON_P, F.IRON)
-    L.anchor("technology_entrance", d.dim, ARRIVE_X + 0.5, Y0, 0.5, yaw=-90, title="기술과학의 층", on_arrive=arrive)
-    L.anchor("technology_room", d.dim, ROOM_X + 0.5, RY, RD - 2.5, yaw=180, on_arrive=arrive)
-    # 돌아가는 길: 다리 서쪽 끝 (안개 속) → 역사의 층 말쿠트 방 금빛 틈 앞
-    L.walk(d.dim, (-BX + 6, Y0, -HW + 1, -BX + 9, Y0 + 3, HW - 1), "history_gap", fade=True)
-    # 예소드 방 빛나는 유리문에 다가가면 → 문학의 층. 돌아오면 유리문 앞에서 방 쪽(남쪽)을 봄
-    z0 = -RD - 1
-    L.walk(d.dim, (ROOM_X + 1, RY, z0 + 3, ROOM_X + 4, RY + 2, z0 + 3), "literature_entrance", fade=True)
-    L.anchor("technology_door", d.dim, ROOM_X + 2.5, RY, z0 + 6.5, yaw=0, title="기술과학의 층", on_arrive=arrive)
-    F.setup(L, "iron", d.dim, F.IRON_P, f"x={ROOM_X - 200},y=-64,z=-1024,dx=400,dy=1024,dz=2048",
-            to_a=F.fixed("technology_entrance"), to_b=F.fixed("technology_room"))
+    # 철괴 F: 다리 ↔ 예소드 방. 층 사이 이동은 조각 F (fragment.finish), 빛나는 유리문은 조형물로만
+    F.stage(b, d, "iron", (F.IRON_P, F.IRON), "기술과학의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
     b.extra_checks += [
         {"what": "예소드 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:technology_room",
-         "expect": True},
-        {"what": "철괴 전환 다리→방",
-         "setup": [f"execute in {d.dim} run summon minecraft:marker {ARRIVE_X + 0.5} {Y0} 0.5 {{Tags:[\"ruina.isw\"]}}",
-                   f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.isw] at @s run function ruina:iron/switch"],
-         "cmd": f"execute in {d.dim} positioned {ROOM_X + 0.5} {RY} {RD - 2.5} if entity @e[type=minecraft:marker,tag=ruina.isw,distance=..0.5]",
-         "expect": True},
-        {"what": "철괴 전환 방→다리",
-         "setup": [f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.isw] at @s run function ruina:iron/switch"],
-         "cmd": f"execute in {d.dim} positioned {ARRIVE_X + 0.5} {Y0} 0.5 if entity @e[type=minecraft:marker,tag=ruina.isw,distance=..0.5]",
          "expect": True},
     ]
     return stats

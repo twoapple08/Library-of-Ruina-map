@@ -318,36 +318,19 @@ def build(b):
     build_room(d)
     build_hall(d)
     L = b.links
-    # 로비에 오면: 다른 층 조각(금조각·철괴) 회수 + 은조각이 없으면 1개
-    arrive = F.exchange(F.SILVER_P, F.SILVER)
-    L.anchor("lobby_entrance", d.dim, 0.5, Y0, RZ - 2.5, yaw=180, title="로비", on_arrive=arrive)
-    L.anchor("lobby_hall", d.dim, HALL_DX + 0.5, Y0, RZ - 2.5, yaw=180, on_arrive=arrive)
+    # 은조각(철조각)을 왼손으로 들면(F) 번쩍 → 방 ↔ 홀 (같은 상대 위치, 막혀 있으면 기본 자리).
+    # 로비는 이전 층이 없음: 방 = 철조각만, 홀(지정사서 방 자리) = 철조각 + 금조각 → 금조각 F 로 역사의 층 (fragment.finish).
+    # 흰 대계단 꼭대기 빛은 조형물로만 남김
+    F.stage(b, d, "silver", (F.SILVER_P, F.SILVER), "로비", (0.5, Y0, RZ - 2.5, 180), (HALL_DX + 0.5, Y0, RZ - 2.5, 180),
+            room_box=f"x={HALL_DX // 2},y=-64,z=-1024,dx=4096,dy=1024,dz=2048",
+            to_a=F.relative(-HALL_DX, "lobby_entrance"), to_b=F.relative(HALL_DX, "lobby_hall"),
+            scene_name="lobby_entrance", room_name="lobby_hall")
     L.portal(d.dim, 0.5, Y0, RZ + 1.5, "exterior_gate", width=3, height=4)
     L.walk(d.dim, (-1, Y0, RZ + 1, 1, Y0 + 2, RZ + 1), "exterior_gate", fade=True)
-
-    # 흰 대계단 꼭대기 빛으로 걸어 들어가면 → 암전 → 역사의 층. 돌아오면 계단 몇 단 아래에 남쪽을 보고 도착
-    cx, ytop, (z0, z1) = stair_top()
-    L.walk(d.dim, (int(cx) - STAIR_W, ytop, z0, int(cx) + STAIR_W, ytop + 3, z0 + 2), "history_entrance", fade=True)
-    k = STAIR_N - 4
-    L.anchor("lobby_stairs", d.dim, HALL_DX + round(_stair_center(k)) + 0.5, Y0 + k + 1, STAIR_Z0 - 2 * k + 0.5, yaw=0,
-             title="로비", on_arrive=arrive)
-
-    # 은조각을 왼손으로 들면(F) 번쩍 → 방 ↔ 홀 (같은 상대 위치, 막혀 있으면 기본 자리)
-    F.setup(L, "silver", d.dim, F.SILVER_P, f"x={HALL_DX // 2},y=-64,z=-1024,dx=4096,dy=1024,dz=2048",
-            to_a=F.relative(-HALL_DX, "lobby_entrance"), to_b=F.relative(HALL_DX, "lobby_hall"))
     # 서버 검증: 홀 바이옴, 방 → 홀 → 방 전환 (마커로)
     ax, az = 0.5, RZ - 2.5
     b.extra_checks += [
         {"what": "홀 바이옴 ruina:lobby_hall", "cmd": f"execute in {d.dim} if biome {HALL_DX} {Y0} 0 ruina:lobby_hall",
          "expect": True},
         {"what": "방 바이옴 ruina:lobby", "cmd": f"execute in {d.dim} if biome 0 {Y0} 0 ruina:lobby", "expect": True},
-        {"what": "전환 방→홀 (같은 상대 위치)",
-         "setup": [f"execute in {d.dim} run summon minecraft:marker {ax} {Y0} {az} {{Tags:[\"ruina.sw\"]}}",
-                   f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.sw] at @s run function ruina:silver/switch"],
-         "cmd": f"execute in {d.dim} positioned {HALL_DX + ax} {Y0} {az} if entity @e[type=minecraft:marker,tag=ruina.sw,distance=..0.5]",
-         "expect": True},
-        {"what": "전환 홀→방",
-         "setup": [f"execute in {d.dim} as @e[type=minecraft:marker,tag=ruina.sw] at @s run function ruina:silver/switch"],
-         "cmd": f"execute in {d.dim} positioned {ax} {Y0} {az} if entity @e[type=minecraft:marker,tag=ruina.sw,distance=..0.5]",
-         "expect": True},
     ]

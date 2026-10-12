@@ -271,10 +271,7 @@ def build(b):
     hanging_bulbs(d, rng)
     hod_room(d)
 
-    F.floor(b, d, "goldbar", (F.GOLDBAR_P, F.GOLDBAR), "문학의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90),
-            (ROOM_X + 0.5, RY, RD - 2.5, 180), (-BX + 4, Y0, -HW + 1, -BX + 7, Y0 + 3, HW - 1), "technology_door")
-    # 호드 방 팔각 문틀 복도 끝(빛) → 예술의 층. 돌아오면 복도 입구 안쪽에서 방 쪽(서쪽)을 봄
-    x1 = ROOM_X + RW + 1
-    F.door(b, d, "goldbar", (x1 + 44, RY, -5, x1 + 47, RY + 3, 1), "art_entrance", (x1 + 3.5, RY, -1.5, 90), "문학의 층")
+    F.stage(b, d, "goldbar", (F.GOLDBAR_P, F.GOLDBAR), "문학의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
+    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 조각 F (fragment.finish)
     b.extra_checks.append({"what": "호드 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:literature_room",
                            "expect": True})

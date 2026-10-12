@@ -71,6 +71,7 @@ class Links:
     tick: list = field(default_factory=list)        # 빌더가 추가하는 tick 명령
     scores: list = field(default_factory=list)      # 빌더가 쓰는 점수판 이름
     entity_cmds: list = field(default_factory=list) # 빌드 때 한 번 소환할 엔티티 명령 (build/entities)
+    jumps: list = field(default_factory=list)       # 조각 F 층 이동 (차원, 출발 Anchor, 목적지 이름) — CI 암전 TP 검사용
 
     def walk(self, dim, box, dest, fade: bool = False) -> Walk:
         w = Walk(dim, tuple(int(v) for v in box), dest, fade)
@@ -124,6 +125,7 @@ def dimension_type(space: config.Space) -> dict:
     d.pop("timelines", None)
     attrs = dict(d.get("attributes", {}))
     attrs.pop("minecraft:audio/ambient_sounds", None)  # 어두운 곳의 동굴 소리 끔
+    attrs.pop("minecraft:audio/background_music", None)  # 바닐라 배경음악 끔 (공간 음악은 바이옴에서)
     attrs.update(space.attributes)
     d.update({
         "min_y": space.min_y,
@@ -179,10 +181,11 @@ def dimension(space: config.Space) -> dict:
 
 # ------------------------------------------------------------------ 함수
 
-FADE_IN = 10      # 암전 시작 후 TP까지 (틱)
-FADE_MIN = 20     # 최소 암전 시간 (틱)
+FADE_IN = 6       # 암전 시작 후 TP까지 (틱)
+FADE_MIN = 12     # 최소 암전 시간 (틱) — 테스트 ⑬ '좀 길음' (예전 20)
 FADE_MAX = 200    # 청크가 안 불러와져도 이 시간이 지나면 해제
 LOAD_R = 48       # 도착지 둘레 이만큼(블록)의 청크가 서버에 불러와졌으면 '로딩 끝'
+FADE_EFFECT = "minecraft:darkness"   # 테스트 ⑬: 실명 대신 어둠 효과 (사용자 지정)
 
 
 def functions(links: Links) -> dict:
@@ -206,7 +209,8 @@ def functions(links: Links) -> dict:
     f["tick"] += links.tick
     f["first_join"] = [f"tag @s add {NS}.joined"]
     if links.spawn:
-        f["first_join"].append(f"execute if dimension minecraft:overworld run function {NS}:tp/to/{links.spawn}")
+        # 월드 스폰(커스텀 차원)에 바로 나타나도 보는 방향이 기본값(남쪽)이라 자리로 한 번 옮김 (테스트 "스폰 위치 이상")
+        f["first_join"].append(f"function {NS}:tp/to/{links.spawn}")
 
     clicked = []
     for name in links.anchors:
@@ -218,7 +222,7 @@ def functions(links: Links) -> dict:
 
     # 암전 TP: 시작 → (FADE_IN틱) TP → 도착지 둘레 청크가 서버에 불러와지면(최소 FADE_MIN틱) 암전 해제 + 제목
     tick = [f"scoreboard players add @s {NS}.fade 1"]
-    done = ["effect clear @s minecraft:blindness", f"tag @s remove {NS}.fading", f"scoreboard players reset @s {NS}.fade"]
+    done = [f"effect clear @s {FADE_EFFECT}", f"tag @s remove {NS}.fading", f"scoreboard players reset @s {NS}.fade"]
     c = LOAD_R
     loaded = " ".join(f"if loaded ~{dx} ~ ~{dz}" for dx in (-c, c) for dz in (-c, c))
     for name, a in links.anchors.items():
@@ -230,7 +234,7 @@ def functions(links: Links) -> dict:
             f"tag @s add {NS}.fading",
             f"tag @s add {NS}.fade.{name}",
             f"scoreboard players set @s {NS}.fade 0",
-            "effect give @s minecraft:blindness infinite 0 true",
+            f"effect give @s {FADE_EFFECT} infinite 0 true",
         ]
         tick.append(f"execute if score @s {NS}.fade matches {FADE_IN} if entity @s[tag={NS}.fade.{name}] "
                     f"run function {NS}:tp/to/{name}")
@@ -248,6 +252,7 @@ def functions(links: Links) -> dict:
     if links.spawn:
         a = links.anchors[links.spawn]
         setup.append(f"execute in {a.dim} run setworldspawn {int(a.x)} {int(a.y)} {int(a.z)}")
+    setup.append('tellraw @s {"text":"ruina:setup 완료 (게임룰·시계·스폰)","color":"#ecd6a6"}')
     f["setup"] = setup
 
     ents = []

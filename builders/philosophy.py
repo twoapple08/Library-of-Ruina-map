@@ -167,11 +167,8 @@ def build(b):
     d.fill(-420, -1, -420, 420, -1, 420, "minecraft:black_concrete")
     milky_way(d, rng)
     binah_room(d)
-    F.floor(b, d, "anvil", (F.ANVIL_P, F.ANVIL), "철학의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90),
-            (ROOM_X + 0.5, RY, RD - 2.5, 180), (-BX + 4, Y0, -8, -BX + 7, Y0 + 3, 8), "social_science_door")
-    # 비나 방 가운데 뒤 금빛 빛 → 종교의 층. 돌아오면 빛 앞에서 방 쪽(남쪽)을 봄
-    F.door(b, d, "anvil", (ROOM_X - 3, RY, -RD, ROOM_X + 3, RY + 3, -RD + 1), "religion_entrance",
-           (ROOM_X + 0.5, RY, -RD + 7.5, 0), "철학의 층")
+    F.stage(b, d, "anvil", (F.ANVIL_P, F.ANVIL), "철학의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
+    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 조각 F (fragment.finish)
     b.extra_checks.append({"what": "비나 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:philosophy_room",
                            "expect": True})
 

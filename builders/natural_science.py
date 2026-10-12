@@ -235,16 +235,12 @@ def build(b):
     d.set_biome(VARIANT_DX - 200, -200, VARIANT_DX + 200, 200, "ruina:natural_science_teal")
     tiphereth_room(d)
     ax, ay, az, ayaw = ARRIVE
-    F.floor(b, d, "gplate", (F.GPLATE_P, F.GPLATE), "자연과학의 층", ARRIVE, (ROOM_X + 0.5, RY, RD - 2.5, 180),
-            (-STAGE_X + 4, Y0, STAGE_Z0 + 1, -STAGE_X + 7, Y0 + 3, STAGE_Z1 - 1), "art_door",
-            extra_keep=[(F.MAGMA_P, F.MAGMA)])
+    F.stage(b, d, "gplate", (F.GPLATE_P, F.GPLATE), "자연과학의 층", ARRIVE, (ROOM_X + 0.5, RY, RD - 2.5, 180), extra_keep=[(F.MAGMA_P, F.MAGMA)])
     # 마그마크림 F: 금빛 돔 ↔ 색 바뀐 돔 (같은 상대 위치) — 지정사서 방 밖에서만
     F.setup(b.links, "magma", d.dim, F.MAGMA_P, f"x={VARIANT_DX // 2},y=-64,z=-1024,dx={VARIANT_DX + 400},dy=1024,dz=2048",
             to_a=F.relative(-VARIANT_DX, "natural_science_entrance"), to_b=F.relative(VARIANT_DX, "natural_science_entrance"),
             area="x=-2000,y=-64,z=-2000,dx=5700,dy=1024,dz=4000")
-    # 티페리트 방 큰 아치 창 → 언어의 층. 돌아오면 창 앞 단 아래에서 방 쪽(남쪽)을 봄
-    F.door(b, d, "gplate", (ROOM_X - 4, RY + 3, -RD, ROOM_X + 4, RY + 6, -RD + 1), "language_entrance",
-           (ROOM_X + 0.5, RY, -RD + 9.5, 0), "자연과학의 층")
+    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 조각 F (fragment.finish)
     b.extra_checks += [
         {"what": "티페리트 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:natural_science_room",
          "expect": True},
