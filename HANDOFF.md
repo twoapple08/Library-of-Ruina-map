@@ -206,6 +206,8 @@ previews/               미리보기 PNG (폰 확인용)
   구현 참고: `ModelLoadingPlugin.register(ctx -> ctx.modifyBlockModelAfterBake()...)` 로 모델 감싸기, `BlockStateModel` 3 메서드(collectParts·particleMaterial·materialFlags) + `emitQuads`
   (`emitter.pos/uv` → `materialBake(sprite, BAKE_NORMALIZED)` → `emit()`). 26.3 패키지: `net.minecraft.client.renderer.block.dispatch.BlockStateModel`,
   `client.renderer.block.BlockAndTintGetter`, `client.resources.model.sprite.Material`. 이름 찾기는 `javap -cp ~/.gradle/caches/fabric-loom/26.3/minecraft-merged.jar`
+- **사용자 지시 (2026-10-12 끝)**: "3D 느낌과 원화 느낌을 살려서 일단 만들고, 테스트는 나중에". 모드 크기·모드 블록 가짓수 상관없음.
+  → 도착 시점은 원화 그대로(투영), 걸어 다니면 입체(직접 만든 형체·텍스처로 보완). 로컬 스크린샷·원화 비교 그림으로만 조정하고 사용자 테스트는 전부 구축 뒤
 - 사용자가 고해상도 원화·다른 각도 그림을 `reference/` 에 넣어 줄 수 있음 (요청해 둠) → 시작 전에 `reference/` 새 파일 확인
 
 #### 이번 세션(2026-10-12 오후)에서 한 것 — 0·1 단계 끝
