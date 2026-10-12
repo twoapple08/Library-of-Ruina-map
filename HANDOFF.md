@@ -201,7 +201,9 @@ previews/               미리보기 PNG (폰 확인용)
 1. CI 게임 테스트 통과 확인 (첫 실행: 게임 테스트 컴파일 오류 `hideGui` → F1 로 고침) + 스크린샷 검토
 2. 이펙트(잉크 암전·층 이름 카드·번쩍임) CI 통과 확인 — 화면 이펙트는 F1(HUD 숨김) 상태 스크린샷엔 안 찍힘
 3. CI 게임 테스트에 Iris + Sodium + 맵 전용 BSL 넣어 셰이더 컴파일·화면 확인 (Modrinth CDN 은 CI 에서 접속 가능할 것)
-4. 사용자에게 5차 테스트 요청 (`TESTING.md` 5차)
+4. ~~5차 테스트 요청~~ → **테스트는 모두 구축한 뒤 한 번에** (사용자 결정 2026-10-12). `TESTING.md` 는 그때 갱신.
+   **아이템 이미지·사운드는 테스트 뒤 마지막에 사용자가 넣음** (지금 이름 글자 아이콘은 임시: `mod/src/main/resources/assets/ruina/textures/item/<id>.png` 교체, 소리는 `resourcepack/assets/ruina/`)
+5. 사용자가 폰으로 할 일: CI 스크린샷 모음 `ci-output/mod/sheet.jpg` 확인해서 이상한 곳만 알려 주기 (Claude 가 그림을 직접 보는 토큰 절약)
 
 #### ② 총류의 층 시험 (그다음)
 - 원화 투영(도착 시점에서 원화를 형체에 비춰 입힘)·자유 모델·빛나는 모드 블록(`config.MOD_BLOCKS`, BSL 자동 반영)·총류 지정사서 방 = 높이 트인 밝은 공간
