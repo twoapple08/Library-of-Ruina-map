@@ -190,7 +190,7 @@ previews/               미리보기 PNG (폰 확인용)
     방전환(`ruina:mod/room` = 차원별 `<key>/switch`), 세피라(`tp/fade/<층>_entrance`), 도서관에서 죽으면 `tp/to/exterior_spawn`
   - `WorldInstaller` 서버 시작 때 `/ruina/world.zip`(CI 가 검증한 차원별 region·entities)을 `<월드>/dimensions/ruina/` 로, `ruina_build.txt` 의 빌드 번호가 다르면 교체
   - `Fx`·`FxPayload`·`client/FxOverlay` 모드 전용 화면 이펙트 (잉크빛 암전·층 이름 카드·번쩍임), 데이터팩 명령 `ruina fx <fade_in|fade_out|flash|title 글자>`
-  - 데이터팩은 모드 jar 의 data/ (항상 켜짐). `datapack.write(mod=True)`: 모드 전용 함수(티페리트 F 등, 모드 아이템 ID 사용) 포함, `setup`·`build/entities` 제외, 어둠 효과 → `ruina fx`
+  - 데이터팩은 모드 jar 의 data/ (항상 켜짐). `datapack.write(mod=True)`: 모드 전용 함수(`mod/room` 등) 포함, `setup`·`build/entities` 제외, 어둠 효과 → `ruina fx`
 - 데이터팩 정리: 조각 F·층 사슬·교환·자동 지급·야간투시·first_join·데이터팩 리스폰 삭제, **도서관 시계 `ruina:library`**(오버월드 시계 안 건드림), 암흑 1초 → 이동 → 1초 뒤 풀림(`FADE_IN 20`, `FADE_MIN 40`)
 - 아이콘: `python -m tools.mod_assets` → `mod/src/main/resources/assets/ruina/` (커밋됨), 미리보기 `previews/mod_items.png`
 - CI(`build.yml`): 월드 빌드(바닐라 서버 검증, 그대로) → `mod_pack` → `./gradlew build` → **`runClientGameTest`**(xvfb, 실제 클라이언트:
