@@ -210,6 +210,8 @@ previews/               미리보기 PNG (폰 확인용)
 - ALSA·SoundSystem 오류 줄은 CI 에 소리 장치가 없어서 (무해)
 
 #### 다음 세션 할 일 (순서)
+0. **마지막 커밋(티페리트 F 삭제, 51af9be~)은 CI 확인 전에 사용자가 CI 를 중단시킴** → 다음 세션 첫 push 의 CI 에서 함께 확인
+   (예상: 게임 테스트 전부 통과. 바뀐 것: 자연과학 청록 돔·전환 함수·Java 감지·테스트 삭제뿐)
 1. **CI 게임 테스트에 Iris + Sodium + 맵 전용 BSL** (Modrinth CDN `cdn.modrinth.com` 에서 26.3 판 jar 받기 → `mod/build.gradle` 의 gametest 런타임 또는 run 폴더 mods 에).
    셰이더 컴파일 오류(`latest.log`)·셰이더 켠 스크린샷 확인. BSL 은 llvmpipe(소프트웨어 GL)에서 느릴 수 있음 → 장소 몇 곳만
 2. **② 총류의 층 시험**: 원화 투영·자유 모델·빛나는 모드 블록(`config.MOD_BLOCKS` → BSL 자동 반영)·총류 지정사서 방 = 높이 트인 밝은 공간.
