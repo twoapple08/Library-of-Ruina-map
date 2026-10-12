@@ -1,11 +1,11 @@
 # 인수인계 (HANDOFF)
 
-새 세션은 **이 문서 → `docs/test/README.md`(최근 테스트 원문) + `docs/test/*.jpg` 스크린샷 4장을 직접 열어 보기 → `PLAN.md` → `design/exterior.md` → `TESTING.md`** 순서로 확인하고 이어서 작업한다.
-마지막 갱신: 2026-10-12 (외부 2차 + 로비 + 10개 층 전부 1차 완료, CI 통과 138/138 → 테스터 테스트 대기. 다음 세션 첫 작업은 4절 맨 위).
+새 세션은 **이 문서 → `docs/test/README.md`(2차 테스트 원문·원인 분석) + `docs/test/test2/` 스크린샷 → `docs/mod/기초구성.md`(모드 구성) → `PLAN.md` → `TESTING.md`** 순서로 확인하고 이어서 작업한다.
+마지막 갱신: 2026-10-12 (2차 테스트 반영 라운드 끝: 조각 F 층 사슬·버그·소리·맵 전용 BSL → 3차 테스트 대기 + **모드 시험 제작은 사용자 지시 대기**. 다음 세션 첫 작업은 4절 맨 위).
 
 ## 0. 사용자와 일하는 방식
 
-- 사용자는 **폰으로만 작업** (안드로이드). PC 테스트는 **다른 사람(테스터, RTX 4060)**이 한다. 사용자가 결과·스크린샷을 전달해 줌.
+- 사용자는 **폰으로만 작업** (안드로이드). PC 테스트는 **다른 사람(테스터)**이 한다. 2차 테스트 PC는 **GTX1050ti·i7-8700·16GB** (1차는 RTX 4060). 사용자가 결과·스크린샷을 전달해 줌.
 - **토큰 절약**이 최우선. 폰으로 할 수 있는 일(전달·결정·의견)은 사용자에게 맡기고, 답변은 짧게.
 - 사용자가 **"아직 하지 말것/시작하지 말것"**이라고 하면 분석·답변만 하고 작업하지 않는다. "일시정지"하라고 하면 멈춘다.
 - 노력 수준: 사용자가 설정함. 추천은 **high** (판단 필요한 설계), 단순 수정은 medium. 컨텍스트가 길어지면 HANDOFF 갱신 후 새 세션 권장.
@@ -103,6 +103,17 @@
   - 서버에서는 오류 없음. **클라이언트·BSL에서 실제로 어떻게 보이는지는 테스터 확인 필요**
 - `/time query daytime` → 오류 (26.3에서 문법이 바뀜. 필요하면 `/time` 도움말 확인)
 
+### 데이터팩 함정 (2026-10-12 확인)
+- **위치 인자(x/y/z/dx/distance)가 붙은 선택자는 실행 차원 안의 엔티티만 찾음**. tick 함수는 오버월드에서 돌므로
+  `execute in <차원> as @a[x=..,dx=..]` 로 차원을 맞춰야 함 (마그마크림 전환 실패 원인). 조각 감지는 `fragment.trigger` 사용
+- 월드 스폰이 커스텀 차원이면 처음 접속 때 그 자리에 바로 나타남 (보는 방향은 기본값) → `first_join` 에서 항상 스폰 자리로 TP
+- 차원 타입이 바닐라 overworld 를 복사하면 바닐라 배경음악도 따라옴 → `audio/background_music` 지움, 공간 음악은 바이옴에 (`config.music`)
+
+### BSL (v10.1.6, 사용자 제공 → `shaderpack/`)
+- BSL은 `sunAngle`(오버월드 시계)로 낮밤을 정함. 우리는 모두 자정 → 밤빛. 개조: `dimension.properties` 에 새 폴더 `ruina`(world0 + `#define RUINA`),
+  RUINA 에서 lightNight·ambientNight 를 `fogColor`(우리 환경 속성 안개색)로, 최소 밝기 ×5, 하늘은 바닐라 경로(skyColor). 외부는 원본(world0)
+- 기본값: 그림자 1536/192, BSL 구름 끔. 셰이더 컴파일은 여기서 확인 못 함 → 테스터 확인 필요 (3차 ⑭)
+
 ### CI·GitHub 접근 (이 작업 환경 기준)
 - 작업 환경에서는 Mojang·minecraft.wiki·나무위키 접속 불가. **GitHub Actions에서는 Mojang 접속 가능**
 - `gh api`의 runs 조회는 되지만 일부 Actions 경로·아티팩트 다운로드(blob 저장소)는 막힘 → **결과는 CI가 `ci-output` 브랜치에 push**, `git fetch origin ci-output`으로 읽음
@@ -119,7 +130,9 @@ builders/__init__.py    Build(차원별 블록 저장소, TP 연결, 서버 검�
 builders/smoke.py       Phase 0 스모크 월드 (더 안 씀)
 builders/lobby.py       로비: 전환 전 방 + 전환 후 홀, 은조각 F 전환
 builders/history.py     역사의 층: 접대 무대(길·난간·진열장)·반복 바닥·배경·유물, 말쿠트 방
-builders/fragment.py    조각(은·금·철괴) F 전환 공용, exchange(층 도착 시 조각 교환)
+builders/fragment.py    조각 F: stage(층 등록: 전경·방 자리 + 전환), finish(층 사슬: 도착 시 조각 교환, 이전/다음 층 조각 F), trigger(감지)
+tools/shaderpack.py     맵 전용 BSL 개조 (shaderpack/BSL_v10.1.6.zip → out/release/BSL_v10.1.6_Ruina.zip, CI가 릴리스에 올림)
+resourcepack/           리소스팩 원본 (소리) → CI가 월드 폴더 resources.zip 으로
 builders/technology.py  기술과학의 층: 고가도로·주탑·네온 도시·톱니·탑, 예소드 방
 builders/literature.py  문학의 층: 나무 보도·팔각 아치, 에스컬레이터형 책장, 전구, 나무 탑, 호드 방
 builders/previews.py    공간별 미리보기 목록
@@ -155,17 +168,18 @@ previews/               미리보기 PNG (폰 확인용)
 
 ## 4. 다음 할 일 (우선순위)
 
-### ▶ 다음 세션 첫 작업 (2026-10-12 세션 끝 기준)
-1. **소리 연결** (사용자가 파일 제공 — `resourcepack/README.md`): 로비 홀 테마(`ruina:music.lobby_hall`)를 바이옴
-   `ruina:lobby_hall` 의 `minecraft:audio/background_music` 에, F 전환 소리(`ruina:fragment.switch`)를 `fragment.py` 의 `fx/switch` 에,
-   CI가 `resourcepack/`을 `resources.zip`으로 묶어 월드 폴더에 넣게 (`tools/build_world.py`). 바닐라 바이옴 json에서 background_music 형식 확인
-2. **테스터 체크리스트 답변은 다음 세션에서 사용자가 전달** (TESTING.md ①~㊸ 보고 양식 + 스크린샷 → `docs/test/`에 원문·사진 보관,
-   README 처럼 정리). 받으면 항목별로 원인 분석 → 수정 (특히 BSL 밤·정문 TP·조각 전환·각 층 모습·fps)
-3. 남은 구색: 블록 텍스처(구름·종이·전구 등)·아이템 이미지(조각 11종)·나머지 소리 → 그 뒤 모드화는 **사용자 지시 후** (4-1절)
-- 이번 세션에서 확인된 것: 디스플레이 엔티티 `block_state` 는 26.3 에서 블록 id 문자열, `gameplay/sky_light_level` 은 바이옴에 못 넣음(차원만),
-  CI 서버는 `pause-when-empty-seconds=-1` (안 하면 forceload 청크가 안 불러와짐), 검토 도구 `python tools/review_links.py <build.pkl>`
-- 이 세션 지정 브랜치: `ccr-ab8a5abc-whq9fh` (main 과 같게 맞춰 둠)
-
+### ▶ 다음 세션 첫 작업 (2026-10-12 2차 테스트 반영 라운드 끝 기준)
+1. **사용자 지시를 먼저 받을 것**: 사용자는 이번 라운드 뒤 **모드 시험 제작**을 하려 함 (`docs/mod/기초구성.md` — 초대장·방전환·세피라 10종,
+   우클릭, 크리에이티브 탭에서 꺼냄, 자동 지급 없음, 기존 조각은 기능 없는 아이템으로). 제안해 둔 방향: Fabric 보조 모드부터,
+   **원화 투영**(도착 시점에서 원화를 형체에 비춰 입힘) + 자유 모델로 층 하나(총류 추천) 시험 → Fabric client gametest 로 CI 스크린샷 비교(가능한지 확인 필요).
+   모드 빌드는 **CI에서만** (작업 환경은 maven.fabricmc.net·Mojang 접속 403/막힘, Maven Central·Gradle 배포판은 됨)
+2. 3차 테스트 결과가 오면 `docs/test/`에 보관·분석 (TESTING.md 3차 양식 ①~⑰)
+3. 미뤄 둔 모양 수정 (모드 방식으로 할지 사용자와 정한 뒤): 탑 가지치기·가지 배치를 원화에 맞춤(④), 자연과학 돔 뒷면·진짜 다리,
+   언어 방 = 실제 용암 전경이 창으로 보이게 방을 전경 안에, 총류 방 = 전경의 높은 책탑 위, 예소드 방 등 원화 대비 품질 (docs/test/README.md 표 마지막 줄)
+- 이번 라운드에서 한 것: 조각 F 층 사슬(`fragment.stage/finish`, 걷기 층 이동 삭제·조형물 유지), 마그마크림 버그(아래 2절), 어둠 효과 암전,
+  외부 도착 시 조각 회수, 역사 계단 방향, DH 먼 벽, 눈 셋 괴물 위치, 외부 높이 1024(빛기둥), setup 완료 메시지, 첫 접속 TP, keep_inventory,
+  로비 홀 음악(바이옴 `audio/background_music`)·전환 소리·바닐라 음악 끔·`resources.zip`, **맵 전용 BSL**(`tools/shaderpack.py` → 릴리스 `BSL_v10.1.6_Ruina.zip`)
+- 지정 브랜치는 세션마다 다름 — 이 세션: `claude/blissful-wright-3xyvvz` (main 과 같게 맞춰 둠)
 
 ### 2차 수정 완료 (2026-10-11) — 테스트 대기 (TESTING.md 3절)
 1. ✅ **BSL 노을**: 모든 차원 `default_clock = minecraft:overworld`, 오버월드 시계를 138000(자정)에 멈춤

@@ -294,6 +294,19 @@ def ci_world(argv) -> int:
         f.write(nbt.to_snbt(level))
     rep.info(f"스폰: {level['Data'].get('spawn')}")
 
+    # ---------------------------------------------- 리소스팩: 월드 폴더의 resources.zip (싱글플레이에서 적용 여부를 묻는 방식)
+    rp = os.path.join(ROOT, "resourcepack")
+    if os.path.isdir(rp):
+        rz = os.path.join(wdir, "resources.zip")
+        with zipfile.ZipFile(rz, "w", zipfile.ZIP_DEFLATED) as z:
+            for base, dirs, files in os.walk(rp):
+                for fn in sorted(files):
+                    if fn.endswith(".md"):
+                        continue
+                    full = os.path.join(base, fn)
+                    z.write(full, os.path.relpath(full, rp))
+        rep.info(f"resources.zip {os.path.getsize(rz) / 1e6:.1f} MB")
+
     # ---------------------------------------------- zip
     os.makedirs(RELEASE, exist_ok=True)
     zpath = os.path.join(RELEASE, "Library-of-Ruina.zip")

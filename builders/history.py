@@ -271,11 +271,12 @@ def moss_monolith(d, rng, cx=265, cz=-255):
 
 
 def far_ring(d, rng):
-    """③ 먼 배경: 구역 끝(반지름 600~740)을 두르는 더 큰 책장 벽."""
-    n = 26
+    """③ 먼 배경: 유물 셋(반지름 300~360)·책장 기둥 줄 바로 뒤(반지름 430~500)를 두르는 더 큰 책장 벽.
+    테스트 ㉔: 예전 600~720 은 유물과 너무 떨어져 보임 → 가깝게."""
+    n = 22
     for i in range(n):
         a = 2 * math.pi * i / n + rng.uniform(-0.05, 0.05)
-        r = rng.uniform(600, 720)
+        r = rng.uniform(430, 500)
         cx, cz = r * math.cos(a), r * math.sin(a)
         w, dz = int(rng.integers(50, 90)), int(rng.integers(20, 34))
         if abs(math.cos(a)) < abs(math.sin(a)):

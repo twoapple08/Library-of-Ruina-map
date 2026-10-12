@@ -252,7 +252,7 @@ def functions(links: Links) -> dict:
     if links.spawn:
         a = links.anchors[links.spawn]
         setup.append(f"execute in {a.dim} run setworldspawn {int(a.x)} {int(a.y)} {int(a.z)}")
-    setup.append('tellraw @s {"text":"ruina:setup 완료 (게임룰·시계·스폰)","color":"#ecd6a6"}')
+    setup.append('tellraw @a {"text":"ruina:setup 완료 (게임룰·시계·스폰)","color":"#ecd6a6"}')
     f["setup"] = setup
 
     ents = []

@@ -132,7 +132,7 @@ LIT_ROOM_SKY = {
 
 # 예술의 층 (reference/예술의 층 전경.png, 지정사서 방.png)
 ART_SKY = night_sky("#b4cc52", "#a2b648", stars=0.0, sky_light_level=0.6, light_factor=0.8, light_color="#e8ff9a",
-                    extra={"minecraft:visual/fog_start_distance": 25.0, "minecraft:visual/fog_end_distance": 300.0,
+                    extra={"minecraft:visual/fog_start_distance": 25.0, "minecraft:visual/fog_end_distance": 380.0,
                            "minecraft:visual/water_fog_color": "#6f8f1e", "minecraft:visual/water_fog_end_distance": 24.0})
 ART_ROOM_SKY = {
     "minecraft:visual/sky_color": "#1e2608",
@@ -214,7 +214,8 @@ GEN_ROOM_SKY = {
 
 SPACES = [
     # 날리는 종이: 하얀 창백한참나무 잎 + 금빛 포플러 잎 파티클 (떨어지며 흔들림)
-    Space("exterior", "외부", "", 1536, 400, EXTERIOR_SKY,
+    # 높이 1024: 탑 꼭대기 빛기둥 건축물이 하늘 끝(y 959)까지 (테스트 ⑥ '더 길었음', 예전 640 → y 575)
+    Space("exterior", "외부", "", 1536, 400, EXTERIOR_SKY, height=1024,
           particles=[("minecraft:pale_oak_leaves", 0.004), ("minecraft:yellow_poplar_leaves", 0.002)]),
     # 로비: 전환 전 = 어두운 나무 방 (어두운 갈색 안개, 먼지), 전환 후 = 밝은 홀 (바이옴 lobby_hall: 크림색 안개·하늘, 빛 입자)
     Space("lobby", "로비", "앤젤라", 512, 400, LOBBY_ROOM_SKY, particles=[("minecraft:white_ash", 0.003)],

@@ -134,8 +134,9 @@ def _ball_shell(r):
     return _BALLS[r]
 
 
-def creature(d, cx=0, cz=-560):
-    """배경 안개 속 눈 셋 괴생물체 (방 이젤 그림): 실크해트, 세로로 선 눈 셋, 가늘고 긴 다리."""
+def creature(d, cx=60, cz=-190):
+    """배경 안개 속 눈 셋 괴생물체 (방 이젤 그림): 실크해트, 세로로 선 눈 셋, 가늘고 긴 다리.
+    나무 사이 빈 곳, 무대에서 200~280칸 (테스트 ㊱ '안 보임': 예전 z -560 은 안개 끝·렌더 거리 밖)."""
     body_y0, body_y1, rw = WATER + 120, WATER + 330, 28
     d.fill(cx - rw, body_y0, cz - 10, cx + rw, body_y1, cz + 10, "minecraft:blackstone")
     d.fill(cx - rw + 1, body_y0 + 1, cz - 9, cx + rw - 1, body_y1 - 1, cz + 9, "minecraft:air")
