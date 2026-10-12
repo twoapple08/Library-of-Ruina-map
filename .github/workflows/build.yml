@@ -98,7 +98,7 @@ jobs:
           xvfb-run -a -s "-screen 0 1920x1080x24" ./gradlew runClientGameTest 2>&1 | tee build/gametest_gradle.log
 
       - name: 게임 테스트 결과 정리 (스크린샷 → jpg)
-        if: always() && env.TASK == 'world'
+        if: ${{ !cancelled() && env.TASK == 'world' }}
         env:
           GAMETEST_OUTCOME: ${{ steps.gametest.outcome }}
         run: python -m tools.ci modtest
@@ -135,7 +135,7 @@ jobs:
           gh release edit "$TAG" --notes-file notes.md
 
       - name: 결과를 ci-output 브랜치에 올리기
-        if: always()
+        if: ${{ !cancelled() }}     # 취소된 실행은 올리지 않음 (지난 스크린샷이 지워지지 않게)
         run: |
           [ -d ci_out ] || exit 0
           cd ci_out
