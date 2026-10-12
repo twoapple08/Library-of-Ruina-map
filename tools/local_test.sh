@@ -7,6 +7,8 @@
 # 주의: 이 환경의 Xvfb 에서는 GLX 창을 못 만듦 ("Couldn't find matching GLX visual") → SDL 을 EGL 로 (SDL_VIDEO_FORCE_EGL=1)
 set -e
 cd "$(dirname "$0")/.."
+# 환경 기본 JAVA_HOME 이 21 일 수 있음 (Loom 은 25 필요) → 있으면 항상 /opt/jdk25
+[ -d /opt/jdk25 ] && JAVA_HOME=/opt/jdk25
 export JAVA_HOME=${JAVA_HOME:-/opt/jdk25} PATH=/opt/jdk25/bin:$PATH SDL_VIDEO_FORCE_EGL=1 XDG_RUNTIME_DIR=/tmp/xdg
 mkdir -p /tmp/xdg && chmod 700 /tmp/xdg
 if [ ! -f mod/build/generated/ruina/ruina/world.zip ]; then
