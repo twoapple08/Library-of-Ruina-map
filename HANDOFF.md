@@ -119,6 +119,10 @@
 - 기본값: 그림자 1536/192, BSL 구름 끔. 셰이더 컴파일은 여기서 확인 못 함 → 테스터 확인 필요 (3차 ⑭)
 
 ### CI·GitHub 접근 (이 작업 환경 기준)
+- **2026-10-12 사용자가 환경 설정 변경: Fabric·Mojang·Modrinth·Adoptium 도메인 허용 + Setup script(Java 25 → `/opt/jdk25`, numpy·pillow)**
+  → **여기서 직접 빌드 가능** (확인: `cd mod && JAVA_HOME=/opt/jdk25 PATH=/opt/jdk25/bin:$PATH ./gradlew compileJava compileGametestJava` 46초 성공).
+  Maven Central 이 가끔 429 → `mod/settings.gradle` 에 구글 거울 추가, 그래도 나면 한 번 다시 실행. 소프트웨어 GL(mesa)·Xvfb 있음 → 게임 테스트도 여기서 가능할 것.
+  CI(25~40분)는 최종 확인·릴리스용으로만. 아래 줄의 "접속 불가"는 이전 기록
 - 작업 환경에서는 Mojang·minecraft.wiki·나무위키 접속 불가. **GitHub Actions에서는 Mojang 접속 가능**
 - `gh api`의 runs 조회는 되지만 일부 Actions 경로·아티팩트 다운로드(blob 저장소)는 막힘 → **결과는 CI가 `ci-output` 브랜치에 push**, `git fetch origin ci-output`으로 읽음
 - 실패 로그: GitHub MCP `get_job_logs(run_id, failed_only=true)`

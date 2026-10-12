@@ -4,6 +4,8 @@ pluginManagement {
 			name = 'Fabric'
 			url = 'https://maven.fabricmc.net/'
 		}
+		// Maven Central 거울 (작업 환경의 공용 출구에서 Maven Central 이 가끔 429 Too Many Requests)
+		maven { url = 'https://maven-central.storage-download.googleapis.com/maven2/' }
 		mavenCentral()
 		gradlePluginPortal()
 	}
