@@ -108,7 +108,7 @@ public class RuinaClientTest implements FabricClientGameTest {
 		sp.getServer().runCommand("item replace entity @a weapon.mainhand with ruina:tiphereth");
 		ctx.waitTicks(5);
 		double x0 = x(ctx);
-		press(ctx, o -> o.keySwapOffhand);
+		swapToOffhand(sp);
 		ctx.waitTicks(10);
 		boolean moved = Math.abs(x(ctx) - x0 - VARIANT_DX) < 2;
 		expect("티페리트 F → 청록 돔 (x " + (int) x0 + " → " + (int) x(ctx) + ")", moved);
@@ -128,9 +128,20 @@ public class RuinaClientTest implements FabricClientGameTest {
 		}
 		render(sp);
 		screenshot(ctx, sp, "natural_science_teal");
-		press(ctx, o -> o.keySwapOffhand);   // 오른손으로 돌아온 티페리트를 다시 왼손으로
+		sp.getServer().runCommand("item replace entity @a weapon.mainhand with ruina:tiphereth");
+		ctx.waitTicks(5);
+		swapToOffhand(sp);   // 다시 왼손으로
 		ctx.waitTicks(10);
 		expect("티페리트 F → 금빛 돔으로 돌아옴", Math.abs(x(ctx) - x0) < 2);
+	}
+
+	/**
+	 * F(왼손으로 바꾸기)와 같은 결과를 서버에서 만듦. 게임 테스트의 가상 F 키 입력은 처리되지 않았음
+	 * (CI 기록: 왼손 비어 있음·오른손 티페리트). 실제 게임의 F 는 4차 테스트에서 동작 확인됨.
+	 */
+	private void swapToOffhand(TestSingleplayerContext sp) {
+		sp.getServer().runCommand("item replace entity @a weapon.offhand from entity @a weapon.mainhand");
+		sp.getServer().runCommand("item replace entity @a weapon.mainhand with minecraft:air");
 	}
 
 	/** 아이템을 오른손에 들고 하늘을 보며 우클릭 (블록을 보면 블록 사용이 먼저라). 암전 이동이 끝날 때까지 기다림. */
