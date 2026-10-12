@@ -155,5 +155,23 @@ class WorldTest(unittest.TestCase):
                 dim.set(0, 2, 0, "oak_stairs[facing=up]")
 
 
+class TestShaderGlow(unittest.TestCase):
+    """빛나는 모드 블록 → 맵 전용 BSL block.properties 발광 묶음."""
+
+    def test_glow_ids_and_patch(self):
+        import config
+        from tools import shaderpack as S
+        g = S.glow_ids([{"id": "lamp", "glow": "pale_orange"}, {"id": "neon", "glow": "cyan", "dim": True},
+                        {"id": "wall"}], config.SHADER_GLOW_COLORS)
+        self.assertEqual(g, {"15014": ["ruina:lamp"], "15032": ["ruina:neon"]})
+        src = ("#if MC_VERSION >= 11300\nblock.15014= \\\nminecraft:a \\\nminecraft:b\nblock.15015= \\\nminecraft:c\n"
+               "#else\nblock.15014= minecraft:old\n#endif\n")
+        out = S._patch_block_properties(src, g).split("\n")
+        self.assertIn("minecraft:b ruina:lamp", out)           # 있는 항목 끝에 붙임
+        self.assertIn("block.15032= ruina:neon", out)          # 없는 항목은 1.13+ 묶음 끝에 새로
+        self.assertLess(out.index("block.15032= ruina:neon"), out.index("#else"))
+        self.assertIn("block.15014= minecraft:old", out)       # 옛 버전 묶음은 그대로
+
+
 if __name__ == "__main__":
     unittest.main()

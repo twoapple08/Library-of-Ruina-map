@@ -296,3 +296,15 @@ MOD_ITEMS = [
     ("hokma", "호크마", "sephirah", "religion"),
     ("keter", "케테르", "sephirah", "general"),
 ]
+
+# 모드 블록 (② 층 시험부터 추가). 빛나는 블록은 맵 전용 BSL 에도 자동 반영 (tools/shaderpack.py → block.properties 발광).
+# {"id": 블록 id, "light": 0~15 (게임 빛 세기), "glow": 색 이름(SHADER_GLOW_COLORS) 또는 None, "dim": 약한 빛이면 True}
+MOD_BLOCKS: list[dict] = []
+
+# BSL block.properties 빛 색 번호 (밝은 빛 01~25, 약한 빛 = +25). 발광 블록 id = 150 + 색 번호 (block.150XX)
+SHADER_GLOW_COLORS = {
+    "red": 1, "orange": 2, "yellow": 3, "yellow_green": 4, "green": 5, "green_cyan": 6, "cyan": 7, "cyan_blue": 8,
+    "blue": 9, "purple": 10, "pink": 11, "pink_red": 12, "pale_red": 13, "pale_orange": 14, "pale_yellow": 15,
+    "pale_yellow_green": 16, "pale_green": 17, "pale_green_cyan": 18, "pale_cyan": 19, "pale_cyan_blue": 20,
+    "pale_blue": 21, "pale_purple": 22, "pale_pink": 23, "pale_pink_red": 24, "white": 25,
+}

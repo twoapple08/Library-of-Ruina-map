@@ -15,6 +15,8 @@
    → world0(원본)은 오버월드·다른 차원 전용으로 그대로 두고, 외부는 새 폴더 `ruina_ext`(world0 복사 + 밤 고정),
    로비·층은 `ruina`(+ 밤 고정). 밤 고정(RUINA_NIGHT_LOCK) = BSL 의 시간 값(timeAngle·timeBrightness·shadowFade·worldTime)을
    자정 상수로 → 어느 시계를 읽든(오버월드가 낮이어도) 도서관은 늘 원화의 밤빛
+6. 모드 블록 중 빛나는 것(config.MOD_BLOCKS 의 glow)은 block.properties 발광 묶음(block.150XX, 색별)에 추가
+   → BSL 에서도 빛나는 재질·색 빛으로 보임
 """
 from __future__ import annotations
 
@@ -88,6 +90,37 @@ def _night_lock(s: str) -> str:
     return re.sub(r"uniform (float|int) ([A-Za-z_][\w, ]*);", sub, s)
 
 
+def glow_ids(blocks: list[dict], colors: dict) -> dict[str, list[str]]:
+    """빛나는 모드 블록 → {BSL 블록 번호: [블록 id]} (block.150XX, XX = 색 번호, 약한 빛은 +25)."""
+    out: dict[str, list[str]] = {}
+    for bl in blocks:
+        if not bl.get("glow"):
+            continue
+        n = colors[bl["glow"]] + (25 if bl.get("dim") and colors[bl["glow"]] < 25 else 0)
+        out.setdefault(f"150{n:02d}", []).append(f"{NS}:{bl['id']}")
+    return out
+
+
+def _patch_block_properties(s: str, glow: dict[str, list[str]]) -> str:
+    """1.13+ 묶음에서 block.<번호>= 항목 끝에 모드 블록을 붙임 (없으면 새 항목)."""
+    if not glow:
+        return s
+    lines = s.split("\n")
+    for num, ids in sorted(glow.items()):
+        key = f"block.{num}="
+        idx = next((i for i, l in enumerate(lines) if l.startswith(key)), None)
+        if idx is None:   # 1.13+ 묶음 끝(#else 또는 #endif 앞)에 새 항목
+            start = next(i for i, l in enumerate(lines) if l.startswith("#if MC_VERSION >= 11300"))
+            end = next(i for i in range(start + 1, len(lines)) if lines[i].startswith(("#else", "#endif")))
+            lines[end:end] = [key + " " + " ".join(ids), ""]
+            continue
+        j = idx
+        while lines[j].rstrip().endswith("\\"):
+            j += 1
+        lines[j] = lines[j].rstrip() + " " + " ".join(ids)
+    return "\n".join(lines)
+
+
 def _patch_light_color(s: str) -> str:
     start = s.index("#ifdef NIGHT_MOON_PHASE")
     end = s.index("#endif", s.index("#else", start)) + len("#endif")
@@ -144,7 +177,7 @@ def _patch_sky_color(s: str) -> str:
     return "#if defined SKY_VANILLA || defined RUINA" + s[len(a):]
 
 
-def build(spaces: list[str]) -> str:
+def build(spaces: list[str], glow: dict[str, list[str]] | None = None) -> str:
     inside = [d for d in spaces if d not in OUTSIDE]
     src = zipfile.ZipFile(SRC)
     files = {n: src.read(n) for n in src.namelist() if not n.endswith("/")}
@@ -179,6 +212,8 @@ def build(spaces: list[str]) -> str:
             data = _patch_sky_color(data.decode()).encode()
         elif n in ("shaders/lib/atmospherics/waterFog.glsl", "shaders/lib/color/netherColor.glsl"):
             data = _guard_fog(data.decode()).encode()
+        elif n == "shaders/block.properties":
+            data = _patch_block_properties(data.decode("utf-8"), glow or {}).encode()
         elif n == "shaders/shaders.properties":
             data = _patch_properties(data.decode()).encode()
         elif n == "shaders/lib/settings.glsl":
@@ -203,7 +238,7 @@ def main():
     import sys
     sys.path.insert(0, ROOT)
     import config
-    p = build([s.dim for s in config.SPACES])
+    p = build([s.dim for s in config.SPACES], glow_ids(config.MOD_BLOCKS, config.SHADER_GLOW_COLORS))
     print(p, os.path.getsize(p))
 
 
