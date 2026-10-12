@@ -346,59 +346,89 @@ def cmd_probe():
         ("dimensions/ruina/exterior/region/r.0.0.mca", 0, 0)])
 
 
+def _sheet(items, path):
+    """스크린샷 썸네일 한 장 모음 (4열)."""
+    from PIL import Image, ImageDraw
+    cols = 4
+    sheet = Image.new("RGB", (cols * 324, ((len(items) + cols - 1) // cols) * 200), (24, 22, 28))
+    d = ImageDraw.Draw(sheet)
+    for i, (name, t) in enumerate(items):
+        x, y = (i % cols) * 324 + 2, (i // cols) * 200 + 2
+        sheet.paste(t, (x, y))
+        d.text((x + 4, y + 182), name, fill=(236, 214, 166))
+    sheet.save(path, quality=85)
+
+
+def _read_lines(path):
+    if not os.path.exists(path):
+        return []
+    with open(path, encoding="utf-8", errors="replace") as f:
+        return f.readlines()
+
+
+def _gradle_errors(lines):
+    err = []
+    for i, l in enumerate(lines):   # 컴파일 오류는 아래 3줄까지 (기호 이름·위치)
+        if "error:" in l or "FAILED" in l:
+            err += [x.rstrip() for x in lines[i:i + (4 if "error:" in l else 1)]]
+    return err
+
+
 def cmd_modtest():
-    """모드 게임 테스트 결과 → ci_out/mod/: 스크린샷 jpg·한 장 모음(sheet.jpg)·보고서·로그 끝부분."""
+    """모드 게임 테스트 결과 → ci_out/mod/: 스크린샷 jpg·한 장 모음(sheet.jpg, 셰이더 판 sheet_bsl.jpg)·보고서·로그 끝부분.
+    두 번 실행: 바닐라 렌더(전체 순회) → Iris+Sodium+맵 전용 BSL(몇 곳, 스크린샷 이름 bsl_)."""
     from PIL import Image
-    run = os.path.join(ROOT, "mod", "build", "run", "clientGameTest")
+    mod = os.path.join(ROOT, "mod", "build")
+    run = os.path.join(mod, "run", "clientGameTest")
     out = os.path.join(ROOT, "ci_out", "mod")
     shutil.rmtree(out, ignore_errors=True)
     os.makedirs(out, exist_ok=True)
     shots = sorted(glob.glob(os.path.join(run, "screenshots", "*.png")))
-    thumbs = []
+    thumbs = {"": [], "bsl_": []}
     for p in shots:
+        name = os.path.basename(p)[:-4]
         im = Image.open(p).convert("RGB")
-        im.save(os.path.join(out, os.path.basename(p)[:-4] + ".jpg"), quality=85)
-        thumbs.append((os.path.basename(p)[:-4], im.resize((320, 180))))
-    if thumbs:
-        from PIL import ImageDraw
-        cols = 4
-        sheet = Image.new("RGB", (cols * 324, ((len(thumbs) + cols - 1) // cols) * 200), (24, 22, 28))
-        d = ImageDraw.Draw(sheet)
-        for i, (name, t) in enumerate(thumbs):
-            x, y = (i % cols) * 324 + 2, (i // cols) * 200 + 2
-            sheet.paste(t, (x, y))
-            d.text((x + 4, y + 182), name, fill=(236, 214, 166))
-        sheet.save(os.path.join(out, "sheet.jpg"), quality=85)
-    report = []
-    rp = os.path.join(run, "ruina_test.txt")
-    if os.path.exists(rp):
-        with open(rp, encoding="utf-8") as f:
-            report = [l.rstrip() for l in f if l.strip()]
-    lp = os.path.join(run, "logs", "latest.log")
-    log_lines = []
-    if os.path.exists(lp):
-        with open(lp, encoding="utf-8", errors="replace") as f:
-            log_lines = f.readlines()
-        with open(os.path.join(out, "latest_tail.log"), "w", encoding="utf-8") as f:
+        im.save(os.path.join(out, name + ".jpg"), quality=85)
+        thumbs["bsl_" if name.startswith("bsl_") else ""].append((name, im.resize((320, 180))))
+    for pre, items in thumbs.items():
+        if items:
+            _sheet(items, os.path.join(out, f"sheet{'_bsl' if pre else ''}.jpg"))
+
+    # 로그: 바닐라 판은 셰이더 판 실행 전에 build/latest_vanilla.log 로 복사됨 (없으면 latest.log 가 바닐라 판)
+    vanilla_log = os.path.join(mod, "latest_vanilla.log")
+    bsl_ran = os.path.exists(vanilla_log)
+    logs = {"": vanilla_log if bsl_ran else os.path.join(run, "logs", "latest.log")}
+    if bsl_ran:
+        logs["_bsl"] = os.path.join(run, "logs", "latest.log")
+    for suf, lp in logs.items():
+        log_lines = _read_lines(lp)
+        if not log_lines:
+            continue
+        with open(os.path.join(out, f"latest{suf}_tail.log"), "w", encoding="utf-8") as f:
             f.writelines(log_lines[-3000:])
-        bad = [l for l in log_lines if ("/ERROR]" in l or "/WARN]" in l) and ("ruina" in l.lower() or "function" in l.lower())]
-        with open(os.path.join(out, "problems.log"), "w", encoding="utf-8") as f:
+        keys = ("ruina", "function", "iris", "shader", "sodium") if suf else ("ruina", "function")
+        bad = [l for l in log_lines if ("/ERROR]" in l or "/WARN]" in l) and any(k in l.lower() for k in keys)]
+        with open(os.path.join(out, f"problems{suf}.log"), "w", encoding="utf-8") as f:
             f.writelines(bad[:500])
-    gl = os.path.join(ROOT, "mod", "build", "gametest_gradle.log")
-    gradle_err = []
-    if os.path.exists(gl):
-        shutil.copy(gl, os.path.join(out, "gradle.log"))
-        with open(gl, encoding="utf-8", errors="replace") as f:
-            gl_lines = f.readlines()
-        for i, l in enumerate(gl_lines):   # 컴파일 오류는 아래 3줄까지 (기호 이름·위치)
-            if "error:" in l or "FAILED" in l:
-                gradle_err += [x.rstrip() for x in gl_lines[i:i + (4 if "error:" in l else 1)]]
-    outcome = os.environ.get("GAMETEST_OUTCOME", "?")
-    lines = ["## 모드 게임 테스트 (실제 클라이언트)", "",
-             f"- {'✅' if outcome == 'success' else '❌'} 결과: {outcome}, 스크린샷 {len(shots)}장 (ci-output 브랜치 mod/)"]
-    lines += [f"- {l}" for l in report if not l.startswith("📷")]
-    if gradle_err:
-        lines += ["", "```"] + gradle_err[:60] + ["```"]
+
+    lines = ["## 모드 게임 테스트 (실제 클라이언트)", ""]
+    for suf, report, title, env in (("", "ruina_test.txt", "바닐라 렌더", "GAMETEST_OUTCOME"),
+                                    ("_bsl", "ruina_test_bsl.txt", "Iris+Sodium+맵 전용 BSL", "GAMETEST_BSL_OUTCOME")):
+        outcome = os.environ.get(env, "" if suf else "?")
+        if suf and not outcome:
+            continue
+        n = len(thumbs["bsl_" if suf else ""])
+        lines.append(f"- {'✅' if outcome == 'success' else '❌'} {title}: {outcome}, 스크린샷 {n}장 (ci-output 브랜치 mod/sheet{suf}.jpg)")
+        lines += [f"  - {l.rstrip()}" for l in _read_lines(os.path.join(run, report)) if l.strip() and not l.startswith("📷")]
+        gl = os.path.join(mod, f"gametest{suf}_gradle.log")
+        if os.path.exists(gl):
+            shutil.copy(gl, os.path.join(out, f"gradle{suf}.log"))
+            err = _gradle_errors(_read_lines(gl))
+            if err:
+                lines += ["", "```"] + err[:60] + ["```"]
+        if suf and os.path.exists(os.path.join(out, "problems_bsl.log")):
+            probs = _read_lines(os.path.join(out, "problems_bsl.log"))
+            lines.append(f"  - 셰이더 관련 경고·오류 {len(probs)}줄 (problems_bsl.log)")
     with open(os.path.join(out, "SUMMARY.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
     print("\n".join(lines))

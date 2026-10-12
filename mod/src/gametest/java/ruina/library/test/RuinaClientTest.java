@@ -31,6 +31,10 @@ public class RuinaClientTest implements FabricClientGameTest {
 			{"hokma", "ruina:religion", "종교"}, {"keter", "ruina:general", "총류"},
 	};
 
+	/** Iris(+Sodium, 맵 전용 BSL) 가 함께 실행됐으면 셰이더 확인용 짧은 순회만 (스크린샷 이름 앞에 bsl_). */
+	private static final boolean SHADERS = FabricLoader.getInstance().isModLoaded("iris");
+	private static final String PREFIX = SHADERS ? "bsl_" : "";
+
 	private final List<String> log = new ArrayList<>();
 	private int fails = 0;
 	private int shot = 0;
@@ -44,6 +48,14 @@ public class RuinaClientTest implements FabricClientGameTest {
 			render(sp);
 			screenshot(ctx, sp, "overworld");
 			String overworld = dim(ctx);
+			meshProbe(ctx, sp);
+			if (SHADERS) {
+				shaderTour(ctx, sp, overworld);
+				if (fails > 0) {
+					throw new AssertionError("셰이더 순회 실패 " + fails + "건 (ruina_test_bsl.txt)");
+				}
+				return;
+			}
 
 			// 초대장: 야생 → 외부
 			useItem(ctx, sp, "invitation");
@@ -96,6 +108,42 @@ public class RuinaClientTest implements FabricClientGameTest {
 		}
 	}
 
+	/** ② 준비 시험: 자유 형체 블록(칸 밖으로 뻗는 비틀린 띠)을 앞 7칸에 놓고 찍음. */
+	private void meshProbe(ClientGameTestContext ctx, TestSingleplayerContext sp) {
+		sp.getServer().runCommand("execute as @a at @s run fill ~-5 ~ ~-13 ~5 ~8 ~-1 air");
+		sp.getServer().runCommand("execute as @a at @s run fill ~-5 ~-1 ~-13 ~5 ~-1 ~-1 stone");
+		sp.getServer().runCommand("execute as @a at @s run setblock ~ ~ ~-7 ruina-test:mesh_probe");
+		sp.getServer().runCommand("execute as @a at @s run tp @s ~ ~ ~ 180 0");
+		ctx.waitTicks(10);
+		render(sp);
+		expect("자유 형체 블록 놓임", ctx.computeOnClient(c -> c.level.getBlockState(c.player.blockPosition().north(7)).is(MeshProbe.BLOCK)));
+		screenshot(ctx, sp, "mesh_probe");
+	}
+
+	/** 셰이더(BSL) 켠 상태로 몇 곳만: 외부·로비 홀·역사·총류 전경과 방·철학 (소프트웨어 GL 이라 느림). */
+	private void shaderTour(ClientGameTestContext ctx, TestSingleplayerContext sp, String overworld) {
+		useItem(ctx, sp, "invitation");
+		check(ctx, "초대장 → 외부", "ruina:exterior");
+		render(sp);
+		screenshot(ctx, sp, "exterior");
+		sp.getServer().runCommand("execute as @a run function ruina:tp/to/lobby_entrance");
+		ctx.waitTicks(20);
+		useItem(ctx, sp, "room_switch");
+		render(sp);
+		screenshot(ctx, sp, "lobby_hall");
+		for (String[] f : new String[][] {FLOORS[0], FLOORS[7], FLOORS[9]}) {
+			useItem(ctx, sp, f[0]);
+			check(ctx, f[0] + " → " + f[2] + "의 층 전경", f[1]);
+			render(sp);
+			screenshot(ctx, sp, f[1].substring(6));
+		}
+		useItem(ctx, sp, "room_switch");
+		render(sp);
+		screenshot(ctx, sp, "general_room");
+		useItem(ctx, sp, "invitation");
+		check(ctx, "초대장 → 처음 자리로", overworld);
+	}
+
 	/** 아이템을 오른손에 들고 하늘을 보며 우클릭 (블록을 보면 블록 사용이 먼저라). 암전 이동이 끝날 때까지 기다림. */
 	private void useItem(ClientGameTestContext ctx, TestSingleplayerContext sp, String id) {
 		sp.getServer().runCommand("item replace entity @a weapon.mainhand with ruina:" + id);
@@ -124,7 +172,7 @@ public class RuinaClientTest implements FabricClientGameTest {
 		ctx.getInput().lookAt(ctx.computeOnClient(c -> c.player.getYRot()), 0f);
 		ctx.waitTicks(5);
 		shot++;
-		Path p = ctx.takeScreenshot(TestScreenshotOptions.of(String.format("%02d_%s", shot, name)).withSize(1280, 720)
+		Path p = ctx.takeScreenshot(TestScreenshotOptions.of(String.format("%s%02d_%s", PREFIX, shot, name)).withSize(1280, 720)
 				.disableCounterPrefix());
 		log.add("📷 " + p.getFileName());
 	}
@@ -151,7 +199,7 @@ public class RuinaClientTest implements FabricClientGameTest {
 
 	private void writeReport() {
 		try {
-			Files.write(FabricLoader.getInstance().getGameDir().resolve("ruina_test.txt"), log);
+			Files.write(FabricLoader.getInstance().getGameDir().resolve(SHADERS ? "ruina_test_bsl.txt" : "ruina_test.txt"), log);
 		} catch (IOException ignored) {
 			// 보고서는 참고용
 		}

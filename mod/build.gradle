@@ -13,6 +13,13 @@ base {
 
 sourceSets.main.resources.srcDir 'build/generated/ruina'
 
+repositories {
+	exclusiveContent {
+		forRepository { maven { name = 'Modrinth'; url = 'https://api.modrinth.com/maven' } }
+		filter { includeGroup 'maven.modrinth' }
+	}
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
@@ -26,6 +33,14 @@ fabricApi {
 		modId = 'ruina-test'
 		enableGameTests = false
 		eula = true
+	}
+}
+
+// -Pshaders: 게임 테스트를 Iris + Sodium 으로 (맵 전용 BSL 확인용, 모드 jar 에는 안 들어감). gametest 소스셋이 생긴 뒤라 여기
+if (project.hasProperty('shaders')) {
+	dependencies {
+		gametestRuntimeOnly "maven.modrinth:iris:${project.iris_version}"
+		gametestRuntimeOnly "maven.modrinth:sodium:${project.sodium_version}"
 	}
 }
 
