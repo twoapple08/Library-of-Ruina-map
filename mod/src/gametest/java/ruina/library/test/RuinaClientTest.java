@@ -10,6 +10,9 @@ import java.util.function.Function;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerPlayer;
 
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
@@ -107,7 +110,22 @@ public class RuinaClientTest implements FabricClientGameTest {
 		double x0 = x(ctx);
 		press(ctx, o -> o.keySwapOffhand);
 		ctx.waitTicks(10);
-		expect("티페리트 F → 청록 돔 (x " + (int) x0 + " → " + (int) x(ctx) + ")", Math.abs(x(ctx) - x0 - VARIANT_DX) < 2);
+		boolean moved = Math.abs(x(ctx) - x0 - VARIANT_DX) < 2;
+		expect("티페리트 F → 청록 돔 (x " + (int) x0 + " → " + (int) x(ctx) + ")", moved);
+		if (!moved) {   // 원인 찾기: 손 상태, 같은 상대 위치 블록, 전환 함수 직접 실행
+			log.add("ℹ️ " + sp.getServer().computeOnServer(server -> {
+				ServerPlayer p = server.getPlayerList().getPlayers().getFirst();
+				BlockPos head = BlockPos.containing(p.getX() + VARIANT_DX, p.getY() + 1, p.getZ());
+				BlockPos below = BlockPos.containing(p.getX() + VARIANT_DX, p.getY() - 0.5, p.getZ());
+				return "왼손 " + BuiltInRegistries.ITEM.getKey(p.getOffhandItem().getItem())
+						+ " / 오른손 " + BuiltInRegistries.ITEM.getKey(p.getMainHandItem().getItem())
+						+ " / 위치 " + String.format("%.2f %.2f %.2f", p.getX(), p.getY(), p.getZ())
+						+ " / +1400 머리 " + p.level().getBlockState(head) + " 발밑 " + p.level().getBlockState(below);
+			}));
+			sp.getServer().runCommand("execute as @a at @s run function ruina:tiphereth/switch");
+			ctx.waitTicks(5);
+			log.add("ℹ️ 전환 함수 직접 실행 뒤 x " + (int) x(ctx));
+		}
 		render(sp);
 		screenshot(ctx, sp, "natural_science_teal");
 		press(ctx, o -> o.keySwapOffhand);   // 오른손으로 돌아온 티페리트를 다시 왼손으로
