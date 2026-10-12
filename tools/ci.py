@@ -12,6 +12,7 @@ from __future__ import annotations
 import glob
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -369,7 +370,7 @@ def _read_lines(path):
 def _gradle_errors(lines):
     err = []
     for i, l in enumerate(lines):   # 컴파일 오류는 아래 3줄까지 (기호 이름·위치)
-        if "error:" in l or "FAILED" in l:
+        if re.search(r"\.java:\d+: error:", l) or "FAILED" in l:
             err += [x.rstrip() for x in lines[i:i + (4 if "error:" in l else 1)]]
     return err
 
@@ -383,7 +384,8 @@ def cmd_modtest():
     out = os.path.join(ROOT, "ci_out", "mod")
     shutil.rmtree(out, ignore_errors=True)
     os.makedirs(out, exist_ok=True)
-    shots = sorted(glob.glob(os.path.join(run, "screenshots", "*.png")))
+    van = os.path.join(mod, "vanilla")   # 셰이더 판 실행 전에 옮겨 둔 바닐라 판 결과 (실행 폴더는 테스트 시작 때 비워짐)
+    shots = sorted(glob.glob(os.path.join(run, "screenshots", "*.png")) + glob.glob(os.path.join(van, "screenshots", "*.png")))
     thumbs = {"": [], "bsl_": []}
     for p in shots:
         name = os.path.basename(p)[:-4]
@@ -394,9 +396,8 @@ def cmd_modtest():
         if items:
             _sheet(items, os.path.join(out, f"sheet{'_bsl' if pre else ''}.jpg"))
 
-    # 로그: 바닐라 판은 셰이더 판 실행 전에 build/latest_vanilla.log 로 복사됨 (없으면 latest.log 가 바닐라 판)
-    vanilla_log = os.path.join(mod, "latest_vanilla.log")
-    bsl_ran = os.path.exists(vanilla_log)
+    vanilla_log = os.path.join(van, "latest.log")
+    bsl_ran = os.path.isdir(van)
     logs = {"": vanilla_log if bsl_ran else os.path.join(run, "logs", "latest.log")}
     if bsl_ran:
         logs["_bsl"] = os.path.join(run, "logs", "latest.log")
@@ -419,7 +420,8 @@ def cmd_modtest():
             continue
         n = len(thumbs["bsl_" if suf else ""])
         lines.append(f"- {'✅' if outcome == 'success' else '❌'} {title}: {outcome}, 스크린샷 {n}장 (ci-output 브랜치 mod/sheet{suf}.jpg)")
-        lines += [f"  - {l.rstrip()}" for l in _read_lines(os.path.join(run, report)) if l.strip() and not l.startswith("📷")]
+        rp = os.path.join(van if bsl_ran and not suf else run, report)
+        lines += [f"  - {l.rstrip()}" for l in _read_lines(rp) if l.strip() and not l.startswith("📷")]
         gl = os.path.join(mod, f"gametest{suf}_gradle.log")
         if os.path.exists(gl):
             shutil.copy(gl, os.path.join(out, f"gradle{suf}.log"))

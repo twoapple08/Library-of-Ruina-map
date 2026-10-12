@@ -42,6 +42,10 @@ if (project.hasProperty('shaders')) {
 		gametestRuntimeOnly "maven.modrinth:iris:${project.iris_version}"
 		gametestRuntimeOnly "maven.modrinth:sodium:${project.sodium_version}"
 	}
+	// 실행 폴더는 테스트 시작 때 비워짐 → 테스트 모드(ShaderSetup)가 이 경로의 팩을 넣고 Iris 를 켬 (먼저 python -m tools.shaderpack)
+	tasks.named('runClientGameTest') {
+		jvmArgs "-Druina.shaderpack=${rootProject.projectDir.parentFile}/out/release/BSL_v10.1.6_Ruina.zip"
+	}
 }
 
 processResources {

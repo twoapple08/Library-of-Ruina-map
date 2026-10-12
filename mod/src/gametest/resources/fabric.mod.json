@@ -5,6 +5,7 @@
 	"name": "Ruina client game test",
 	"environment": "*",
 	"entrypoints": {
+		"preLaunch": ["ruina.library.test.ShaderSetup"],
 		"main": ["ruina.library.test.MeshProbe"],
 		"fabric-client-gametest": ["ruina.library.test.RuinaClientTest"],
 		"client": ["ruina.library.test.RuinaTestClient"]

@@ -104,12 +104,9 @@ jobs:
         timeout-minutes: 45
         working-directory: mod
         run: |
-          (cd .. && python -m tools.shaderpack)
-          R=build/run/clientGameTest
-          cp $R/logs/latest.log build/latest_vanilla.log || true
-          mkdir -p $R/shaderpacks $R/config
-          cp ../out/release/BSL_v10.1.6_Ruina.zip $R/shaderpacks/
-          printf 'enableShaders=true\nshaderPack=BSL_v10.1.6_Ruina.zip\ndisableUpdateMessage=true\n' > $R/config/iris.properties
+          (cd .. && python -m tools.shaderpack)   # 테스트 모드(ShaderSetup)가 이 팩을 넣고 Iris 를 켬
+          R=build/run/clientGameTest              # 테스트 시작 때 비워짐 → 바닐라 판 결과를 먼저 옮김
+          mkdir -p build/vanilla && cp -r $R/screenshots $R/ruina_test.txt $R/logs/latest.log build/vanilla/ || true
           set -o pipefail
           xvfb-run -a -s "-screen 0 1920x1080x24" ./gradlew runClientGameTest -Pshaders 2>&1 | tee build/gametest_bsl_gradle.log
 
