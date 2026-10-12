@@ -11,6 +11,11 @@ cd "$(dirname "$0")/.."
 [ -d /opt/jdk25 ] && JAVA_HOME=/opt/jdk25
 export JAVA_HOME=${JAVA_HOME:-/opt/jdk25} PATH=/opt/jdk25/bin:$PATH SDL_VIDEO_FORCE_EGL=1 XDG_RUNTIME_DIR=/tmp/xdg
 mkdir -p /tmp/xdg && chmod 700 /tmp/xdg
+# 새 컨테이너에는 libEGL 이 없을 수 있음 → 게임이 "Could not load EGL library" 로 멈춤
+if [ "$1" != build ] && ! ls /usr/lib/x86_64-linux-gnu/libEGL.so.1 > /dev/null 2>&1; then
+  apt-get install -y -q libegl1 libegl-mesa0 libgbm1 > /dev/null 2>&1 \
+    || { apt-get update -q > /dev/null 2>&1 && apt-get install -y -q libegl1 libegl-mesa0 libgbm1 > /dev/null 2>&1; }
+fi
 if [ ! -f mod/build/generated/ruina/ruina/world.zip ]; then
   python -m tools.world_cache fetch || { python -m tools.ci fetch && python -m tools.ci refs && python -m tools.ci reports \
     && python -m tools.ci world && python -m tools.world_cache save; }
