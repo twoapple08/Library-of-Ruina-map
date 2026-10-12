@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 from dataclasses import dataclass, field
 
@@ -287,6 +288,25 @@ def mod_functions(links: Links) -> dict:
     return f
 
 
+_TITLE = re.compile(r'run title @s title \{"text":"(.+?)","color":"#ecd6a6"\}$')
+
+
+def mod_effects(funcs: dict) -> dict:
+    """모드 전용 화면 이펙트로 바꿈 (모드 명령 `ruina fx`): 어둠 효과 → 잉크빛 암전, title → 층 이름 카드, 번쩍임 추가."""
+    out = {}
+    for name, lines in funcs.items():
+        new = []
+        for l in lines:
+            l = l.replace(f"effect give @s {FADE_EFFECT} infinite 0 true", f"{NS} fx fade_in")
+            l = l.replace(f"effect clear @s {FADE_EFFECT}", f"{NS} fx fade_out")
+            l = _TITLE.sub(lambda m: f"run {NS} fx title {m.group(1)}", l)
+            new.append(l)
+        if name == "fx/flash":
+            new.append(f"{NS} fx flash")
+        out[name] = new
+    return out
+
+
 WORLD_ONLY = ("setup", "build/entities")   # 월드 파일용 (모드에는 넣지 않음: 남의 월드 게임룰·스폰을 바꾸지 않게)
 
 
@@ -326,6 +346,7 @@ def write(out_dir: str, links: Links, mod: bool = False):
         for k in WORLD_ONLY:
             funcs.pop(k, None)
         funcs.update(mod_functions(links))
+        funcs = mod_effects(funcs)
         ticks.append(f"{NS}:mod_tick")
     put("data/minecraft/tags/function/tick.json", {"values": ticks})
     for name, lines in funcs.items():

@@ -101,7 +101,7 @@ public final class Library {
 					+ spawn.pos().getY() + " " + (spawn.pos().getZ() + 0.5);
 		}
 		runAs(server, player, "tag @s add ruina.fading");
-		runAs(server, player, "effect give @s minecraft:darkness 3 0 true");
+		Fx.send(player, "fade_in", "");
 		fades.add(new Fade(player.getUUID(), tp, server.getTickCount()));
 	}
 
@@ -119,7 +119,7 @@ public final class Library {
 				runAs(server, player, f.tp());
 				runAs(server, player, "playsound minecraft:item.book.page_turn master @s ~ ~ ~ 1 0.8");
 			} else if (t >= FADE_OUT) {
-				runAs(server, player, "effect clear @s minecraft:darkness");
+				Fx.send(player, "fade_out", "");
 				runAs(server, player, "tag @s remove ruina.fading");
 				it.remove();
 			}
@@ -133,7 +133,7 @@ public final class Library {
 		}
 		MinecraftServer server = newPlayer.level().getServer();
 		runAs(server, newPlayer, "tag @s remove ruina.fading");
-		runAs(server, newPlayer, "effect clear @s minecraft:darkness");
+		Fx.send(newPlayer, "fade_out", "");
 		runAs(server, newPlayer, "function ruina:tp/to/" + RuinaMod.spawnAnchor);
 	}
 

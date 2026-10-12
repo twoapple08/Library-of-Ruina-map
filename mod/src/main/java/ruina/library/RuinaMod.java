@@ -69,6 +69,7 @@ public class RuinaMod implements ModInitializer {
 				.displayItems((context, entries) -> ITEMS.forEach(entries::accept))
 				.build());
 
+		Fx.init();
 		ServerLifecycleEvents.SERVER_STARTING.register(WorldInstaller::install);
 		ServerTickEvents.END_SERVER_TICK.register(Library::tick);
 		ServerPlayerEvents.AFTER_RESPAWN.register(Library::afterRespawn);

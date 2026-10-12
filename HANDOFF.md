@@ -1,7 +1,7 @@
 # 인수인계 (HANDOFF)
 
 새 세션은 **이 문서(특히 4절 맨 위) → `docs/mod/기초구성.md`(모드 구성·요구사항 전부) → `docs/test/README.md`(4차·3차·2차 테스트 원문·원인) → `TESTING.md` → `PLAN.md`** 순서로 확인하고 이어서 작업한다.
-마지막 갱신: 2026-10-12 (데이터팩 단계 끝: 4차 테스트 통과 → **다음은 모드화 ① 기본 틀** (사용자 지시 받음). 다음 세션 첫 작업은 4절 맨 위).
+마지막 갱신: 2026-10-12 (**모드화 ① 기본 틀 진행 중** — 모드 빌드·CI 게임 테스트까지 만듦. 다음 세션 첫 작업은 4절 맨 위).
 
 ## 0. 사용자와 일하는 방식
 
@@ -157,6 +157,9 @@ tools/server.py         서버 jar 다운로드, 콘솔 명령 하네스
 tools/ci.py             CI 단계: fetch, refs, reports, colors, probe, world
 tools/build_world.py    CI 월드 빌드: 1차 실행 → 청크 쓰기 → 2차 실행 검증 → level.dat 수정 → zip
 tests/test_tools.py     python -m unittest discover -s tests
+tools/mod_assets.py     모드 아이콘(이름 글자)·아이템 모델·언어 → mod/src/main/resources/assets/ruina (커밋)
+tools/mod_pack.py       CI: 모드용 데이터팩·소리·items.json·건축물 world.zip → mod/build/generated/ruina
+mod/                    Fabric 모드 (build.gradle, src/main/java/ruina/library, src/gametest = CI 게임 테스트)
 ref/                    26.3 서버에서 뽑은 참고 자료 (blocks.json=블록·속성, registries.json, block_colors.json, vanilla/)
 previews/               미리보기 PNG (폰 확인용)
 .github/workflows/build.yml
@@ -170,26 +173,40 @@ previews/               미리보기 PNG (폰 확인용)
 
 ## 4. 다음 할 일 (우선순위)
 
-### ▶ 다음 세션 첫 작업: 모드화 ① 기본 틀 (2026-10-12, 4차 테스트 통과 후 사용자 결정)
-**요구사항 전부: `docs/mod/기초구성.md`** (사용자 원문·질문 답·4차 뒤 결정·① 체크리스트). 요약:
-- 목표: **원화를 빼다 박은 수준의 퀄리티** (블록 크기·오브젝트·묘사·움직임을 마음대로 — 사용자가 모드화를 정한 이유).
-  디테일 묘사(배경 건물 옆면 뚫림, 의자 다락문 등)는 데이터팩에서 더 고치지 않고 **모드에서 전부**
-- 순서 (사용자 확정): **① 기본 틀** → ② 층 하나(총류) 원화 투영·자유 모델 시험 → ③ 나머지 층·외부 묘사와 움직임(톱니·진자·종이 등)
-- ① 기본 틀:
-  - Fabric 26.3 모드. **작업 환경에서는 maven.fabricmc.net·Mojang 접속이 막힘 (403)** → 빌드·검사는 GitHub Actions 에서
-    (Maven Central·Gradle 배포판은 됨). 새 워크플로(예: `.github/workflows/mod.yml`)와 `mod/` 폴더 제안
-  - 아이템 (우클릭, 크리에이티브 탭에서만, 자동 지급 없음, 아이콘 = 이름 글자 자동 생성): 초대장, 방전환, 세피라 10종,
-    기존 조각 11종 + 마그마크림 (기능 없는 아이템으로 남김)
-  - 초대장: 야생 → 외부 (자리 기록) / 도서관 어디서든 → 기록한 자리 (없으면 월드 스폰)
-  - 방전환: 로비 방↔홀, 각 층 지정사서 방↔전경 (번쩍임, 바로 이동)
-  - 세피라: 그 층 전경으로 (방에서도 사용 가능). **암흑 1초 → 이동 → 도착지에서 1초 뒤 풀림** (정문↔로비도). **야간투시 효과 없음**
-  - 티페리트: 자연과학 차원에서 F(왼손) = **제자리에서 돔 색만** 금빛 ↔ 청록 (원화 색)
-  - 리스폰 → 스폰 자리 (지금은 건축물 위로 올라감), 소리(`resourcepack/` → 모드 리소스)
-  - 월드(차원·구조물)는 처음엔 **지금 빌드 코드가 만든 월드 그대로** 쓰고, 데이터팩의 조각 F·걷기 TP 일부는 모드 기능으로 대체
-    (정문 홈 걸어 들어가기 → 로비, 로비 남쪽 문 → 외부 는 유지)
-  - CI 스크린샷: Fabric client gametest 로 실제 화면을 찍어 비교할 수 있는지 확인 (되면 원화 비교 그림을 직접 만들 수 있음)
-- ②~③ 에서 반영할 사용자 의견: 총류 지정사서 방 = **높이 트인 공간**(밝게), 철학 은하수 = **하늘 그림(텍스처)**,
-  자연과학 돔 뒷면·진짜 다리, 언어 방 = 실제 용암 전경이 창으로, 탑 가지치기·가지 배치 원화대로, 예소드 방 등 품질
+### ▶ 다음 세션 첫 작업: 모드화 ① 마무리 → ② 총류의 층 시험
+**요구사항: `docs/mod/기초구성.md`** (맨 아래 "모드화 ① 진행 중 사용자 확인" 포함). 사용자 결정 요약:
+- **모드만 mods 에 넣으면 어느 월드(야생)에서든** 도서관. 월드 파일 배포는 끝 (데이터팩 시절 마지막 월드 = 릴리스 `world-datapack-final`)
+- 모드 아이템은 **초대장·방전환·세피라 10종 (12개)만**. 예전 조각(철조각 등)은 바닐라 그대로 (기능 없음, 모드 아이템 아님)
+- 파일 크기·모드 블록 수 제한 없음, **오직 높은 퀄리티** (GTX1050ti fps 고려: 가까이 정밀, 멀리 단순). **이펙트도 모드 전용**, 최적화 필수
+- 모드 업데이트 시 이미 방문한 월드의 도서관 차원도 새 건축물로 교체
+- 맵 전용 BSL 도 모드와 호환되게 개조, **빛나는 모드 블록은 BSL 에도 반영**
+
+#### ① 에서 만든 것 (2026-10-12)
+- `mod/` Fabric 26.3 모드 (Loom 1.18, loader 0.19.5, fabric-api 0.162.0+26.3 — `FabricMC/fabric-example-mod` 26.3 브랜치 기준)
+  - `RuinaMod` 아이템 등록(목록은 jar 안 `/ruina/items.json` ← `tools/mod_pack.py` ← `config.MOD_ITEMS`), 크리에이티브 탭 '도서관'
+  - `Library` 아이템 동작: 초대장(야생→`tp/fade/exterior_spawn`, 자리 기록 = 플레이어 attachment `ruina:return_point` / 도서관 안→기록한 자리, 없으면 월드 스폰),
+    방전환(`ruina:mod/room` = 차원별 `<key>/switch`), 세피라(`tp/fade/<층>_entrance`), 도서관에서 죽으면 `tp/to/exterior_spawn`
+  - `WorldInstaller` 서버 시작 때 `/ruina/world.zip`(CI 가 검증한 차원별 region·entities)을 `<월드>/dimensions/ruina/` 로, `ruina_build.txt` 의 빌드 번호가 다르면 교체
+  - `Fx`·`FxPayload`·`client/FxOverlay` 모드 전용 화면 이펙트 (잉크빛 암전·층 이름 카드·번쩍임), 데이터팩 명령 `ruina fx <fade_in|fade_out|flash|title 글자>`
+  - 데이터팩은 모드 jar 의 data/ (항상 켜짐). `datapack.write(mod=True)`: 모드 전용 함수(티페리트 F 등, 모드 아이템 ID 사용) 포함, `setup`·`build/entities` 제외, 어둠 효과 → `ruina fx`
+- 데이터팩 정리: 조각 F·층 사슬·교환·자동 지급·야간투시·first_join·데이터팩 리스폰 삭제, **도서관 시계 `ruina:library`**(오버월드 시계 안 건드림), 암흑 1초 → 이동 → 1초 뒤 풀림(`FADE_IN 20`, `FADE_MIN 40`)
+- 아이콘: `python -m tools.mod_assets` → `mod/src/main/resources/assets/ruina/` (커밋됨), 미리보기 `previews/mod_items.png`
+- CI(`build.yml`): 월드 빌드(바닐라 서버 검증, 그대로) → `mod_pack` → `./gradlew build` → **`runClientGameTest`**(xvfb, 실제 클라이언트:
+  새 야생 월드에서 아이템을 진짜 우클릭 → 차원·위치 확인 → 도착 화면 스크린샷 1280×720) → 릴리스 `Ruina.jar` + `fabric-api-*.jar`.
+  결과: `ci-output` 브랜치 `mod/` (SUMMARY.md, sheet.jpg 모음, 장별 jpg, gradle.log, problems.log). 게임 테스트는 `continue-on-error` (실패해도 모드는 올림)
+- BSL(`tools/shaderpack.py`): 오버월드 = 원본, 외부 = `ruina_ext`(원본 + 밤 고정), 로비·층 = `ruina`(원화 색 빛 + 밤 고정).
+  밤 고정 = timeAngle·timeBrightness·shadowFade·worldTime 을 자정 상수로 (`RUINA_NIGHT_LOCK`). `config.MOD_BLOCKS` 의 glow → block.properties 발광(block.150XX)
+
+#### 남은 ① 일
+1. CI 게임 테스트 통과 확인 (첫 실행: 게임 테스트 컴파일 오류 `hideGui` → F1 로 고침) + 스크린샷 검토
+2. 이펙트(잉크 암전·층 이름 카드·번쩍임) CI 통과 확인 — 화면 이펙트는 F1(HUD 숨김) 상태 스크린샷엔 안 찍힘
+3. CI 게임 테스트에 Iris + Sodium + 맵 전용 BSL 넣어 셰이더 컴파일·화면 확인 (Modrinth CDN 은 CI 에서 접속 가능할 것)
+4. 사용자에게 5차 테스트 요청 (`TESTING.md` 5차)
+
+#### ② 총류의 층 시험 (그다음)
+- 원화 투영(도착 시점에서 원화를 형체에 비춰 입힘)·자유 모델·빛나는 모드 블록(`config.MOD_BLOCKS`, BSL 자동 반영)·총류 지정사서 방 = 높이 트인 밝은 공간
+- CI 스크린샷과 원화 나란히 비교 그림 (`reference/` 원화)
+- ②~③ 에서 반영할 사용자 의견: 철학 은하수 = 하늘 그림(텍스처), 자연과학 돔 뒷면·진짜 다리, 언어 방 = 실제 용암 전경이 창으로, 탑 가지치기·가지 배치 원화대로, 예소드 방 등 품질
 
 ### 데이터팩 단계에서 끝난 것 (2026-10-12)
 - 2~4차 테스트 반영: 조각 F 층 사슬(`fragment.stage/finish`, 왼손에 **새로 들어온 순간에만** 발동, 즉시 오른손으로), 걷기 층 이동 삭제(조형물 유지),
@@ -279,7 +296,8 @@ previews/               미리보기 PNG (폰 확인용)
 - 구름을 SDF carve로 만들면 8분 → 열 단위 직접 채우기로 6초
 - 서버 로그 "Can't keep up!"은 무해 (CI 검사에서 제외함)
 - 품질 검사 `python build.py check`, 미리보기 `python build.py previews` (약 2분), 테스트 `python -m unittest discover -s tests`
-- CI 실행: main에 builders/·tools/·config.py·ref/ 변경 push 시 자동. 결과는 `git fetch origin ci-output` → `world/SUMMARY.md`, `world/report.json`
+- CI 실행: main에 builders/·tools/·config.py·ref/·mod/ 변경 push 시 자동 (약 25~40분). 이전 실행이 쓸모없으면 `gh api -X POST .../actions/runs/<id>/cancel`.
+  CI 로그는 `gh api .../jobs/<id>/logs` 가 막힘 → MCP `get_job_logs(job_id, return_content, tail_lines)` (크면 파일로 저장됨 → grep). 결과는 `git fetch origin ci-output` → `world/SUMMARY.md`, `world/report.json`
 - 대기: `/tmp/claude-0/waitrun.sh <run_id>` 같은 gh api 폴링 스크립트 (세션마다 새로 만들어야 함)
 
 ## 4-1. 최종 목표 (사용자 계획, 2026-10-12 — 대략적인 방향만)

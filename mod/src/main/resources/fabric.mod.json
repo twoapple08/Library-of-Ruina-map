@@ -12,7 +12,8 @@
 	"icon": "assets/ruina/textures/item/invitation.png",
 	"environment": "*",
 	"entrypoints": {
-		"main": ["ruina.library.RuinaMod"]
+		"main": ["ruina.library.RuinaMod"],
+		"client": ["ruina.library.client.RuinaClient"]
 	},
 	"depends": {
 		"fabricloader": ">=0.19.5",
