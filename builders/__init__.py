@@ -7,7 +7,7 @@ import random
 import numpy as np
 
 import config
-from tools import datapack
+from tools import datapack, forms
 from tools.world import AIR, BlockRegistry, Dimension
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,6 +22,9 @@ class Build:
         self.links = datapack.Links()
         self.extra_checks: list[dict] = []
         self.forceload: list[tuple] = []   # (차원, x, z): 서버가 엔티티를 소환할 수 있게 미리 불러올 칸
+        forms.reset()
+        self.forms = forms.FormSet()       # 자유 형체 (모드 블록이 그리는 3D 면, tools/forms.py)
+        self.form_stats: dict = {}
 
     def dim(self, space_id: str) -> Dimension:
         d = self.dims.get(space_id)
@@ -30,6 +33,10 @@ class Build:
             d = Dimension(s.dim, s.min_y, s.height, s.dim, self.registry)
             self.dims[space_id] = d
         return d
+
+    def form(self, space_id: str) -> "forms.FormLayer":
+        """공간의 자유 형체 묶음 (add·mover·emitter·solid)."""
+        return self.forms.layer(space_id, self.dim(space_id))
 
     # ---------------------------------------------- 서버 검증 목록
     def block_checks(self, per_dim_chunks: int = 32, per_chunk: int = 24, seed: int = 1) -> list[dict]:
@@ -102,6 +109,9 @@ def build_all(only: list[str] | None = None) -> Build:
     philosophy.build(b)
     religion.build(b)
     general.build(b)
+    from . import form_showcase
+    form_showcase.build(b)  # 자유 형체 기반 시험대 (임시, 외부 구석 공중)
     fragment.finish(b)      # 방전환 디스패처 (모드 전용 함수)
     b.light_stats = lighting.light_all(b)   # 걸어 다니는 곳에 보이지 않는 빛 블록 (테스트 3차: 너무 어두움)
+    b.form_stats = b.forms.finalize()       # 자유 형체 → 칸 배정 (형체 블록 자리는 공기·barrier·light 로 표시, 서버 저장 뒤 inject)
     return b

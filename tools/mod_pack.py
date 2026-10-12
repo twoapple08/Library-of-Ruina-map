@@ -4,6 +4,7 @@
 - assets/ruina/sounds*  리소스팩 원본(resourcepack/)의 소리
 - ruina/items.json      아이템 목록·도착 자리 (모드 Java 가 읽음)
 - ruina/world.zip       건축물: 서버가 검증·조명 계산까지 한 차원별 region·entities (어느 월드든 처음 열 때 복사)
+- assets/ruina/forms/   자유 형체 (칸별 형체·움직이는 형체·종이 파티클, tools/forms.py) + textures/block/form/
 - ruina/world.id        빌드 번호 (모드 업데이트로 바뀌면 월드의 도서관 차원을 새 것으로 교체 — 사용자 결정)
 """
 from __future__ import annotations
@@ -35,7 +36,7 @@ def items_json(links: datapack.Links) -> dict:
     return {"spawn": links.spawn, "namespace": config.NAMESPACE, "items": items}
 
 
-def pack(links: datapack.Links, wdir: str | None, build_id: str, out: str = OUT) -> dict:
+def pack(links: datapack.Links, wdir: str | None, build_id: str, out: str = OUT, forms=None) -> dict:
     """생성 리소스 쓰기. wdir: 서버가 저장을 마친 월드 폴더 (None 이면 건축물 없이)."""
     shutil.rmtree(out, ignore_errors=True)
     tmp = out + "_dp"
@@ -45,6 +46,8 @@ def pack(links: datapack.Links, wdir: str | None, build_id: str, out: str = OUT)
     snd = os.path.join(ROOT, "resourcepack", "assets", "ruina")
     shutil.copytree(os.path.join(snd, "sounds"), os.path.join(out, "assets", "ruina", "sounds"))
     shutil.copy(os.path.join(snd, "sounds.json"), os.path.join(out, "assets", "ruina", "sounds.json"))
+    if forms is not None:
+        forms.write_assets(os.path.join(out, "assets", "ruina"))
     meta = os.path.join(out, "ruina")
     os.makedirs(meta, exist_ok=True)
     with open(os.path.join(meta, "items.json"), "w", encoding="utf-8") as f:

@@ -29,6 +29,8 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
+import ruina.library.form.Forms;
+
 /**
  * 도서관 모드: 아이템(초대장·방전환·세피라 10종), 도서관 차원·건축물 설치, 이동.
  * 아이템 목록·도착 자리는 빌드 코드가 만든 /ruina/items.json (tools/mod_pack.py, 원본 config.MOD_ITEMS).
@@ -70,6 +72,7 @@ public class RuinaMod implements ModInitializer {
 				.build());
 
 		Fx.init();
+		Forms.init();
 		ServerLifecycleEvents.SERVER_STARTING.register(WorldInstaller::install);
 		ServerTickEvents.END_SERVER_TICK.register(Library::tick);
 		ServerPlayerEvents.AFTER_RESPAWN.register(Library::afterRespawn);

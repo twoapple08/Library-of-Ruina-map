@@ -262,6 +262,13 @@ def ci_world(argv) -> int:
     rep.add(not bad, f"2차 실행 로그 경고/오류 {len(bad)}줄")
     rep.data["server2_problems"] = bad
 
+    # ---------------------------------------------- 자유 형체 블록 넣기 (바닐라 서버는 모드 블록을 모름 → 저장 뒤 자리 표시를 바꿈)
+    from tools import forms
+    if b.form_stats:
+        rep.info("자유 형체: " + ", ".join(f"{k} {v}" for k, v in b.form_stats.items()))
+        st = forms.inject(wdir, b.forms.anchors())
+        rep.add(st["자리 아님"] == 0, f"형체 블록 넣기 {st['칸']}칸 / 청크 {st['청크']}개 (자리 아님 {st['자리 아님']})")
+
     # ---------------------------------------------- 후처리 검증 (서버가 다시 저장한 청크 읽기)
     lit = 0
     for c in lights:
@@ -329,7 +336,7 @@ def ci_world(argv) -> int:
     # ---------------------------------------------- 모드 리소스 (mod/build/generated/ruina)
     from tools import mod_pack
     build_id = (os.environ.get("GITHUB_SHA", "local")[:12] + "-" + time.strftime("%Y%m%d%H%M%S", time.gmtime()))
-    st = mod_pack.pack(b.links, wdir, build_id)
+    st = mod_pack.pack(b.links, wdir, build_id, forms=b.forms)
     rep.info(f"모드 리소스: 건축물 {st['files']}파일 {st['bytes'] / 1e6:.1f} MB, 빌드 {build_id}")
 
     with open(os.path.join(OUT, "report.json"), "w") as f:

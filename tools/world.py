@@ -116,6 +116,7 @@ class Dimension:
         self.index: dict[str, int] = {AIR: 0}
         self.sections: dict[tuple, np.ndarray] = {}
         self.block_entities: dict[tuple, dict] = {}
+        self.extra_chunks: set = set()   # 블록이 없어도 쓸 청크 (형체 블록만 들어갈 청크, tools/forms.py)
 
     # ---------------------------------------------- 팔레트
     def id(self, state: str) -> int:
@@ -211,6 +212,7 @@ class Dimension:
     def chunk_keys(self) -> set:
         keys = {(cx, cz) for (cx, _, cz), s in self.sections.items() if s.any()}
         keys |= {(x >> 4, z >> 4) for (x, _, z) in self.block_entities}
+        keys |= self.extra_chunks
         return keys
 
     def bounds(self):

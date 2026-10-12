@@ -10,12 +10,16 @@ import java.util.function.Function;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Options;
 import net.minecraft.client.gui.screens.worldselection.WorldCreationUiState;
+import net.minecraft.core.BlockPos;
 
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
 import net.fabricmc.fabric.api.client.gametest.v1.screenshot.TestScreenshotOptions;
 import net.fabricmc.loader.api.FabricLoader;
+
+import ruina.library.form.Forms;
+import ruina.library.form.MoverBlockEntity;
 
 /**
  * 실제 게임으로 확인: 새 야생 월드 → 아이템 우클릭(진짜 입력)으로 도서관 이동 → 도착 화면 스크린샷.
@@ -48,7 +52,6 @@ public class RuinaClientTest implements FabricClientGameTest {
 			render(sp);
 			screenshot(ctx, sp, "overworld");
 			String overworld = dim(ctx);
-			meshProbe(ctx, sp);
 			if (SHADERS) {
 				shaderTour(ctx, sp, overworld);
 				if (fails > 0) {
@@ -93,6 +96,8 @@ public class RuinaClientTest implements FabricClientGameTest {
 				screenshot(ctx, sp, f[1].substring(6) + "_room");
 			}
 
+			formShowcase(ctx, sp);
+
 			// 초대장: 도서관 안 → 기록한 자리 (야생)
 			useItem(ctx, sp, "invitation");
 			check(ctx, "초대장 → 처음 자리로", overworld);
@@ -108,16 +113,37 @@ public class RuinaClientTest implements FabricClientGameTest {
 		}
 	}
 
-	/** ② 준비 시험: 자유 형체 블록(칸 밖으로 뻗는 비틀린 띠)을 앞 7칸에 놓고 찍음. */
-	private void meshProbe(ClientGameTestContext ctx, TestSingleplayerContext sp) {
-		sp.getServer().runCommand("execute as @a at @s run fill ~-5 ~ ~-13 ~5 ~8 ~-1 air");
-		sp.getServer().runCommand("execute as @a at @s run fill ~-5 ~-1 ~-13 ~5 ~-1 ~-1 stone");
-		sp.getServer().runCommand("execute as @a at @s run setblock ~ ~ ~-7 ruina-test:mesh_probe");
-		sp.getServer().runCommand("execute as @a at @s run tp @s ~ ~ ~ 180 0");
-		ctx.waitTicks(10);
+	/**
+	 * 자유 형체 기반 시험대 (builders/form_showcase.py, 외부 구석 공중): 원화 투영 정면(원화와 같아야 함)과
+	 * 옆 모습(입체 + 도는 톱니·흔들리는 추·빛나는 고리·날리는 종이·먼 산 띠).
+	 */
+	private void formShowcase(ClientGameTestContext ctx, TestSingleplayerContext sp) {
+		sp.getServer().runCommand("execute in ruina:exterior run tp @a 700.5 500 721.5 180 0");
+		ctx.waitTicks(20);
 		render(sp);
-		expect("자유 형체 블록 놓임", ctx.computeOnClient(c -> c.level.getBlockState(c.player.blockPosition().north(7)).is(MeshProbe.BLOCK)));
-		screenshot(ctx, sp, "mesh_probe");
+		ctx.waitTicks(40);
+		expect("형체 블록 있음 (시험대 바닥 앞)", ctx.computeOnClient(c -> {
+			for (BlockPos p : BlockPos.betweenClosed(690, 499, 690, 710, 503, 718)) {
+				if (c.level.getBlockState(p).is(Forms.FORM)) {
+					return true;
+				}
+			}
+			return false;
+		}));
+		screenshot(ctx, sp, "forms_art");
+		sp.getServer().runCommand("execute in ruina:exterior run tp @a 733.5 506 706.5 120 8");
+		ctx.waitTicks(20);
+		render(sp);
+		ctx.waitTicks(60);   // 톱니·추가 움직이고 종이가 날리게
+		expect("움직이는 형체 블록 엔티티 있음", ctx.computeOnClient(c -> {
+			for (BlockPos p : BlockPos.betweenClosed(730, 500, 690, 760, 525, 715)) {
+				if (c.level.getBlockEntity(p) instanceof MoverBlockEntity) {
+					return true;
+				}
+			}
+			return false;
+		}));
+		screenshot(ctx, sp, "forms_3d");
 	}
 
 	/** 셰이더(BSL) 켠 상태로 몇 곳만: 외부·로비 홀·역사·총류 전경과 방·철학 (소프트웨어 GL 이라 느림). */
@@ -140,6 +166,7 @@ public class RuinaClientTest implements FabricClientGameTest {
 		useItem(ctx, sp, "room_switch");
 		render(sp);
 		screenshot(ctx, sp, "general_room");
+		formShowcase(ctx, sp);
 		useItem(ctx, sp, "invitation");
 		check(ctx, "초대장 → 처음 자리로", overworld);
 	}

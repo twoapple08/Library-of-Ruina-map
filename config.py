@@ -300,6 +300,7 @@ MOD_ITEMS = [
 # 모드 블록 (② 층 시험부터 추가). 빛나는 블록은 맵 전용 BSL 에도 자동 반영 (tools/shaderpack.py → block.properties 발광).
 # {"id": 블록 id, "light": 0~15 (게임 빛 세기), "glow": 색 이름(SHADER_GLOW_COLORS) 또는 None, "dim": 약한 빛이면 True}
 MOD_BLOCKS: list[dict] = []
+# 자유 형체 블록(ruina:form)의 glow 값 = BSL 빛 색 번호 (1~25 밝은 빛, 26~50 약한 빛) → block.properties 발광 묶음
 
 # BSL block.properties 빛 색 번호 (밝은 빛 01~25, 약한 빛 = +25). 발광 블록 id = 150 + 색 번호 (block.150XX)
 SHADER_GLOW_COLORS = {
@@ -308,3 +309,5 @@ SHADER_GLOW_COLORS = {
     "pale_yellow_green": 16, "pale_green": 17, "pale_green_cyan": 18, "pale_cyan": 19, "pale_cyan_blue": 20,
     "pale_blue": 21, "pale_purple": 22, "pale_pink": 23, "pale_pink_red": 24, "white": 25,
 }
+MOD_BLOCKS += [{"id": f"form:glow={n + (25 if dim else 0)}", "glow": c, "dim": dim}
+               for c, n in SHADER_GLOW_COLORS.items() for dim in (False, True) if not (dim and n == 25)]
