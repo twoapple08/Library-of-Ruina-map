@@ -259,7 +259,7 @@ def functions(links: Links) -> dict:
     setup += time_commands()
     if links.spawn:
         a = links.anchors[links.spawn]
-        setup.append(f"execute in {a.dim} run setworldspawn {int(a.x)} {int(a.y)} {int(a.z)} {_fmt(a.yaw)}")   # 보는 방향 (탑 쪽)
+        setup.append(f"execute in {a.dim} run setworldspawn {int(a.x)} {int(a.y)} {int(a.z)} {_fmt(a.yaw)} 0")   # 보는 방향 (26.3: yaw pitch 둘 다)
     setup.append('tellraw @a {"text":"ruina:setup 완료 (게임룰·시계·스폰)","color":"#ecd6a6"}')
     f["setup"] = setup
 
