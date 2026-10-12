@@ -79,8 +79,9 @@ EXTERIOR_SKY = night_sky("#3b2370", "#2c1b52", moon_phase="waxing_crescent", moo
 LOBBY_ROOM_SKY = night_sky("#120a05", "#1c1008", stars=0.0, sky_light_level=1.0, extra={
     "minecraft:visual/fog_start_distance": 4.0, "minecraft:visual/fog_end_distance": 48.0})
 def music(sound: str) -> dict:
-    """바이옴 배경 음악 (바닐라 the_end.json 형식). 크리에이티브도 같은 곡, 곡이 끝나면 1~3초 뒤 다시."""
-    m = {"max_delay": 60, "min_delay": 20, "replace_current_music": True, "sound": sound}
+    """바이옴 배경 음악 (바닐라 the_end.json 형식). 크리에이티브도 같은 곡, 곡이 끝나면 1~3초 뒤 다시.
+    우리 소리는 소리 레지스트리에 없어서 이름 문자열로 쓰면 데이터팩 로드 실패 → 직접 정의 {sound_id} (리소스팩 sounds.json 이 재생)"""
+    m = {"max_delay": 60, "min_delay": 20, "replace_current_music": True, "sound": {"sound_id": sound}}
     return {"minecraft:audio/background_music": {"creative": dict(m), "default": dict(m)}}
 
 
