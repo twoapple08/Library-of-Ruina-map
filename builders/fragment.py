@@ -3,35 +3,14 @@
 - 층마다 두 장소: 전경(scene, 도착 자리) ↔ 지정사서 방(room). 로비는 전환 전 방 = 전경, 넓은 홀 = 방.
 - 아이템은 모드가 가짐 (config.MOD_ITEMS): 방전환 우클릭 → `ruina:mod/room` (차원별로 그 층 `<key>/switch`),
   세피라 우클릭 → 모드가 `ruina:tp/fade/<층>_entrance` 실행. 조각 F·층 사슬·조각 교환·자동 지급은 없앰.
-- 티페리트를 왼손으로(F): 자연과학의 층 돔 색 전환 (`tiphereth_f`). 모드 아이템 ID를 쓰는 명령은
-  바닐라 서버(CI 월드 검사)에서 읽히지 않으므로 모드 전용 함수(links.mod_functions)에 둔다.
+- 티페리트를 왼손으로(F): 자연과학의 층 돔 색 전환 = `tiphereth/switch`. 감지는 모드 Java (Library.tipherethSwap):
+  데이터팩 tick 감지는 CI 게임 테스트에서 손만 돌아오고 전환이 안 됐음 (전환 함수를 직접 실행하면 됨).
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 
 NS = "ruina"
-PREV = f"{NS}.fprev"     # 지난 틱 끝 왼손에 티페리트가 있었으면 1 — 새로 든 순간에만 발동
-TIPHERETH = f"{NS}:tiphereth"
-
-
-def _common(L):
-    """모드 전용: 왼손 기록(틱 끝), 왼손 → 오른손 되돌리기, 효과 함수."""
-    for sc in (PREV, f"{NS}.ok"):
-        if sc not in L.scores:
-            L.scores.append(sc)
-    if "frag/prev" in L.mod_functions:
-        return
-    L.mod_tick_end.append(f"execute as @a run function {NS}:frag/prev")
-    L.mod_functions["frag/prev"] = [
-        f"scoreboard players set @s {PREV} 0",
-        f"execute if items entity @s weapon.offhand {TIPHERETH} run scoreboard players set @s {PREV} 1",
-    ]
-    # F 직후 바로 오른손으로 되돌림 (오른손이 비어 있을 때)
-    L.mod_functions["frag/up"] = [
-        f"function {NS}:frag/prev",
-        f"execute unless items entity @s weapon.mainhand * run function {NS}:fx/hand_back",
-    ]
 
 
 def effects(L):
@@ -52,6 +31,8 @@ def effects(L):
 
 
 def setup(L, key: str, dim: str, b_box: str, to_a: list, to_b: list):
+    if f"{NS}.ok" not in L.scores:
+        L.scores.append(f"{NS}.ok")
     """같은 층 안 두 장소 전환 함수 `<key>/switch` (A ↔ B, 번쩍임, 바로). b_box: 'B 쪽에 있음' 선택자 범위."""
     effects(L)
     L.functions[f"{key}/switch"] = [
@@ -65,15 +46,6 @@ def setup(L, key: str, dim: str, b_box: str, to_a: list, to_b: list):
     ]
     L.functions[f"{key}/go_a"] = list(to_a)
     L.functions[f"{key}/go_b"] = list(to_b)
-
-
-def tiphereth_f(L, dim: str, func: str, area: str = ""):
-    """dim 차원에서 티페리트를 왼손으로 든 순간(F) func 실행 (계속 들고 있어도 다시 발동 안 함). 모드 전용."""
-    _common(L)
-    L.mod_functions["tiphereth/f"] = [f"function {NS}:frag/up", f"function {NS}:{func}"]
-    L.mod_tick.append(f"execute in {dim} as @a[tag=!{NS}.fading{',' + area if area else ''}] at @s "
-                      f"if dimension {dim} if items entity @s weapon.offhand {TIPHERETH} unless score @s {PREV} matches 1 "
-                      f"run function {NS}:tiphereth/f")
 
 
 def relative(dx: int, fallback: str) -> list:

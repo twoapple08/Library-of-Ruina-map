@@ -239,7 +239,7 @@ def build(b):
     # 티페리트 F(왼손): 제자리에서 돔 색 전환 금빛 ↔ 청록 (같은 상대 위치의 색 바뀐 돔으로) — 지정사서 방 밖에서만
     F.setup(b.links, "tiphereth", d.dim, f"x={VARIANT_DX // 2},y=-64,z=-1024,dx={VARIANT_DX + 400},dy=1024,dz=2048",
             to_a=F.relative(-VARIANT_DX, "natural_science_entrance"), to_b=F.relative(VARIANT_DX, "natural_science_entrance"))
-    F.tiphereth_f(b.links, d.dim, "tiphereth/switch", area="x=-2000,y=-64,z=-2000,dx=5700,dy=1024,dz=4000")
+    # 왼손(F) 감지는 모드 Java (Library.tipherethSwap, x < 3700 = 지정사서 방 밖)
     # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 세피라 아이템 (모드)
     b.extra_checks += [
         {"what": "티페리트 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:natural_science_room",
