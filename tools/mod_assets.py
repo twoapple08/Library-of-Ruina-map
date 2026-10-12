@@ -24,19 +24,11 @@ FONTS = ["/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
 # 카드 색 (배경 위, 배경 아래, 테두리, 글자)
 PAPER = ((236, 214, 166), (196, 160, 98), (120, 84, 40), (60, 36, 16))
 TEAL = ((70, 150, 150), (30, 80, 90), (170, 230, 220), (255, 255, 255))
-IRON = ((206, 210, 214), (130, 136, 144), (80, 84, 90), (30, 32, 36))
-GOLD = ((250, 220, 110), (200, 140, 30), (120, 80, 10), (60, 36, 0))
 # 세피라: 층(부서) 색
 SEPHIRAH = {
     "malkuth": (227, 163, 58), "yesod": (122, 90, 181), "hod": (240, 138, 60), "netzach": (111, 191, 90),
     "tiphereth": (242, 209, 74), "gebura": (196, 58, 58), "chesed": (58, 123, 213), "binah": (140, 122, 90),
     "hokma": (160, 133, 91), "keter": (232, 232, 232),
-}
-DECO = {
-    "iron_nugget": IRON, "gold_nugget": GOLD, "iron_ingot": IRON, "gold_ingot": GOLD, "iron_plate": IRON,
-    "gold_plate": GOLD, "iron_block": IRON, "gold_block": GOLD, "anvil": ((120, 124, 132), (60, 62, 68), (170, 174, 180), (255, 255, 255)),
-    "golden_apple": GOLD, "enchanted_golden_apple": ((250, 200, 255), (180, 90, 220), (255, 240, 120), (40, 0, 60)),
-    "magma_cream": ((250, 150, 60), (170, 50, 20), (255, 220, 120), (255, 255, 255)),
 }
 
 
@@ -58,7 +50,7 @@ def _colors(item_id: str, kind: str):
         top = tuple(min(255, v + 40) for v in c)
         bot = tuple(int(v * 0.6) for v in c)
         return top, bot, tuple(min(255, v + 90) for v in c), (30, 20, 10) if lum > 160 else (255, 255, 255)
-    return DECO[item_id]
+    raise KeyError(f"아이콘 색 없음: {item_id} ({kind})")
 
 
 def _lines(name: str) -> list[str]:
@@ -130,7 +122,7 @@ def write_json(path: str, obj):
 
 def main():
     lang = {"itemGroup.ruina.library": "도서관"}
-    sheet = Image.new("RGBA", (6 * 136, 4 * 136 + 8), (40, 36, 44, 255))
+    sheet = Image.new("RGBA", (6 * 136 + 8, 2 * 136 + 8), (40, 36, 44, 255))
     for i, (iid, name, kind, _) in enumerate(config.MOD_ITEMS):
         img = icon(iid, name, kind)
         p = os.path.join(ASSETS, "textures", "item", f"{iid}.png")

@@ -7,10 +7,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 
-/** 도서관 아이템. 우클릭으로 사용 (장식 조각은 기능 없음). */
+/** 도서관 아이템 (초대장·방전환·세피라). 우클릭으로 사용. */
 public class RuinaItem extends Item {
 	public enum Kind {
-		INVITATION, ROOM, SEPHIRAH, DECO
+		INVITATION, ROOM, SEPHIRAH
 	}
 
 	private final Kind kind;
@@ -24,9 +24,6 @@ public class RuinaItem extends Item {
 
 	@Override
 	public InteractionResult use(Level level, Player player, InteractionHand hand) {
-		if (kind == Kind.DECO) {
-			return InteractionResult.PASS;
-		}
 		if (player instanceof ServerPlayer sp) {
 			Library.use(sp, kind, anchor);
 		}

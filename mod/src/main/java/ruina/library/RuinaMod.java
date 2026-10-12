@@ -30,7 +30,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
 /**
- * 도서관 모드: 아이템(초대장·방전환·세피라 10종·장식 조각), 도서관 차원·건축물 설치, 이동.
+ * 도서관 모드: 아이템(초대장·방전환·세피라 10종), 도서관 차원·건축물 설치, 이동.
  * 아이템 목록·도착 자리는 빌드 코드가 만든 /ruina/items.json (tools/mod_pack.py, 원본 config.MOD_ITEMS).
  * 차원·바이옴·이동 함수는 모드 데이터팩(data/ruina, 항상 켜짐), 건축물은 /ruina/world.zip (WorldInstaller).
  */

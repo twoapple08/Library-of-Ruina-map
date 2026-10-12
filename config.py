@@ -280,7 +280,8 @@ GAMERULES = {
 
 
 # 모드 아이템 (docs/mod/기초구성.md). 크리에이티브 모드 탭에서만 (제작법·자동 지급 없음), 아이콘 = 이름 글자.
-# (id, 이름, 종류, 층 공간 id). 종류: invitation 초대장 / room 방전환 / sephirah 그 층 전경으로 / deco 기능 없음
+# (id, 이름, 종류, 층 공간 id). 종류: invitation 초대장 / room 방전환 / sephirah 그 층 전경으로
+# 예전 조각(철조각 등)은 바닐라 아이템 그대로 두고 기능만 없앰 — 모드 아이템으로 만들지 않음 (사용자 확인 2026-10-12)
 MOD_ITEMS = [
     ("invitation", "초대장", "invitation", None),
     ("room_switch", "방전환", "room", None),
@@ -294,17 +295,4 @@ MOD_ITEMS = [
     ("binah", "비나", "sephirah", "philosophy"),
     ("hokma", "호크마", "sephirah", "religion"),
     ("keter", "케테르", "sephirah", "general"),
-    # 예전 조각 (기능 없음, 장식용)
-    ("iron_nugget", "철조각", "deco", None),
-    ("gold_nugget", "금조각", "deco", None),
-    ("iron_ingot", "철괴", "deco", None),
-    ("gold_ingot", "금괴", "deco", None),
-    ("iron_plate", "철발판", "deco", None),
-    ("gold_plate", "금발판", "deco", None),
-    ("iron_block", "철블럭", "deco", None),
-    ("gold_block", "금블럭", "deco", None),
-    ("anvil", "모루", "deco", None),
-    ("golden_apple", "황금사과", "deco", None),
-    ("enchanted_golden_apple", "마법이 부여된 황금사과", "deco", None),
-    ("magma_cream", "마그마크림", "deco", None),
 ]

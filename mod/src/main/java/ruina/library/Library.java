@@ -77,8 +77,6 @@ public final class Library {
 				}
 				runAs(server, player, "execute unless entity @s[tag=ruina.fading] run function ruina:tp/fade/" + anchor);
 			}
-			default -> {
-			}
 		}
 	}
 

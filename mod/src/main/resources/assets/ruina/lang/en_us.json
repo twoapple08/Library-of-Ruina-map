@@ -11,17 +11,5 @@
   "item.ruina.chesed": "헤세드",
   "item.ruina.binah": "비나",
   "item.ruina.hokma": "호크마",
-  "item.ruina.keter": "케테르",
-  "item.ruina.iron_nugget": "철조각",
-  "item.ruina.gold_nugget": "금조각",
-  "item.ruina.iron_ingot": "철괴",
-  "item.ruina.gold_ingot": "금괴",
-  "item.ruina.iron_plate": "철발판",
-  "item.ruina.gold_plate": "금발판",
-  "item.ruina.iron_block": "철블럭",
-  "item.ruina.gold_block": "금블럭",
-  "item.ruina.anvil": "모루",
-  "item.ruina.golden_apple": "황금사과",
-  "item.ruina.enchanted_golden_apple": "마법이 부여된 황금사과",
-  "item.ruina.magma_cream": "마그마크림"
+  "item.ruina.keter": "케테르"
 }
