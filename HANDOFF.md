@@ -1,7 +1,7 @@
 # 인수인계 (HANDOFF)
 
 새 세션은 **이 문서(특히 4절 맨 위) → `docs/mod/기초구성.md`(모드 구성·요구사항 전부) → `docs/test/README.md`(4차·3차·2차 테스트 원문·원인) → `TESTING.md` → `PLAN.md`** 순서로 확인하고 이어서 작업한다.
-마지막 갱신: 2026-10-12 (**모드화 ① 기본 틀 끝** — 모드 빌드·이펙트·CI 게임 테스트 25/25 목표. 다음 세션 첫 작업은 4절 맨 위).
+마지막 갱신: 2026-10-12 오후 (**① 끝 + Iris·BSL 게임 테스트 + 로컬 테스트·건축물 재사용 + 자유 형체 시험 통과**. 다음 세션 첫 작업 = 4절 맨 위 ② 총류의 층).
 
 ## 0. 사용자와 일하는 방식
 
@@ -121,7 +121,7 @@
 ### CI·GitHub 접근 (이 작업 환경 기준)
 - **2026-10-12 사용자가 환경 설정 변경: Fabric·Mojang·Modrinth·Adoptium 도메인 허용 + Setup script(Java 25 → `/opt/jdk25`, numpy·pillow)**
   → **여기서 직접 빌드 가능** (확인: `cd mod && JAVA_HOME=/opt/jdk25 PATH=/opt/jdk25/bin:$PATH ./gradlew compileJava compileGametestJava` 46초 성공).
-  Maven Central 이 가끔 429 → `mod/settings.gradle` 에 구글 거울 추가, 그래도 나면 한 번 다시 실행. 소프트웨어 GL(mesa)·Xvfb 있음 → 게임 테스트도 여기서 가능할 것.
+  Maven Central 이 가끔 429 → `mod/settings.gradle` 에 구글 거울 추가, 그래도 나면 한 번 다시 실행. 소프트웨어 GL(mesa)·Xvfb 있음 → **게임 테스트도 여기서 됨** (`tools/local_test.sh`, SDL 은 EGL 로).
   CI(25~40분)는 최종 확인·릴리스용으로만. 아래 줄의 "접속 불가"는 이전 기록
 - 작업 환경에서는 Mojang·minecraft.wiki·나무위키 접속 불가. **GitHub Actions에서는 Mojang 접속 가능**
 - `gh api`의 runs 조회는 되지만 일부 Actions 경로·아티팩트 다운로드(blob 저장소)는 막힘 → **결과는 CI가 `ci-output` 브랜치에 push**, `git fetch origin ci-output`으로 읽음
@@ -164,6 +164,8 @@ tools/ci.py             CI 단계: fetch, refs, reports, colors, probe, world
 tools/build_world.py    CI 월드 빌드: 1차 실행 → 청크 쓰기 → 2차 실행 검증 → level.dat 수정 → zip
 tests/test_tools.py     python -m unittest discover -s tests
 tools/mod_assets.py     모드 아이콘(이름 글자)·아이템 모델·언어 → mod/src/main/resources/assets/ruina (커밋)
+tools/world_cache.py    건축물 결과 재사용 (코드 지문 = 릴리스 Ruina_generated.zip 이면 받아 씀)
+tools/local_test.sh     작업 환경에서 건축물→모드 빌드→게임 테스트 (bsl: 셰이더 판도)
 tools/mod_pack.py       CI: 모드용 데이터팩·소리·items.json·건축물 world.zip → mod/build/generated/ruina
 mod/                    Fabric 모드 (build.gradle, src/main/java/ruina/library, src/gametest = CI 게임 테스트)
 ref/                    26.3 서버에서 뽑은 참고 자료 (blocks.json=블록·속성, registries.json, block_colors.json, vanilla/)
@@ -179,13 +181,46 @@ previews/               미리보기 PNG (폰 확인용)
 
 ## 4. 다음 할 일 (우선순위)
 
-### ▶ 다음 세션 첫 작업: CI 에서 Iris+BSL 확인 → ② 총류의 층 시험
+### ▶ 다음 세션 첫 작업: ② 총류의 층 시험 (세부 계획은 사용자 확인됨, 아래)
 **요구사항: `docs/mod/기초구성.md`** (맨 아래 "모드화 ① 진행 중 사용자 확인" 포함). 사용자 결정 요약:
 - **모드만 mods 에 넣으면 어느 월드(야생)에서든** 도서관. 월드 파일 배포는 끝 (데이터팩 시절 마지막 월드 = 릴리스 `world-datapack-final`)
 - 모드 아이템은 **초대장·방전환·세피라 10종 (12개)만**. 예전 조각(철조각 등)은 바닐라 그대로 (기능 없음, 모드 아이템 아님)
 - 파일 크기·모드 블록 수 제한 없음, **오직 높은 퀄리티** (GTX1050ti fps 고려: 가까이 정밀, 멀리 단순). **이펙트도 모드 전용**, 최적화 필수
 - 모드 업데이트 시 이미 방문한 월드의 도서관 차원도 새 건축물로 교체
 - 맵 전용 BSL 도 모드와 호환되게 개조, **빛나는 모드 블록은 BSL 에도 반영**
+- **원화를 모드 텍스처로 직접 넣어도 됨** (사용자 "예", 2026-10-12. 공개 배포 때 다시 정함)
+- 테스트는 모두 구축한 뒤 한 번에, 아이템 이미지·사운드는 테스트 뒤 마지막에 사용자가 넣음 (지금 것은 임시)
+- **HANDOFF 나누기**(짧은 현재판 + 지난 기록 보관판)는 **다음 인수인계 때** 할 것 (사용자 지시, 토큰 절약)
+- 노력 수준 추천: 정해진 작업 medium, ② 설계(A·B 기반) high. 외부 토큰 절약 툴(RTK·Headroom 등)은 안 씀 (검토 후 사용자와 합의)
+
+#### ② 총류의 층 시험 — 사용자에게 보여 준 세부 계획 (이대로 진행)
+- **A. 자유 형체 기반 (모든 층 공용)**: Python 으로 3D 형체(삼각형)를 만들어 블록 칸 단위로 잘라 모드 리소스에 → "형체 블록" 하나가 자기 칸 조각을
+  청크 메시에 구워 그림 (Fabric 렌더러 API `FabricBlockStateModel.emitQuads`, 매 프레임 비용 없음, Sodium·BSL 그대로). 가까이 정밀·먼 배경 단순판.
+  걷는 바닥·충돌은 블록, 보이는 모습은 형체로 덮음
+- **B. 원화 투영**: 도착 시점 카메라(위치·시야각)를 원화 구도에 맞추는 도구 → 그 시점에서 원화를 형체 표면에 비춰 입힘. 가려진 곳·뒷면은 직접 만든 텍스처(책등, 돌판)
+- **C. 전경**: 가장자리 책 층 다리(위 잿빛 돌판), 책 더미 피라미드, 비틀린 책탑 12, 빌딩만 한 책장 벽(뒤 빛), 어두운 물, 떨어지는 종이(움직임). 빛 = 빛나는 모드 블록(BSL 반영)
+- **D. 지정사서 방**: 높이 트인 밝은 공간, 책장 벽 앞 촉수처럼 비틀린 책탑, 뒤 빛, 잿빛 안개 (원화 `reference/총류의 층 지정사서 방.png`)
+- **E. 확인**: 로컬 게임 테스트로 도착 시점 스크린샷 ↔ 원화 나란히 비교 그림 (BSL 켠 것·끈 것)
+- **걸리는 점 확인 끝 (2026-10-12)**: 시험 블록 `ruina-test:mesh_probe`(게임 테스트 모드 `MeshProbe`·`MeshProbeModel`, 칸 밖으로 뻗는 비틀린 띠)가
+  바닐라(Indigo)와 Sodium+Iris+BSL 양쪽에서 제대로 그려짐 (BSL 그림자까지). → A 방식 그대로 가능.
+  구현 참고: `ModelLoadingPlugin.register(ctx -> ctx.modifyBlockModelAfterBake()...)` 로 모델 감싸기, `BlockStateModel` 3 메서드(collectParts·particleMaterial·materialFlags) + `emitQuads`
+  (`emitter.pos/uv` → `materialBake(sprite, BAKE_NORMALIZED)` → `emit()`). 26.3 패키지: `net.minecraft.client.renderer.block.dispatch.BlockStateModel`,
+  `client.renderer.block.BlockAndTintGetter`, `client.resources.model.sprite.Material`. 이름 찾기는 `javap -cp ~/.gradle/caches/fabric-loom/26.3/minecraft-merged.jar`
+- 사용자가 고해상도 원화·다른 각도 그림을 `reference/` 에 넣어 줄 수 있음 (요청해 둠) → 시작 전에 `reference/` 새 파일 확인
+
+#### 이번 세션(2026-10-12 오후)에서 한 것 — 0·1 단계 끝
+- **0. 지난 커밋(티페리트 F 삭제) 확인**: 로컬 게임 테스트 바닐라 26/26 통과 (방전환 11곳·세피라 10종·초대장 왕복)
+- **1. 게임 테스트에 Iris 1.11.7 + Sodium 0.9.2 + 맵 전용 BSL** (`-Pshaders`, Modrinth maven, 모드 jar 에는 안 들어감):
+  셰이더 켠 순회(외부·로비 홀·역사·철학·총류 전경·총류 방, 스크린샷 `bsl_*`, `sheet_bsl.jpg`) 통과. **셰이더 컴파일 오류 없음**
+  (`Using shaderpack: BSL_v10.1.6_Ruina.zip`). 경고 1: `shaders.properties` 메뉴 항목 `SKY_VANILLA` 를 못 찾음 (메뉴 표시만, 무해 — 고칠 때 tools/shaderpack.py)
+  - 게임 테스트는 **시작할 때 실행 폴더(build/run/clientGameTest)를 비움** → 셰이더 팩·Iris 설정은 테스트 모드 `ShaderSetup`(preLaunch)이
+    `-Druina.shaderpack` 경로에서 넣음. 바닐라 판 결과는 셰이더 판 전에 `build/vanilla/` 로 옮김 (CI·로컬 같음)
+- **로컬 게임 테스트 가능**: `bash tools/local_test.sh [bsl|build]` → `ci_out/mod/`. 이 환경 Xvfb 는 GLX 창을 못 만듦 → `SDL_VIDEO_FORCE_EGL=1`(스크립트에 들어 있음).
+  바닐라 약 17분, BSL 은 장소당 5~6분 (llvmpipe). 결과 그림은 사용자에게 `SendUserFile` 로 보냄
+- **건축물 재사용** `tools/world_cache.py`: 월드에 영향 주는 코드 지문이 릴리스 `Ruina_generated.zip` 과 같으면 받아 씀 (월드 빌드 12분 → 수십 초). CI 도 같음.
+  건축물 코드(builders/·config.py·tools 빌드 코드·ref/·resourcepack/)를 바꾸면 그때만 새로 빌드
+- 월드 빌드 서버: 감시견 끔(`max-tick-time -1`, 느린 환경에서 save-all 60초 초과로 서버가 죽었음), Mojang 인증 서버 연결 경고 무시
+- CI 는 이번 main push 로 한 번 돌아감 (건축물 새로 빌드 → 릴리스에 Ruina_generated.zip 첫 업로드). 결과 확인은 사용자가 폰으로 `ci-output/mod/sheet*.jpg`
 
 #### ① 에서 만든 것 (2026-10-12)
 - `mod/` Fabric 26.3 모드 (Loom 1.18, loader 0.19.5, fabric-api 0.162.0+26.3 — `FabricMC/fabric-example-mod` 26.3 브랜치 기준)
@@ -212,22 +247,6 @@ previews/               미리보기 PNG (폰 확인용)
 - 스크린샷은 HUD 숨김(`RuinaTestClient.clean`, `HudElementRegistry.replaceElement`)·빈손. 26.3 에는 `options.hideGui` 없음, F1 가상 입력도 안 먹음
 - 결과: `ci-output` 브랜치 `mod/` — `sheet.jpg`(전체 모음), `NN_<공간>.jpg`, `SUMMARY.md`(✅/❌ + 실패 원인 기록), `gradle.log`
 - ALSA·SoundSystem 오류 줄은 CI 에 소리 장치가 없어서 (무해)
-
-#### 다음 세션 할 일 (순서)
-0. **마지막 커밋(티페리트 F 삭제, 51af9be~)은 CI 확인 전에 사용자가 CI 를 중단시킴** → 다음 세션 첫 push 의 CI 에서 함께 확인
-   (예상: 게임 테스트 전부 통과. 바뀐 것: 자연과학 청록 돔·전환 함수·Java 감지·테스트 삭제뿐)
-1. **CI 게임 테스트에 Iris + Sodium + 맵 전용 BSL** (Modrinth CDN `cdn.modrinth.com` 에서 26.3 판 jar 받기 → `mod/build.gradle` 의 gametest 런타임 또는 run 폴더 mods 에).
-   셰이더 컴파일 오류(`latest.log`)·셰이더 켠 스크린샷 확인. BSL 은 llvmpipe(소프트웨어 GL)에서 느릴 수 있음 → 장소 몇 곳만
-2. **② 총류의 층 시험**: 원화 투영·자유 모델·빛나는 모드 블록(`config.MOD_BLOCKS` → BSL 자동 반영)·총류 지정사서 방 = 높이 트인 밝은 공간.
-   모드 블록 추가 시 Java 등록(빛 세기)·모델·텍스처, CI 스크린샷과 원화(`reference/`) 나란히 비교 그림
-3. 테스트는 **모두 구축한 뒤 한 번에** (사용자 결정). 아이템 이미지·사운드는 **테스트 뒤 마지막에 사용자가 넣음**
-   (지금 이름 글자 아이콘은 임시: `mod/src/main/resources/assets/ruina/textures/item/<id>.png`, 소리는 `resourcepack/assets/ruina/`)
-4. 사용자가 폰으로 할 일: CI 스크린샷 모음 `ci-output/mod/sheet.jpg` 확인해서 이상한 곳만 알려 주기 (Claude 가 그림을 직접 보는 토큰 절약)
-
-#### ② 총류의 층 시험 (그다음)
-- 원화 투영(도착 시점에서 원화를 형체에 비춰 입힘)·자유 모델·빛나는 모드 블록(`config.MOD_BLOCKS`, BSL 자동 반영)·총류 지정사서 방 = 높이 트인 밝은 공간
-- CI 스크린샷과 원화 나란히 비교 그림 (`reference/` 원화)
-- ②~③ 에서 반영할 사용자 의견: 철학 은하수 = 하늘 그림(텍스처), 자연과학 돔 뒷면·진짜 다리, 언어 방 = 실제 용암 전경이 창으로, 탑 가지치기·가지 배치 원화대로, 예소드 방 등 품질
 
 ### 데이터팩 단계에서 끝난 것 (2026-10-12)
 - 2~4차 테스트 반영: 조각 F 층 사슬(`fragment.stage/finish`, 왼손에 **새로 들어온 순간에만** 발동, 즉시 오른손으로), 걷기 층 이동 삭제(조형물 유지),
