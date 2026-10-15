@@ -715,7 +715,8 @@ class FormLayer:
         q = concat([subdivide(p, e) for p, e in self.parts])
         d = self.dim
         cell = np.floor(q.P.mean(1) + 1e-7).astype(np.int64)
-        inside = (cell[:, 1] >= d.min_y + 1) & (cell[:, 1] < d.min_y + d.height - 1)    # 차원 높이 밖 면은 버림
+        lo, hi = d.min_y, d.min_y + d.height                                              # 차원 높이 밖 면은 버림
+        inside = (cell[:, 1] >= lo) & (cell[:, 1] < hi)
         out_of_range = int((~inside).sum())
         q, cell = q.take(inside), cell[inside]
         n0 = len(q)
@@ -745,6 +746,9 @@ class FormLayer:
                 keep[bi[~fixed]] = False
                 dropped = int((~fixed).sum())
                 q, cell = q.take(keep), cell[keep]
+        inside = (cell[:, 1] >= lo) & (cell[:, 1] < hi)                                      # 옮긴 뒤 다시
+        out_of_range += int((~inside).sum())
+        q, cell = q.take(inside), cell[inside]
         key = _pos_key(cell)
         order = np.argsort(key, kind="stable")
         q, cell, key = q.take(order), cell[order], key[order]

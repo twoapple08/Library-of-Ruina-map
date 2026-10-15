@@ -78,10 +78,6 @@ def faces(m, rng, view):
         xe = gx0 if side < 0 else gx1
         z0, z1 = (ZF, ZG) if side < 0 else (ZG, ZF)
         out.append(F.plane((xe, PIT, z0), (0, 0, z1 - z0), (0, Y0 + H - PIT, 0), m["shelf"][1], tile=(2, 2)))
-        for x in np.arange(xa, xb, 8.0):
-            out.append(F.box((x - 0.4, PIT, ZF), (x + 0.4, Y0 + H, ZF + 0.6), m["floor"], tile=4.0, faces="xXZ"))
-        for y in np.arange(PIT + 8, Y0 + H, 8.0):
-            out.append(F.box((xa, y - 0.3, ZF), (xb, y + 0.3, ZF + 0.5), m["floor"], tile=4.0, faces="yYZ"))
     # 양옆 벽 (방 둘레), 뒤(남) 벽
     for x, f in ((OX - 60, 1), (OX + 61, -1)):
         z0, z1 = (40, ZF) if f > 0 else (ZF, 40)
@@ -92,6 +88,7 @@ def faces(m, rng, view):
     for k in range(4):
         out.append(F.plane((gx0, PIT, ZG + 3 + k * 6), (gx1 - gx0, 0, 0), (0, Y0 + H - PIT, 0), m["light"], tile=(4, 4))
                    .tint((1, 1, 1), 0.1))
+    out.append(F.plane((OX - 61, Y0 + H, 41), (122, 0, 0), (0, 0, ZG - 41), m["haze"], tile=(16, 16)).flipped())  # 위 안개 천장
     for y in (PIT + 20, Y0 + 50, Y0 + 90, Y0 + 130):          # 안개 겹 (아래 구덩이 + 위 높이 트임)
         out.append(F.plane((OX - 60, y, ZG), (121, 0, 0), (0, 0, 41 - ZG), m["haze"], tile=(16, 16)).tint((1, 1, 1), 0.15))
     for _ in range(60):                                        # 책 더미 (턱 위 양옆, 구덩이 바닥)

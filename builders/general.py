@@ -132,9 +132,9 @@ def bridge(m, rng, view):
             continue
         out.append(book(m, rng, (x, Y0, z), rng.uniform(0.5, 0.8), rng.uniform(0.35, 0.55), rng.uniform(0.1, 0.2),
                         rng.uniform(0, 180)))
-    for x in np.arange(-BX + 20, BX, 60):                       # 받침 책 기둥 (물 속으로)
-        for z in (-HW + 5, HW - 5):
-            out += tower(m, rng, [(x, Y0 - 5, z, 4.0), (x + rng.uniform(-3, 3), WATER - 4, z + rng.uniform(-3, 3), 5.0)],
+    for x in np.arange(-BX + 50, BX, 60):                       # 받침 책 기둥 (물 속으로, 다리 안쪽)
+        for z in (-HW + 8, HW - 8):
+            out += tower(m, rng, [(x, Y0 - 5, z, 3.0), (x + rng.uniform(-3, 3), WATER - 4, z + rng.uniform(-2, 2), 3.5)],
                          layer=1.2)
     return out
 
@@ -152,10 +152,10 @@ def tower(m, rng, path, layer=1.0):
         r = float(np.interp(t, s, R))
         h = layer * rng.uniform(0.7, 1.3)
         for _ in range(max(1, int(r / 3))):
-            w = r * rng.uniform(1.2, 2.0)
-            d = r * rng.uniform(0.9, 1.5)
-            off = rng.uniform(-0.25, 0.25, 2) * r
-            yaw = 25 * math.sin(t * 0.07 + ph) + rng.uniform(-15, 15)
+            w = r * rng.uniform(1.4, 1.9)
+            d = r * rng.uniform(0.8, 1.2)
+            off = rng.uniform(-0.15, 0.15, 2) * r
+            yaw = 12 * math.sin(t * 0.07 + ph) + rng.uniform(-8, 8)
             out.append(F.box((-w / 2, -h / 2, -d / 2), (w / 2, h / 2, d / 2), m["books"][int(rng.integers(3))],
                              tile=max(1.0, layer * 1.5)).rotate("y", yaw).translate((c[0] + off[0], c[1], c[2] + off[1])))
         t += min(h * 0.9, max(0.3, r * 0.5))
@@ -185,7 +185,10 @@ def backdrop(m, rng):
     """빌딩만 한 책장 벽 (뒤 반원 + 둘레), 안개 겹, 물."""
     out = []
     for i in range(36):
-        a = math.radians(i * 10 + rng.uniform(-3, 3))
+        deg = i * 10 + rng.uniform(-3, 3)
+        if abs(((deg + 90) + 180) % 360 - 180) < 70:          # 도착 시야(북쪽)는 그린 하늘의 책장 벽이 맡음
+            continue
+        a = math.radians(deg)
         r = rng.uniform(260, 360) if math.sin(a) < 0 else rng.uniform(320, 480)
         cx, cz = r * math.cos(a), r * math.sin(a)
         w, d = rng.uniform(50, 90), rng.uniform(30, 60)
