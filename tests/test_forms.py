@@ -79,8 +79,8 @@ class FormsTest(unittest.TestCase):
         self.assertEqual(st["버림"], 0)
         self.assertGreaterEqual(st["옮김"], 1)
         cells = {tuple(int(v) for v in c): s for c, s in zip(lay.cell_pos, lay.anchor_states)}
-        self.assertEqual(cells[(5, 3, 5)], "ruina:form[glow=0,light=0,solid=true]")
-        self.assertEqual(cells[(7, 3, 5)], "ruina:form[glow=3,light=12,solid=false]")
+        self.assertEqual(cells[(5, 3, 5)], "ruina:form[glow=0,half=false,light=0,solid=true]")
+        self.assertEqual(cells[(7, 3, 5)], "ruina:form[glow=3,half=false,light=12,solid=false]")
         self.assertIn((2, 1, 2), cells)
         self.assertIn((2, 2), d.extra_chunks)
         with tempfile.TemporaryDirectory() as tmp:
@@ -103,11 +103,11 @@ class FormsTest(unittest.TestCase):
             stats = F.inject(wdir, fs.anchors())
             self.assertEqual(stats["자리 아님"], 0)
             ch = region.read_region(os.path.join(rdir, "r.0.0.mca"))
-            self.assertEqual(chunk_block(ch[(0, 0)], 5, 3, 5), "ruina:form[glow=0,light=0,solid=true]")
+            self.assertEqual(chunk_block(ch[(0, 0)], 5, 3, 5), "ruina:form[glow=0,half=false,light=0,solid=true]")
             self.assertEqual(chunk_block(ch[(0, 0)], 9, 4, 9), "ruina:mover")
             self.assertEqual(chunk_block(ch[(0, 0)], 3, 0, 3), "minecraft:stone")
             self.assertTrue(any(be["id"] == "ruina:mover" for be in ch[(0, 0)]["block_entities"]))
-            self.assertEqual(chunk_block(ch[(2, 2)], 40, 10, 40), "ruina:form[glow=0,light=0,solid=false]")
+            self.assertEqual(chunk_block(ch[(2, 2)], 40, 10, 40), "ruina:form[glow=0,half=false,light=0,solid=false]")
 
 
 if __name__ == "__main__":

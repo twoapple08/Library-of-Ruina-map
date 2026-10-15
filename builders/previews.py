@@ -1,4 +1,4 @@
-"""미리보기 목록 (폰 확인용). 공간을 새로 지으면 여기에 추가."""
+"""블록 미리보기 목록 (폰 확인용). 자유 형체로 다시 만든 공간은 tools/form_preview.py 를 쓴다."""
 from __future__ import annotations
 
 import os
@@ -205,19 +205,5 @@ def render_all(b, out_dir):
     os.makedirs(out_dir, exist_ok=True)
     pal = Palette()
     files = []
-    if "exterior" in b.dims:
-        files += render_exterior(b, out_dir, pal)
-    if "lobby" in b.dims:
-        files += render_lobby(b, out_dir, pal)
-    if "history" in b.dims:
-        files += render_history(b, out_dir, pal)
-    if "technology" in b.dims:
-        files += render_technology(b, out_dir, pal)
-    if "literature" in b.dims:
-        files += render_literature(b, out_dir, pal)
-    import importlib
-    for sid in ("art", "natural_science", "language", "social_science", "philosophy", "religion", "general"):
-        if sid in b.dims:
-            mod = importlib.import_module(f"builders.{sid}")
-            files += render_floor(b, out_dir, pal, sid, mod.PREVIEW)
+    # 모든 공간이 자유 형체 → 블록 그림 대신 python -m tools.form_preview <공간> (원화 비교), 게임 비교는 tools/local_test.sh
     return files

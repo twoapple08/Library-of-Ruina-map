@@ -216,10 +216,9 @@ GEN_ROOM_SKY = {
 }
 
 SPACES = [
-    # 날리는 종이: 하얀 창백한참나무 잎 + 금빛 포플러 잎 파티클 (떨어지며 흔들림)
     # 높이 1024: 탑 꼭대기 빛기둥 건축물이 하늘 끝(y 959)까지 (테스트 ⑥ '더 길었음', 예전 640 → y 575)
-    Space("exterior", "외부", "", 1536, 400, EXTERIOR_SKY, height=1024,
-          particles=[("minecraft:pale_oak_leaves", 0.004), ("minecraft:yellow_poplar_leaves", 0.002)]),
+    # (바닐라 잎 파티클은 뺌 — 모드 종이 파티클 builders/exterior.py 가 대신)
+    Space("exterior", "외부", "", 1536, 400, EXTERIOR_SKY, height=1024),
     # 로비: 전환 전 = 어두운 나무 방 (어두운 갈색 안개, 먼지), 전환 후 = 밝은 홀 (바이옴 lobby_hall: 크림색 안개·하늘, 빛 입자)
     Space("lobby", "로비", "앤젤라", 512, 400, LOBBY_ROOM_SKY, particles=[("minecraft:white_ash", 0.003)],
           biomes={"lobby_hall": {"attributes": LOBBY_HALL_SKY, "particles": [("minecraft:firefly", 0.004),

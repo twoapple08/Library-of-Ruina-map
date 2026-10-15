@@ -48,6 +48,13 @@ if (project.hasProperty('shaders')) {
 	}
 }
 
+// -Ponly=<공간>: 게임 테스트를 그 공간만 짧게 (작업 중 확인용, 예: -Ponly=exterior)
+if (project.hasProperty('only')) {
+	tasks.named('runClientGameTest') {
+		jvmArgs "-Druina.only=${project.only}"
+	}
+}
+
 processResources {
 	def version = project.version
 	inputs.property "version", version

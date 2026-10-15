@@ -1,15 +1,9 @@
-"""사회과학의 층 (헤세드). 접대 공간(가라앉은 난파선 갑판) ↔ 지정사서 방 (금블럭 F).
+"""사회과학의 층 (헤세드) — 자유 형체 판 (2026-10-15).
 
-참고: reference/사회과학의 층 전경.png, reference/사회과학의 층 지정사서 방.png, PLAN.md 8절
-("바다 깊이 가라앉은 폐허 도시, 해저 난파선이 활동 무대, 물고기와 폐차가 떠다님, 멀리 도시 잔해. 지정사서 방은 커피가 있는 개인실").
-
-원화(전경): 낡은 판자 갑판(구멍), 아래 선체 옆면과 밧줄 감긴 계류 기둥·처진 밧줄, 해초,
-뒤로 소용돌이치는 푸른 물결, 빛기둥, 푸른 안개 속 잠긴 도시, 기울어진 채 떠다니는 폐차.
-원화(방): 푸른 어둠의 개인실, 격자 큰 창 너머 잠긴 도시, 바닥의 창살 그림자 빛, 소파·쿠션, 낮은 탁자,
-커피 드리퍼 놓인 긴 탁자, 뒤 선반(병·상자), 오른쪽 책장, 창틀 옆 푸른 빛줄.
-
-물속 표현: 진짜 물을 채우면 블록 수백만 + 헤엄쳐야 해서, 공기 + 짙은 푸른 안개 + 떠다니는 입자로 (폐차·물고기는 공중에 뜸).
-크기 (2048×400): 갑판 300×21 (서 있는 Y 100), 바닥 모래 Y 20, 잠긴 도시 400 안쪽 + 먼 겹.
+reference/사회과학의 층 전경.png: 바다 깊이 가라앉은 난파선 갑판(낡은 판자, 구멍)을 옆 조금 위(유리 전망 발판, 도착)에서 봄 —
+아래 선체 옆면과 밧줄 감긴 계류 기둥·처진 밧줄, 해초(살랑), 뒤로 소용돌이치는 푸른 물결과 빛기둥, 푸른 안개 속 잠긴 도시,
+기울어진 채 떠다니는 폐차(천천히 돌며 오르내림), 물고기 떼(둥글게 헤엄). 물속은 공기 + 푸른 그린 하늘 + 떠다니는 입자.
+지정사서 방: builders/social_science_room.py.
 """
 from __future__ import annotations
 
@@ -17,222 +11,213 @@ import math
 
 import numpy as np
 
-from tools import shapes as S
+from tools import artfit as A
+from tools import form_textures as T
+from tools import forms as F
 
-from .city import build_city
+from . import kit
 
 Y0 = 100
-BX, HW = 150, 10
+BX, HW = 150, 10.5
 FLOOR = 20
-ARRIVE_X = -110
-ROOM_X = 4000
-RY = 64
-DECK = ["minecraft:dark_oak_planks", "minecraft:spruce_planks", "minecraft:stripped_dark_oak_wood", "minecraft:dark_oak_planks",
-        "minecraft:mangrove_planks"]
-SUNK_PAL = {
-    "walls": (["minecraft:dark_prismarine", "minecraft:prismarine_bricks", "minecraft:cyan_terracotta",
-               "minecraft:blue_terracotta", "minecraft:polished_deepslate", "minecraft:warped_planks"], [16, 10, 14, 14, 10, 4]),
-    "lit": (["minecraft:sea_lantern", "minecraft:light_blue_stained_glass"], [30, 70]),
-    "neon": (["minecraft:sea_lantern"], [1]),
-    "trim": (["minecraft:dark_prismarine", "minecraft:polished_deepslate"], [1, 1]),
-    "corner_neon": 0.0, "corners": 1, "roof_neon": 0.0, "lit_ratio": (0.02, 0.12),
-}
+PLAT = Y0 + 4
+CAM = F.Camera((0.5, PLAT + 1.62, HW + 10.95), 180.0, 9.0)
+ARRIVE = (0.5, PLAT, HW + 10.95, 180.0, 9.0)
+ART = "reference/사회과학의 층 전경.png"
+SPACE = "social_science"
+UP = np.array([0, 1.0, 0])
+CARS = [(105, 120, 40, -60), (275, 75, 38, -90), (360, 195, 22, -40), (635, 190, 60, -50), (865, 65, 34, -110)]
 
 
-def deck(d, rng):
-    """난파선 갑판: 길이 방향 판자 (색·결 제각각, 금·구멍), 뒤 가장자리 부서진 뱃전, 앞 선체 옆면 + 계류 기둥·밧줄."""
-    xs, zs = np.arange(-BX, BX + 1), np.arange(-HW, HW + 1)
-    X, Z = np.meshgrid(xs, zs, indexing="ij")
-    off = (S.hash01(Z, seed=1801) * 9).astype(int)
-    ids = np.array([d.id(s) for s in DECK])[(S.hash01((X + off) // 9, Z, seed=1802) * len(DECK)).astype(int).clip(0, len(DECK) - 1)]
-    hole = (np.hypot((X + 60) / 4.0, (Z - 2) / 2.0) < 1) | (np.hypot((X - 70) / 3.0, (Z + 3) / 2.0) < 1)
-    ids = np.where(hole, -1, ids)
-    d.place(-BX, Y0 - 1, -HW, ids[:, None, :])
-    d.fill(-BX, Y0 - 3, -HW, BX, Y0 - 2, HW, "minecraft:dark_oak_planks")
-    for hx in (-60, 70):                                         # 구멍 아래 어두운 속
-        d.fill(hx - 4, Y0 - 3, -2, hx + 4, Y0 - 2, 4, "minecraft:air")
-    # 뒤 뱃전 (군데군데 부서짐)
-    for x in range(-BX, BX + 1):
-        h = 2 if S.hash01(np.array(x // 11), seed=1803) > 0.25 else 0
-        if h:
-            d.fill(x, Y0, -HW - 1, x, Y0 + h - 1, -HW - 1, "minecraft:dark_oak_planks")
-            d.set(x, Y0 + h, -HW - 1, "minecraft:dark_oak_slab[type=bottom]")
-    # 앞 선체 옆면 (아래로 기울며 모래까지), 가로 판자
-    for y in range(FLOOR, Y0 - 1):
-        t = (Y0 - 1 - y) / (Y0 - 1 - FLOOR)
-        z = HW + 1 - int(8 * t * t)
-        st = DECK[(y // 2 + 1) % len(DECK)]
-        d.fill(-BX, y, z, BX, y, z, st)
-        if y % 6 == 0:
-            d.fill(-BX, y, z + 1, BX, y, z + 1, "minecraft:stripped_dark_oak_log[axis=x]")
-    # 계류 기둥 + 감긴 밧줄 + 기둥 사이 처진 밧줄 (원화 앞쪽)
-    posts = list(range(-BX + 10, BX, 50))
+def mats():
+    m = {}
+    m["art"] = F.mat("soc_art", T.art("art/social_science", ART, img=clean_art()), emissive=True, flat=True, ao=False)
+    m["deck"] = F.mat("soc_deck", T.planks("soc_deck", (30, 34, 40), (84, 92, 104), boards=4, seed=191), emissive=True,
+                      flat=True, ao=False)
+    m["hull"] = F.mat("soc_hull", T.board("soc_hull", (20, 24, 30), (60, 70, 84), w=16, h=32, seed=192), emissive=True,
+                      flat=True, ao=False)
+    m["rope"] = F.mat("soc_rope", T.bark("soc_rope", (90, 84, 70), (160, 150, 120), seed=193), emissive=True, flat=True,
+                      ao=False)
+    m["weed"] = F.mat("soc_weed", T.glow("soc_weed", (60, 140, 90)), layer="cutout", emissive=True, flat=True, ao=False)
+    m["car"] = [F.mat(f"soc_car{i}", T.metal(f"soc_car{i}", c0, c1, seed=194 + i), emissive=True, flat=True, ao=False)
+                for i, (c0, c1) in enumerate([((20, 24, 50), (60, 70, 120)), ((20, 50, 30), (60, 120, 70)),
+                                              ((40, 30, 40), (90, 70, 90))])]
+    m["window"] = F.mat("soc_window", T.glow("soc_window", (120, 200, 255)), emissive=True, flat=True, ao=False, glow=2)
+    m["city"] = [F.mat(f"soc_city{i}", T.neon_facade(f"soc_city{i}", b, ((90, 180, 255), (60, 140, 220), (140, 220, 255)),
+                                                      seed=197 + i, ratio=0.2, edge=(40, 120, 200)),
+                       emissive=True, flat=True, ao=False)
+                 for i, b in enumerate([(14, 30, 60), (18, 40, 70)])]
+    m["beam"] = F.mat("soc_beam", T.glow("soc_beam", (120, 220, 255)), layer="translucent", emissive=True, flat=True,
+                      ao=False)
+    m["fish"] = F.mat("soc_fish", T.metal("soc_fish", (40, 70, 110), (120, 170, 210), seed=199), emissive=True,
+                      flat=True, ao=False)
+    m["glass"] = F.mat("soc_glass", T.glow("soc_glass", (160, 220, 255)), layer="translucent", emissive=True,
+                       flat=True, ao=False)
+    return m
+
+
+def clean_art():
+    """원화에서 떠다니는 폐차를 지운 그림 (폐차는 움직이는 형체가 대신)."""
+    return A.clean_sky(ART, A.circle_mask((1000, 562), [(x, y, r) for x, y, r, _ in CARS], grow=1.15), grow=2)
+
+
+def deck(m, rng):
+    out = [F.plane((-BX, Y0, HW), (2 * BX, 0, 0), (0, 0, -2 * HW), m["deck"], tile=(4, 4))]
+    for _ in range(14):                                         # 구멍 (검게)
+        x, z = rng.uniform(-BX, BX), rng.uniform(-HW + 2, HW - 2)
+        w, l = rng.uniform(1.5, 4), rng.uniform(0.8, 2)
+        out.append(F.plane((x, Y0 + 0.02, z + l), (w, 0, 0), (0, 0, -l), m["hull"]).tint((0.15, 0.15, 0.2)))
+    for s in (-1, 1):                                           # 선체 옆면 (아래로)
+        z = s * HW
+        f = 1 if s > 0 else -1
+        out.append(F.plane((-BX if f > 0 else BX, FLOOR, z), (2 * BX * f, 0, 0), (0, Y0 - FLOOR, 0), m["hull"],
+                           tile=(3, 6)))
+        out.append(F.box((-BX, Y0 - 0.8, min(z, z + s * 0.6)), (BX, Y0 + 0.4, max(z, z + s * 0.6)), m["hull"], tile=4.0))
+    # 뒤 부서진 뱃전 (울퉁불퉁)
+    for x in np.arange(-BX, BX, 3.0):
+        h = rng.uniform(0.2, 1.8)
+        out.append(F.box((x, Y0, -HW - 0.6), (x + 3, Y0 + h, -HW), m["hull"], tile=2.0))
+    # 앞 계류 기둥 + 감긴 밧줄 + 기둥 사이 처진 밧줄 (원화 아래)
+    posts = np.arange(-BX + 20, BX, 60.0) + 4.0
     for x in posts:
-        d.fill(x, Y0 - 14, HW + 2, x, Y0, HW + 2, "minecraft:dark_oak_log[axis=y]")
-        d.set(x, Y0 + 1, HW + 2, "minecraft:dark_oak_slab[type=bottom]")
-        d.fill(x, Y0 - 4, HW + 3, x, Y0 - 1, HW + 3, "minecraft:mangrove_roots")
-    for a, b2 in zip(posts, posts[1:]):
-        for t in np.linspace(0, 1, 120):
-            x = a + (b2 - a) * t
-            y = Y0 - 3 - 18 * 4 * t * (1 - t)
-            d.set(int(x), int(y), HW + 3, "minecraft:mangrove_roots")
-    # 해초 (선체 아래·모래 위)
-    for _ in range(300):
-        x, z = int(rng.uniform(-BX - 40, BX + 40)), int(rng.uniform(HW, HW + 40))
-        h = int(rng.integers(4, 18))
-        d.fill(x, FLOOR, z, x, FLOOR + h - 2, z, "minecraft:twisting_vines_plant")
-        d.set(x, FLOOR + h - 1, z, "minecraft:twisting_vines")
+        z = HW + 0.8
+        out.append(F.revolve([(0.55, Y0 - 9), (0.55, Y0 + 0.6), (0.75, Y0 + 0.9), (0.4, Y0 + 1.2)], m["hull"], segs=12,
+                             center=(x, 0, z), tiles_around=3, tile_up=3.0))
+        t = np.linspace(0, 1, 60)
+        coil = np.stack([x + 0.62 * np.cos(t * 30), Y0 - 1.5 - 2.5 * t, z + 0.62 * np.sin(t * 30)], 1)
+        out.append(F.sweep(coil, 0.13, m["rope"], sides=4, step=0.3))
+    for a, b in zip(posts[:-1], posts[1:]):
+        out.append(kit.chain((a, Y0 - 1.5, HW + 1.2), (b, Y0 - 1.5, HW + 1.2), 10.0, m["rope"], link=0.8, radius=0.1)
+                   if False else F.sweep(np.array([[a + (b - a) * t, Y0 - 1.5 - 10 * 4 * t * (1 - t), HW + 1.3]
+                                                    for t in np.linspace(0, 1, 20)]), 0.18, m["rope"], sides=5, step=1.0))
+    return out
 
 
-def seafloor(d, R=420):
-    xs = np.arange(-R, R + 1)
-    for x0 in range(-R, R + 1, 120):
-        for z0 in range(-R, R + 1, 120):
-            X, Z = np.meshgrid(np.arange(x0, min(x0 + 120, R + 1)), np.arange(z0, min(z0 + 120, R + 1)), indexing="ij")
-            h = S.hash01(X // 7, Z // 7, seed=1811)
-            ids = np.where(h < 0.6, d.id("minecraft:sand"), np.where(h < 0.85, d.id("minecraft:gravel"),
-                                                                       d.id("minecraft:prismarine")))
-            d.place(x0, FLOOR - 1, z0, ids[:, None, :])
-            d.place(x0, FLOOR - 2, z0, np.full_like(ids, d.id("minecraft:sandstone"))[:, None, :])
+def seaweed(lay, m, rng):
+    """해초: 선체 아래·바닥에서 오르는 띠 (가까운 것은 살랑)."""
+    out = []
+    for i in range(70):
+        x, z = rng.uniform(-BX, BX), rng.uniform(HW + 1, HW + 25)
+        h = rng.uniform(6, 22)
+        t = np.linspace(0, 1, 8)
+        path = np.stack([x + np.sin(t * 4 + i) * 0.8, FLOOR + h * t + (Y0 - 30 - FLOOR) * 0.0 + rng.uniform(40, 60) * 0,
+                         z + np.cos(t * 3 + i) * 0.5], 1)
+        path[:, 1] += rng.uniform(55, 70)
+        rib = F.ribbon(path, lambda s: 0.9 * (1 - s) + 0.2, m["weed"], up=[1, 0, 0.3], step=1.5, tile_along=3.0)
+        if abs(x) < 40:
+            lay.mover(F.Mover((int(x), int(path[0, 1]) + 1, int(z)), rib, tuple(path[0]), "swing", (0, 0, 1),
+                              period=rng.uniform(4, 7), amp=8.0, phase=rng.random()))
+        else:
+            out.append(rib)
+    return out
 
 
-def currents(d, rng, n=10):
-    """소용돌이치는 물결 (원화 배경): 세로 판에 나선 띠 (푸른 유리), 가운데에 빛기둥."""
-    for _ in range(n):
-        cx, cz = int(rng.uniform(-300, 300)), int(rng.uniform(-260, -90))
-        cy = int(rng.uniform(Y0 + 10, Y0 + 120))
-        R = rng.uniform(25, 55)
-        for t in np.linspace(0, 1, 1400):
-            a = t * 3.2 * 2 * math.pi
-            r = R * t
-            x, y = cx + r * math.cos(a), cy + r * math.sin(a) * 0.8
-            w = 1 + int(4 * t)                                  # 바깥으로 갈수록 굵은 띠
-            st = "minecraft:light_blue_stained_glass" if t > 0.3 else "minecraft:cyan_stained_glass"
-            d.fill(int(x) - w // 2, int(y) - w // 2, cz, int(x) + w // 2, int(y) + w // 2, cz + 1, st)
-            if int(t * 1400) % 37 == 0:
-                d.set(int(x), int(y), cz, "minecraft:sea_lantern")
-        # 빛기둥 (아래 모래에서 위로)
-        d.fill(cx - 1, FLOOR, cz - 1, cx + 1, cy + int(R), cz + 1, "minecraft:light_blue_stained_glass")
-        d.fill(cx, FLOOR, cz, cx, cy + int(R), cz, "minecraft:sea_lantern")
+def car_mesh(m, k, L=4.4):
+    """폐차 (몸통 + 지붕 + 바퀴 넷), 길이 L."""
+    w, h = L * 0.42, L * 0.3
+    out = [F.box((-L / 2, 0, -w / 2), (L / 2, h * 0.55, w / 2), m["car"][k]),
+           F.box((-L * 0.25, h * 0.55, -w / 2 + 0.1), (L * 0.2, h, w / 2 - 0.1), m["car"][k])]
+    out.append(F.box((-L * 0.22, h * 0.6, -w / 2 + 0.05), (L * 0.17, h * 0.95, w / 2 - 0.05), m["window"]).tint((0.4, 0.5, 0.6)))
+    for x in (-L * 0.32, L * 0.32):
+        for z in (-w / 2, w / 2):
+            out.append(F.ellipsoid((x, 0.05, z), (L * 0.1, L * 0.1, 0.12), m["car"][2], 10, 4))
+    return F.concat(out)
 
 
-def floating(b, d, rng, cars=12, fish=40):
-    """떠다니는 폐차 (블록 디스플레이 3개: 차체·지붕·바퀴줄, 기울어짐) + 물고기 (아이템 디스플레이)."""
-    cmds = []
-    for i in range(cars):
-        x, y, z = rng.uniform(-200, 200), rng.uniform(Y0 + 10, Y0 + 90), rng.uniform(-160, -40)
-        ax = rng.uniform(-0.6, 0.6)
-        q = [round(math.sin(ax / 2), 3), 0.0, round(math.sin(ax / 3), 3), 0.0]
-        q[3] = round(math.sqrt(max(0.0, 1 - q[0] ** 2 - q[2] ** 2)), 3)
-        body = ["minecraft:blue_concrete", "minecraft:black_concrete", "minecraft:green_concrete", "minecraft:gray_concrete"][i % 4]
-        for state, tr, sc in ((body, (-2.5, 0, -1), (5, 1.2, 2)), ("minecraft:tinted_glass", (-1.5, 1.2, -0.9), (3, 0.9, 1.8)),
-                              ("minecraft:black_concrete", (-2.2, -0.4, -1.05), (4.4, 0.5, 2.1))):
-            cmds.append(f"execute in {d.dim} run summon minecraft:block_display {x:.1f} {y:.1f} {z:.1f} "
-                        f'{{block_state:"{state}",Tags:["ruina.car"],transformation:{{left_rotation:[{q[0]}f,{q[1]}f,{q[2]}f,{q[3]}f],'
-                        f"right_rotation:[0f,0f,0f,1f],translation:[{tr[0]}f,{tr[1]}f,{tr[2]}f],scale:[{sc[0]}f,{sc[1]}f,{sc[2]}f]}}}}")
-        b.forceload.append((d.dim, x, z))
-    kinds = ["minecraft:tropical_fish", "minecraft:cod", "minecraft:salmon", "minecraft:pufferfish"]
-    for i in range(fish):
-        x, y, z = rng.uniform(-140, 140), rng.uniform(Y0 + 2, Y0 + 40), rng.uniform(-60, 30)
-        if abs(z) < HW + 2:
-            z -= 20
-        cmds.append(f"execute in {d.dim} run summon minecraft:item_display {x:.1f} {y:.1f} {z:.1f} "
-                    f'{{item:{{id:"{kinds[i % 4]}",count:1}},Tags:["ruina.fish"],item_display:"fixed",billboard:"vertical",'
-                    "transformation:{left_rotation:[0f,0f,0f,1f],right_rotation:[0f,0f,0f,1f],translation:[0f,0f,0f],"
-                    "scale:[1.5f,1.5f,1.5f]}}")
-        b.forceload.append((d.dim, x, z))
-    b.links.entity_cmds += cmds
+def cars(lay, m, view, rng):
+    for i, (px, py, pr, z) in enumerate(CARS):
+        c = view.at_z(np.array([float(px)]), np.array([float(py)]), z)[0]
+        L = pr * 2.1 * view.px_size(c)
+        mesh = car_mesh(m, i % 3, L).rotate("z", rng.uniform(-40, 40)).rotate("y", rng.uniform(0, 360)).translate(c)
+        lay.mover(F.Mover(tuple(int(v) for v in c), mesh, tuple(c), "spin",
+                          (rng.uniform(-0.3, 0.3), 1, rng.uniform(-0.3, 0.3)), period=rng.uniform(60, 120)))
+    for _ in range(14):                                          # 멀리 더 (원화 밖)
+        c = np.array([rng.uniform(-300, 300), rng.uniform(Y0 - 20, Y0 + 120), rng.uniform(-350, -60)])
+        mesh = car_mesh(m, int(rng.integers(3)), rng.uniform(4, 7)).rotate("z", rng.uniform(-60, 60)).translate(c)
+        lay.mover(F.Mover(tuple(int(v) for v in c), mesh, tuple(c), "bob", (0, 1, 0), period=rng.uniform(8, 14),
+                          amp=rng.uniform(1, 3)))
 
 
-# ---------------------------------------------------------------- 헤세드 방
-RW, RD, RH = 12, 10, 12
+def fish(lay, m, rng):
+    """물고기 떼: 축 둘레를 도는 형체 (spin = 원 궤도)."""
+    for g in range(12):
+        cx, cy, cz = rng.uniform(-120, 120), rng.uniform(Y0 - 10, Y0 + 60), rng.uniform(-120, -20)
+        R = rng.uniform(6, 16)
+        body = []
+        for k in range(int(rng.integers(5, 12))):
+            a = rng.uniform(0, 2 * math.pi)
+            p = np.array([cx + R * math.cos(a) + rng.uniform(-1, 1), cy + rng.uniform(-2, 2), cz + R * math.sin(a)])
+            f = F.ellipsoid((0, 0, 0), (0.5, 0.18, 0.12), m["fish"], 8, 4)
+            tail = F.Quads(np.array([[[-0.45, 0, 0], [-0.8, 0.2, 0], [-0.8, -0.2, 0], [-0.8, -0.2, 0]]]),
+                           np.array([[[0, 0], [1, 0], [1, 1], [1, 1]]]) * 0.9, M=m["fish"])
+            f = F.concat([f, F.two_sided(tail)]).rotate("y", -math.degrees(a) - 90).translate(p)
+            body.append(f)
+        lay.mover(F.Mover((int(cx), int(cy), int(cz)), F.concat(body), (cx, cy, cz), "spin", (0, 1, 0),
+                          period=rng.uniform(20, 40)))
 
 
-def chesed_room(d, ox=ROOM_X):
-    y0, yt = RY, RY + RH
-    xs, zs = np.arange(ox - RW, ox + RW + 1), np.arange(-RD, RD + 1)
-    X, Z = np.meshgrid(xs, zs, indexing="ij")
-    fl = np.where(S.hash01((X + (Z % 4) * 2) // 6, Z, seed=1821) < 0.5, d.id("minecraft:dark_oak_planks"),
-                  d.id("minecraft:spruce_planks"))
-    # 바닥의 창살 그림자 빛 (원화): 창 쪽에서 비스듬히 들어온 푸른 빛 → 밝은 판자
-    lit = ((X - ox - (Z + RD) * 0.6) % 6 > 1) & (np.abs(X - ox - 2 - (Z + RD) * 0.6) < 7) & (Z > -RD + 3) & (Z < 4)
-    fl = np.where(lit, d.id("minecraft:warped_planks"), fl)
-    d.place(ox - RW, y0 - 1, -RD, fl[:, None, :])
-    x0, x1, z0, z1 = ox - RW - 1, ox + RW + 1, -RD - 1, RD + 1
-    for (a0, b0, a1, b1) in ((x0, z1, x1, z1), (x0, z0, x0, z1), (x1, z0, x1, z1), (x0, z0, x1, z0)):
-        d.fill(a0, y0, b0, a1, yt, b1, "minecraft:polished_deepslate")
-    d.fill(x0, yt, z0, x1, yt, z1, "minecraft:polished_deepslate")
-    # 격자 큰 창 (북쪽 왼쪽) + 너머 잠긴 도시·푸른 빛
-    wx0, wx1 = ox - 10, ox + 1
-    for x in range(wx0, wx1 + 1):
-        for y in range(y0 + 3, yt - 1):
-            frame = (x - wx0) % 4 == 0 or (y - y0 - 3) % 4 == 0
-            d.set(x, y, z0, "minecraft:polished_blackstone" if frame else "minecraft:light_blue_stained_glass")
-    zb = z0 - 8
-    d.fill(wx0 - 3, y0 - 2, zb, wx1 + 3, yt + 4, zb, "minecraft:light_blue_stained_glass")
-    d.fill(wx0 - 3, y0 - 2, zb - 1, wx1 + 3, yt + 4, zb - 1, "minecraft:sea_lantern")
-    for k, (bx, bh) in enumerate(((wx0, 9), (wx0 + 4, 6), (wx0 + 7, 11), (wx1 - 1, 7))):
-        d.fill(bx, y0 - 2, zb + 1 + k % 2, bx + 2, y0 + bh, zb + 1 + k % 2, "minecraft:dark_prismarine")
-    for x in (wx0 - 3, wx1 + 3):
-        d.fill(x, y0 - 2, zb, x, yt + 4, z0 - 1, "minecraft:polished_deepslate")
-    d.fill(wx0 - 3, yt + 4, zb, wx1 + 3, yt + 4, z0 - 1, "minecraft:polished_deepslate")
-    d.fill(wx0 - 3, y0 - 2, zb, wx1 + 3, y0 - 2, z0 - 1, "minecraft:polished_deepslate")
-    d.fill(wx0 - 2, y0, z0 + 1, wx0 - 2, yt - 1, z0 + 1, "minecraft:sea_lantern")          # 창틀 옆 푸른 빛줄
-    d.fill(wx0 - 1, y0 + 2, z0 + 1, wx1, y0 + 2, z0 + 1, "minecraft:polished_deepslate_slab[type=top]")   # 창턱
-    # 뒤 선반 (병·상자) + 커피 드리퍼 긴 탁자
-    for y in range(y0 + 3, yt - 1, 3):
-        d.fill(ox + 3, y, z0 + 1, ox + RW, y, z0 + 1, "minecraft:dark_oak_slab[type=top]")
-        for x in range(ox + 3, ox + RW + 1, 2):
-            d.set(x, y + 1, z0 + 1, ["minecraft:flower_pot", "minecraft:decorated_pot", "minecraft:brown_candle[candles=2]"][x % 3])
-    d.fill(ox + 2, y0, z0 + 4, ox + 9, y0, z0 + 5, "minecraft:dark_oak_slab[type=top]")
-    d.set(ox + 5, y0 + 1, z0 + 4, "minecraft:brewing_stand")                               # 커피 드리퍼
-    # 소파 + 쿠션 (왼쪽 앞), 낮은 탁자
-    d.fill(x0 + 1, y0, 0, x0 + 2, y0, 8, "minecraft:gray_wool")
-    d.fill(x0 + 1, y0 + 1, 0, x0 + 1, y0 + 1, 8, "minecraft:gray_wool")
-    d.set(x0 + 2, y0 + 1, 2, "minecraft:purple_carpet")
-    d.set(x0 + 2, y0 + 1, 5, "minecraft:purple_carpet")
-    d.fill(ox - 7, y0, 3, ox - 4, y0, 6, "minecraft:dark_oak_slab[type=bottom]")
-    # 오른쪽 책장
-    d.fill(x1 - 1, y0, -RD + 4, x1 - 1, yt - 1, RD, "minecraft:bookshelf")
-    for y in range(y0 + 3, yt, 3):
-        d.fill(x1 - 1, y, -RD + 4, x1 - 1, y, RD, "minecraft:dark_oak_planks")
-    for x in range(-RW + 3, RW, 7):
-        d.set(ox + x, yt - 1, 2, "minecraft:light[level=8]")
-    d.set_biome(ox - 40, -40, ox + 40, 40, "ruina:social_science_room")
+def city(m, rng):
+    out = []
+    for _ in range(140):
+        a = rng.uniform(0, 2 * math.pi)
+        r = math.sqrt(rng.uniform(60 ** 2, 420 ** 2))
+        cx, cz = r * math.cos(a), r * math.sin(a)
+        if abs(cz) < HW + 30 and abs(cx) < BX + 20:
+            continue
+        w, l, h = rng.uniform(12, 28), rng.uniform(12, 28), rng.uniform(60, 200)
+        out.append(kit.building(cx - w / 2, cz - l / 2, cx + w / 2, cz + l / 2, FLOOR, FLOOR + h,
+                                m["city"][int(rng.integers(2))], m["hull"], tile=(8.0, 8.0))
+                   .rotate("z", rng.uniform(-6, 6), origin=(cx, FLOOR, cz)))
+    out.append(F.plane((-450, FLOOR, 450), (900, 0, 0), (0, 0, -900), m["hull"], tile=(16, 16)).tint((0.4, 0.5, 0.6)))
+    for x in (-300, -80, 120, 340):                              # 빛기둥
+        out.append(F.revolve([(9, FLOOR), (7, Y0 + 200)], m["beam"], segs=16, center=(x, 0, -200), tiles_around=4,
+                             tile_up=16).tint((1, 1, 1), 0.25))
+    return out
 
 
 def build(b):
-    from . import fragment as F
+    from . import fragment as Fr
+    from . import social_science_room
     d = b.dim("social_science")
-    rng = np.random.default_rng(1901)
-    seafloor(d)
-    deck(d, rng)
-    skip = lambda x, z: abs(z) < HW + 40 and abs(x) <= BX + 30   # noqa: E731
-    build_city(d, 60, 400, seed=1911, ground_y=FLOOR, h_min=60, h_max=170, skip=skip, spacing0=40, size=(14, 30),
-               palette=SUNK_PAL)
-    build_city(d, 440, 820, seed=1912, ground_y=FLOOR, h_min=90, h_max=220, spacing0=120, size=(18, 34), palette=SUNK_PAL)
-    currents(d, rng)
-    floating(b, d, rng)
-    chesed_room(d)
-    F.stage(b, d, "gblock", "사회과학의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
-    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 세피라 아이템 (모드)
+    lay = b.form("social_science")
+    rng = np.random.default_rng(1701)
+    m = mats()
+    view = A.ArtView(CAM, 1000, 562)
+    near = deck(m, rng)
+    far = city(m, rng) + seaweed(lay, m, rng)
+    lights = [((0, Y0 + 200, -150), (0.4, 0.75, 1.1), 500.0)]
+    kit.project_add(lay, CAM, m["art"], near=near, far=far, lights=lights, ambient=(0.34, 0.48, 0.66),
+                    glow_mats=[m["window"], m["beam"]], min_facing=0.12, far_edge=6.0, far_min_facing=0.5)
+    cars(lay, m, view, rng)
+    fish(lay, m, rng)
+    lay.add(kit.glass_platform(d, m["glass"], m["hull"], -2.0, 3.0, HW + 9.0, HW + 13.0, PLAT))
+    lay.add(kit.glass_stairs(m["glass"], m["hull"], 4, 5, int(HW) + 12, int(HW) + 1, PLAT, Y0))
+    kit.art_sky(lay, "soc", CAM, ART, [(-90, (6, 14, 30)), (-20, (14, 40, 80)), (0, (30, 90, 160)), (30, (40, 130, 220)),
+                                       (60, (20, 70, 140)), (90, (8, 24, 60))],
+                cloud_e=(10.0, 40.0), below=(8, 20, 40), zenith=(8, 24, 60), clean=clean_art())
+    lay.emitter(F.Emitter((-60, Y0 - 30, -60, 60, Y0 + 40, 40), rate=8.0, sprites=("ruina:block/form/paper_1",),
+                          wind=(0.05, 0.25, 0.0), size=0.08, life=10.0, spin=0.2, color=(0.6, 0.85, 1.0), glow=True))
+    collision(d)
+    room = social_science_room.build(b, d)
+    Fr.stage(b, d, "gblock", "사회과학의 층", ARRIVE, room,
+             room_box=f"x={social_science_room.OX - 200},y=-64,z=-1024,dx=400,dy=1024,dz=2048")
     b.extra_checks += [
-        {"what": "헤세드 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:social_science_room", "expect": True},
-        {"what": "떠다니는 폐차·물고기 (디스플레이)", "cmd": f"execute in {d.dim} if entity @e[type=minecraft:item_display,tag=ruina.fish]",
-         "expect": True, "after_entities": True},
+        {"what": "헤세드 방 바이옴", "cmd": f"execute in {d.dim} if biome {social_science_room.OX} {social_science_room.Y0} 0 "
+                                       f"ruina:social_science_room", "expect": True},
     ]
 
 
-_SEA = dict(sky=((10, 30, 70), (20, 70, 140)), fog=(18, 60, 120), stars=0, night=False)
-PREVIEW = [
-    {"file": "social_science_compare_stage.png", "ref": "사회과학의 층 전경.png", "cam": (0.5, Y0 + 3, 34),
-     "look": (0.5, Y0 + 30, -120), "kw": dict(fov=80, max_dist=700, fog_dist=200, **_SEA),
-     "title": "사회과학의 층 — 원화(위) / 맵(아래): 갑판 옆에서 북쪽",
-     "notes": ["난파선 갑판(구멍)·선체·계류 기둥과 밧줄, 소용돌이 물결과 빛기둥, 푸른 안개 속 잠긴 도시",
-               "떠다니는 폐차·물고기는 디스플레이 엔티티라 미리보기에 안 나옴"]},
-    {"file": "social_science_compare_room.png", "ref": "사회과학의 층 지정사서 방.png", "cam": (ROOM_X + 4.5, RY + 2.2, RD - 1),
-     "look": (ROOM_X - 4, RY + 4, -RD), "kw": dict(fov=80, max_dist=120, sky=((6, 16, 30), (12, 30, 50)), fog=(12, 30, 50),
-                                                    fog_dist=60, stars=0),
-     "title": "헤세드 방 — 원화(위) / 맵(아래)",
-     "notes": ["격자 큰 창 너머 잠긴 도시, 바닥 창살 빛, 소파·탁자, 커피 드리퍼 탁자, 선반, 책장"]},
-]
+def collision(d):
+    d.fill(-BX, Y0 - 1, -int(HW), BX, Y0 - 1, int(HW), "minecraft:barrier")
+    d.fill(-BX, Y0, -int(HW) - 1, BX, Y0 + 1, -int(HW) - 1, "minecraft:barrier")
+    d.fill(-BX, Y0, int(HW) + 1, BX, Y0, int(HW) + 1, "minecraft:barrier")
+    kit.stair_collision(d, 4, 5, int(HW) + 12, int(HW) + 1, PLAT, Y0)
+    d.fill(4, Y0, int(HW) + 1, 5, Y0, int(HW) + 1, "minecraft:air")
+
+
+PREVIEW_CAMS = [("갑판 위", F.Camera((0.5, Y0 + 1.62, 0.0), 90.0, 0.0)),
+                ("갑판에서 도시", F.Camera((0.5, Y0 + 1.62, -6.0), 180.0, -10.0))]
+
+
+def preview(b):
+    build(b)

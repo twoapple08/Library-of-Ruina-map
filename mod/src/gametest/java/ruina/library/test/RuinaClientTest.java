@@ -19,7 +19,6 @@ import net.fabricmc.fabric.api.client.gametest.v1.screenshot.TestScreenshotOptio
 import net.fabricmc.loader.api.FabricLoader;
 
 import ruina.library.form.Forms;
-import ruina.library.form.MoverBlockEntity;
 
 /**
  * 실제 게임으로 확인: 새 야생 월드 → 아이템 우클릭(진짜 입력)으로 도서관 이동 → 도착 화면 스크린샷.
@@ -60,12 +59,21 @@ public class RuinaClientTest implements FabricClientGameTest {
 				return;
 			}
 
+			String only = System.getProperty("ruina.only");
+			if (only != null) {
+				quick(ctx, sp, only);
+				return;
+			}
+
 			// 초대장: 야생 → 외부
 			useItem(ctx, sp, "invitation");
 			check(ctx, "초대장 → 외부", "ruina:exterior");
 			screenshot(ctx, sp, "exterior_title_card");   // 모드 이펙트: 도착 직후 층 이름 카드 '도서관'
 			render(sp);
 			screenshot(ctx, sp, "exterior");
+			exteriorViews(ctx, sp);
+			useItem(ctx, sp, "invitation");   // 외부 다른 자리 → 초대장 쓰면 야생으로 → 다시 외부 (도착 자리)
+			useItem(ctx, sp, "invitation");
 
 			// 방전환: 외부에는 방이 없음 → 그대로
 			useItem(ctx, sp, "room_switch");
@@ -96,8 +104,6 @@ public class RuinaClientTest implements FabricClientGameTest {
 				screenshot(ctx, sp, f[1].substring(6) + "_room");
 			}
 
-			formShowcase(ctx, sp);
-
 			// 초대장: 도서관 안 → 기록한 자리 (야생)
 			useItem(ctx, sp, "invitation");
 			check(ctx, "초대장 → 처음 자리로", overworld);
@@ -114,36 +120,67 @@ public class RuinaClientTest implements FabricClientGameTest {
 	}
 
 	/**
-	 * 자유 형체 기반 시험대 (builders/form_showcase.py, 외부 구석 공중): 원화 투영 정면(원화와 같아야 함)과
-	 * 옆 모습(입체 + 도는 톱니·흔들리는 추·빛나는 고리·날리는 종이·먼 산 띠).
+	 * 외부 형체 (탑·가지·종이 물결·그린 하늘): 도착 시점 말고 다른 자리에서도 — 정문 앞 계단, 옆 광장, 뒤.
+	 * 형체 블록·움직이는/그린 하늘 확인.
 	 */
-	private void formShowcase(ClientGameTestContext ctx, TestSingleplayerContext sp) {
-		sp.getServer().runCommand("execute in ruina:exterior run tp @a 700.5 500 721.5 180 0");
-		ctx.waitTicks(20);
-		render(sp);
-		ctx.waitTicks(40);
-		expect("형체 블록 있음 (시험대 바닥 앞)", ctx.computeOnClient(c -> {
-			for (BlockPos p : BlockPos.betweenClosed(690, 499, 690, 710, 503, 718)) {
+	private void exteriorViews(ClientGameTestContext ctx, TestSingleplayerContext sp) {
+		expect("형체 블록 있음 (탑 기단)", ctx.computeOnClient(c -> {
+			for (BlockPos p : BlockPos.betweenClosed(-6, 0, 40, 6, 20, 64)) {
 				if (c.level.getBlockState(p).is(Forms.FORM)) {
 					return true;
 				}
 			}
 			return false;
 		}));
-		screenshot(ctx, sp, "forms_art");
-		sp.getServer().runCommand("execute in ruina:exterior run tp @a 733.5 506 706.5 258 0");
-		ctx.waitTicks(20);
-		render(sp);
-		ctx.waitTicks(60);   // 톱니·추가 움직이고 종이가 날리게
-		expect("움직이는 형체 블록 엔티티 있음", ctx.computeOnClient(c -> {
-			for (BlockPos p : BlockPos.betweenClosed(730, 500, 690, 760, 525, 715)) {
-				if (c.level.getBlockEntity(p) instanceof MoverBlockEntity) {
-					return true;
-				}
+		String[][] views = {
+				{"14 0 82 160 -40", "exterior_gate"}, {"120 4.5 30 105 -25", "exterior_side"},
+				{"-80 0 -95 -40 -40", "exterior_back"},
+		};
+		for (String[] v : views) {
+			sp.getServer().runCommand("execute in ruina:exterior run tp @a " + v[0]);
+			ctx.waitTicks(20);
+			render(sp);
+			ctx.waitTicks(30);
+			screenshot(ctx, sp, v[1]);
+		}
+	}
+
+	/** 작업 중 확인: 한 공간만 (외부는 초대장 도착 + 다른 시점, 로비·층은 전경과 방). */
+	private void quick(ClientGameTestContext ctx, TestSingleplayerContext sp, String only) {
+		useItem(ctx, sp, "invitation");
+		check(ctx, "초대장 → 외부", "ruina:exterior");
+		if (only.equals("exterior")) {
+			render(sp);
+			ctx.waitTicks(40);
+			screenshot(ctx, sp, "exterior");
+			exteriorViews(ctx, sp);
+			return;
+		}
+		if (only.equals("lobby")) {
+			sp.getServer().runCommand("execute as @a run function ruina:tp/to/lobby_entrance");
+			ctx.waitTicks(20);
+			render(sp);
+			ctx.waitTicks(40);
+			screenshot(ctx, sp, "lobby");
+			useItem(ctx, sp, "room_switch");
+			render(sp);
+			ctx.waitTicks(40);
+			screenshot(ctx, sp, "lobby_hall");
+			return;
+		}
+		for (String[] f : FLOORS) {
+			if (f[1].substring(6).equals(only)) {
+				useItem(ctx, sp, f[0]);
+				check(ctx, f[0] + " → " + f[2] + "의 층 전경", f[1]);
+				render(sp);
+				ctx.waitTicks(40);
+				screenshot(ctx, sp, only);
+				useItem(ctx, sp, "room_switch");
+				render(sp);
+				ctx.waitTicks(40);
+				screenshot(ctx, sp, only + "_room");
 			}
-			return false;
-		}));
-		screenshot(ctx, sp, "forms_3d");
+		}
 	}
 
 	/** 셰이더(BSL) 켠 상태로 몇 곳만: 외부·로비 홀·역사·총류 전경과 방·철학 (소프트웨어 GL 이라 느림). */
@@ -166,7 +203,6 @@ public class RuinaClientTest implements FabricClientGameTest {
 		useItem(ctx, sp, "room_switch");
 		render(sp);
 		screenshot(ctx, sp, "general_room");
-		formShowcase(ctx, sp);
 		useItem(ctx, sp, "invitation");
 		check(ctx, "초대장 → 처음 자리로", overworld);
 	}
@@ -187,7 +223,8 @@ public class RuinaClientTest implements FabricClientGameTest {
 
 	private void render(TestSingleplayerContext sp) {
 		try {
-			sp.getConnection().waitForChunksRender(true, 20 * 30);
+			// 형체가 많은 공간은 소프트웨어 GL 에서 청크 굽기가 느림 → 넉넉히 (작업 중 확인 모드는 2분)
+			sp.getConnection().waitForChunksRender(true, System.getProperty("ruina.only") != null ? 20 * 120 : 20 * 45);
 		} catch (Throwable t) {
 			log.add("ℹ️ 청크 그리기 대기 시간 초과 (그대로 촬영)");
 		}
@@ -195,12 +232,25 @@ public class RuinaClientTest implements FabricClientGameTest {
 
 	private void screenshot(ClientGameTestContext ctx, TestSingleplayerContext sp, String name) {
 		sp.getServer().runCommand("item replace entity @a weapon.mainhand with minecraft:air");   // 손에 아이템이 안 보이게
-		// 도착 자리의 보는 방향 그대로 (원화 구도 비교용). 하늘을 본 채면 수평으로
-		ctx.getInput().lookAt(ctx.computeOnClient(c -> c.player.getYRot()), 0f);
+		// 도착 자리의 보는 방향 그대로 (원화 구도 비교용). 아이템을 쓰려고 하늘을 본 채면 수평으로
+		if (ctx.computeOnClient(c -> c.player.getXRot()) < -80f) {
+			ctx.getInput().lookAt(ctx.computeOnClient(c -> c.player.getYRot()), 0f);
+		}
 		ctx.waitTicks(5);
 		shot++;
-		Path p = ctx.takeScreenshot(TestScreenshotOptions.of(String.format("%s%02d_%s", PREFIX, shot, name)).withSize(1280, 720)
+		ctx.runOnClient(c -> {    // 손·HUD 숨김 (F1)
+			if (!c.gui.hud.isHidden()) {
+				c.gui.hud.toggle();
+			}
+		});
+		ctx.waitTicks(2);
+		Path p = ctx.takeScreenshot(TestScreenshotOptions.of(String.format("%s%02d_%s", PREFIX, shot, name))
 				.disableCounterPrefix());
+		ctx.runOnClient(c -> {
+			if (c.gui.hud.isHidden()) {
+				c.gui.hud.toggle();
+			}
+		});
 		log.add("📷 " + p.getFileName());
 	}
 

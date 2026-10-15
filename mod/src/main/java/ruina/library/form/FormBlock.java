@@ -19,17 +19,20 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  */
 public class FormBlock extends Block {
 	public static final BooleanProperty SOLID = BooleanProperty.create("solid");
+	/** solid 일 때 아래 반 칸만 충돌 (형체 계단·단: 점프 없이 오름). 자리 표시 = 굳은 참나무 반 블록(아래). */
+	public static final BooleanProperty HALF = BooleanProperty.create("half");
+	private static final VoxelShape BOTTOM = Block.box(0, 0, 0, 16, 8, 16);
 	public static final IntegerProperty LIGHT = IntegerProperty.create("light", 0, 15);
 	public static final IntegerProperty GLOW = IntegerProperty.create("glow", 0, 50);
 
 	public FormBlock(Properties properties) {
 		super(properties);
-		registerDefaultState(stateDefinition.any().setValue(SOLID, false).setValue(LIGHT, 0).setValue(GLOW, 0));
+		registerDefaultState(stateDefinition.any().setValue(SOLID, false).setValue(HALF, false).setValue(LIGHT, 0).setValue(GLOW, 0));
 	}
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(SOLID, LIGHT, GLOW);
+		builder.add(SOLID, HALF, LIGHT, GLOW);
 	}
 
 	@Override
@@ -39,7 +42,7 @@ public class FormBlock extends Block {
 
 	@Override
 	protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-		return state.getValue(SOLID) ? Shapes.block() : Shapes.empty();
+		return state.getValue(SOLID) ? (state.getValue(HALF) ? BOTTOM : Shapes.block()) : Shapes.empty();
 	}
 
 	@Override

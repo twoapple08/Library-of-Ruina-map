@@ -1,16 +1,9 @@
-"""종교의 층 (호크마). 접대 공간(거대 시계들 앞 돌기와 무대) ↔ 지정사서 방 (황금사과 F).
+"""종교의 층 (호크마) — 자유 형체 판 (2026-10-15).
 
-참고: reference/종교의 층 전경.png, reference/종교의 층 지정사서 방.png, PLAN.md 8절
-("신성·웅장. 접대실은 끝없이 넓은 잿빛 신전 같은 공간, 움직이는 시계 장치, 멀리 거대 시계, 안개 속 겹친 복도,
-거대 진자시계, 종소리. 지정사서 방: 회중시계 전등, 위층으로 이어지는 나선계단, 높은 책장").
-
-원화(전경): 흑백. 기와처럼 줄지은 돌판 무대, 아래 기둥 줄(열주), 뒤로 겹쳐 선 거대한 흰 시계 판들(눈금·바늘),
-가운데 뾰족 장식 달린 높은 막대(진자), 양옆 난간 달린 발코니 복도, 쇠 틀.
-원화(방): 흰빛·잿빛, 양쪽 아주 높은 책장 벽(아래 판넬), 반들 바닥, 가운데 기둥을 감고 오르는 나선계단
-(회중시계 전등이 매달림), 계단 아래 책상, 뒤 밝은 안개.
-
-크기 (3072×512, 가장 큼): 무대 440×29 (서 있는 Y 150), 시계 판 7개 (반지름 60~130, 거리 150~420),
-진자 막대 높이 330, 발코니 복도 12개, 먼 시계·복도는 600~1100 (Distant Horizons).
+reference/종교의 층 전경.png (흑백): 기와처럼 줄지은 돌판 무대를 옆 조금 위(유리 전망 발판, 도착)에서 봄 — 아래 열주,
+뒤로 겹쳐 선 거대한 흰 시계 판들(바늘이 돎 — 시침·분침 움직임), 가운데 뾰족 장식 달린 높은 막대(진자, 흔들림),
+양옆 난간 달린 발코니 복도, 쇠 틀, 잿빛 안개. 나무위키: 신성·웅장, 움직이는 시계 장치, 종소리(소리는 나중).
+지정사서 방: builders/religion_room.py.
 """
 from __future__ import annotations
 
@@ -18,200 +11,183 @@ import math
 
 import numpy as np
 
-from tools import shapes as S
+from tools import artfit as A
+from tools import form_textures as T
+from tools import forms as F
 
-from .technology import _chain_line, _line
+from . import kit
 
 Y0 = 150
-BX, HW = 220, 14
-ARRIVE_X = -170
-ROOM_X = 4000
-RY = 64
-SLATE = ["minecraft:deepslate_tiles", "minecraft:polished_deepslate", "minecraft:deepslate_tiles", "minecraft:cobbled_deepslate"]
+BX, HW = 220, 14.5
+PLAT = Y0 + 3
+CAM = F.Camera((0.5, PLAT + 1.62, HW + 8.6), 180.0, 6.0)
+ARRIVE = (0.5, PLAT, HW + 8.6, 180.0, 6.0)
+ART = "reference/종교의 층 전경.png"
+SPACE = "religion"
+UP = np.array([0, 1.0, 0])
+CLOCKS = [  # 원화 시계 (가운데 x, y, 반지름 px) → 깊이 z
+    (492, 300, 235, -200), (110, 80, 105, -240), (800, 45, 120, -260), (165, 228, 82, -170), (885, 225, 80, -180),
+    (40, 250, 45, -150),
+]
 
 
-def stage(d, rng):
-    """기와처럼 줄지은 돌판 (줄마다 반 칸 어긋남, 줄 끝 그림자), 앞 처마, 아래 열주."""
-    xs, zs = np.arange(-BX, BX + 1), np.arange(-HW, HW + 1)
-    X, Z = np.meshgrid(xs, zs, indexing="ij")
-    off = (Z % 2) * 1
-    slate = np.array([d.id(s) for s in SLATE])
-    ids = slate[(S.hash01((X + off) // 2, Z, seed=2201) * len(slate)).astype(int).clip(0, len(slate) - 1)]
-    ids = np.where((X + off) % 2 == 0, d.id("minecraft:polished_deepslate"), ids)
-    d.place(-BX, Y0 - 1, -HW, ids[:, None, :])
-    d.fill(-BX, Y0 - 3, -HW, BX, Y0 - 2, HW, "minecraft:polished_deepslate")
-    d.fill(-BX, Y0 - 2, HW + 1, BX, Y0 - 1, HW + 1, "minecraft:smooth_stone")                    # 앞 처마
-    d.fill(-BX, Y0 - 3, HW + 1, BX, Y0 - 3, HW + 1, "minecraft:smooth_stone_slab[type=top]")
-    d.fill(-BX, Y0, -HW, BX, Y0, -HW, "minecraft:smooth_stone_slab[type=bottom]")                # 뒤 턱
+def clean_art():
+    return A.clean_sky(ART, A.circle_mask((1000, 555), [(x, y, r) for x, y, r, _ in CLOCKS], grow=1.04), grow=2)
+
+
+def mats():
+    m = {}
+    m["art"] = F.mat("rel_art", T.art("art/religion", ART, img=clean_art()), emissive=True, flat=True, ao=False)
+    m["slate"] = F.mat("rel_slate", T.herringbone("rel_slate", (70, 70, 74), (150, 150, 156), brick=(16, 8), seed=231),
+                       emissive=True, flat=True, ao=False)
+    m["stone"] = F.mat("rel_stone", T.stone_slab("rel_stone", (110, 110, 114), (190, 190, 194), seed=232), emissive=True,
+                       flat=True, ao=False)
+    m["iron"] = F.mat("rel_iron", T.metal("rel_iron", (24, 24, 26), (80, 80, 84), seed=233), emissive=True, flat=True,
+                      ao=False)
+    m["face"] = F.mat("rel_face", T.clock_face("rel_face"), layer="cutout", emissive=True, flat=True, ao=False)
+    m["hand"] = F.mat("rel_hand", T.flat("rel_hand", (20, 20, 22)), emissive=True, flat=True, ao=False)
+    m["pillar"] = F.mat("rel_pillar", T.stone_slab("rel_pillar", (170, 170, 174), (226, 226, 230), seed=234),
+                        emissive=True, flat=True, ao=False)
+    m["glass"] = F.mat("rel_glass", T.glow("rel_glass", (230, 230, 235)), layer="translucent", emissive=True,
+                       flat=True, ao=False)
+    m["fog"] = F.mat("rel_fog", T.glow("rel_fog", (220, 220, 224)), layer="translucent", emissive=True, flat=True,
+                     ao=False)
+    return m
+
+
+def stage(m, rng):
+    out = [F.plane((-BX, Y0, HW), (2 * BX, 0, 0), (0, 0, -2 * HW), m["slate"], tile=(2, 2))]
+    out.append(F.box((-BX, Y0 - 2.6, HW), (BX, Y0 + 0.1, HW + 1.2), m["stone"], tile=2.0))       # 앞 처마
+    out.append(F.box((-BX, Y0, -HW - 0.5), (BX, Y0 + 0.5, -HW), m["stone"], tile=2.0))           # 뒤 턱
+    out.append(F.plane((-BX, Y0 - 3, -HW), (2 * BX, 0, 0), (0, 0, 2 * HW), m["stone"], tile=(4, 4)))
     for x in range(-BX + 10, BX, 30):                                                          # 열주
         for z in (HW - 2, -HW + 2):
-            d.fill(x - 1, 0, z - 1, x + 1, Y0 - 4, z + 1, "minecraft:quartz_pillar[axis=y]")
-            d.fill(x - 2, Y0 - 6, z - 2, x + 2, Y0 - 4, z + 2, "minecraft:smooth_stone")
-            d.fill(x - 1, Y0 - 5, z - 1, x + 1, Y0 - 5, z + 1, "minecraft:quartz_pillar[axis=y]")
-    d.fill(-BX - 30, -1, -60, BX + 30, -1, 60, "minecraft:polished_deepslate")
+            out.append(F.revolve([(1.3, 0), (1.3, Y0 - 6), (2.2, Y0 - 5), (2.2, Y0 - 3.5)], m["pillar"], segs=16,
+                                 center=(x, 0, z), tiles_around=4, tile_up=8.0))
+    return out
 
 
-def clock(d, cx, cy, cz, R, h1=0.3, h2=2.1, rim="minecraft:polished_deepslate"):
-    """거대 시계 판 (남쪽을 봄): 흰 판, 두꺼운 테, 열두 눈금(굵은 막대) + 60 작은 눈금, 시침·분침, 가운데 축.
-    판은 한 겹 (뒤는 쇠 틀)."""
-    n = int(R + 3)
-    g = np.arange(-n, n + 1)
-    X, Y = np.meshgrid(g, g, indexing="ij")
-    r = np.hypot(X, Y)
-    a = np.arctan2(Y, X)
-    face = r <= R
-    ids = np.where(S.hash01(X // 6, Y // 6, seed=2211) < 0.5, d.id("minecraft:white_concrete"), d.id("minecraft:calcite"))
-    ids = np.where((r > R - 3) & face, d.id(rim), ids)
-    ids = np.where((np.abs(r - R * 0.86) < 0.8) & face, d.id("minecraft:light_gray_concrete"), ids)       # 눈금 원
-    tick = np.abs(((a / (2 * math.pi) * 60) % 1.0) - 0.5) > 0.42
-    ids = np.where(tick & (r > R * 0.86) & (r < R - 3), d.id("minecraft:gray_concrete"), ids)
-    big = np.abs(((a / (2 * math.pi) * 12) % 1.0) - 0.5) > 0.47
-    ids = np.where(big & (r > R * 0.7) & (r < R - 3), d.id("minecraft:black_concrete"), ids)
-    for ang, length, w in ((h1, 0.55, 2.2), (h2, 0.85, 1.4)):                                               # 바늘
-        dist = np.abs(-np.sin(ang) * X + np.cos(ang) * Y)
-        along = np.cos(ang) * X + np.sin(ang) * Y
-        ids = np.where((dist < w) & (along > -R * 0.1) & (along < R * length), d.id("minecraft:black_concrete"), ids)
-    ids = np.where(r < 3, d.id("minecraft:polished_blackstone"), ids)
-    d.place(cx - n, cy - n, cz, np.where(face, ids, -1)[:, :, None].astype(np.int32))
-    # 뒤 쇠 틀 (방사 살)
+def clock_mesh(m, c, R, normal=(0, 0, 1)):
+    """시계 판 (원판 + 테 + 뒤 쇠 틀 방사 살)."""
+    c = np.asarray(c, float)
+    a = np.linspace(0, 2 * math.pi, 49)
+    G = np.stack([np.stack([c + [0, 0, 0.1]] * 49), np.stack([c + [R * math.cos(t), R * math.sin(t), 0.1] for t in a])], 1)
+    UV = np.stack([np.stack([[0.5, 0.5]] * 49), np.stack([[0.5 + 0.499 * math.cos(t), 0.5 - 0.499 * math.sin(t)] for t in a])],
+                  1)
+    out = [F.grid(G, UV, m["face"], N=np.broadcast_to([0, 0, 1.0], G.shape))]
+    rim = np.stack([c + [R * math.cos(t), R * math.sin(t), 0] for t in a])
+    out.append(F.sweep(rim, max(0.6, R * 0.03), m["iron"], sides=6, step=max(1.0, R / 10)))
     for k in range(8):
-        ang = k * math.pi / 4
-        _line(d, (cx, cy, cz - 2), (cx + R * math.cos(ang), cy + R * math.sin(ang), cz - 2), "minecraft:polished_deepslate")
+        t = k * math.pi / 4
+        out.append(F.sweep(np.array([c - [0, 0, 1.5], c + [R * math.cos(t), R * math.sin(t), -1.5]]), max(0.5, R * 0.02),
+                           m["iron"], sides=4, step=max(2.0, R / 4)))
+    return F.concat(out)
 
 
-def pendulum(d, x=0, z=-60):
-    """가운데 높은 막대 (진자): 위 뾰족 마름모 장식, 아래 무대 뒤 받침 틀."""
+def hand_mesh(m, c, R, length, width):
+    """바늘 (축 기준 +y 방향으로 뻗은 납작한 마름모 + 짧은 꼬리)."""
+    c = np.asarray(c, float)
+    p = np.array([[0, -0.12 * R, 0.4], [width / 2, 0.15 * R, 0.4], [0, length * R, 0.4], [-width / 2, 0.15 * R, 0.4]])
+    q = F.Quads((p + c)[None], np.array([[[0.5, 0], [1, 0.3], [0.5, 1], [0, 0.3]]]) * 0.99, M=m["hand"])
+    hub = F.ellipsoid(c + [0, 0, 0.4], (R * 0.05, R * 0.05, 0.3), m["hand"], 10, 4)
+    return F.concat([F.two_sided(q), hub])
+
+
+def clocks(lay, m, view):
+    """시계 판 (정적) + 시침·분침 (움직임: 분침 1분 한 바퀴처럼 빠르게 — 거대 시계가 살아 있게)."""
+    out = []
+    for i, (px, py, pr, z) in enumerate(CLOCKS):
+        c = view.at_z(np.array([float(px)]), np.array([float(py)]), z)[0]
+        R = pr * view.px_size(c)
+        out.append(clock_mesh(m, c, R))
+        for k, (length, width, period) in enumerate(((0.55, R * 0.09, 720.0), (0.85, R * 0.05, 60.0 + 7 * i))):
+            mesh = hand_mesh(m, c + [0, 0, 0.3 * (k + 1)], R, length, width).rotate("z", -30 * (i + k * 5), origin=c)
+            pos = tuple(int(v) for v in c + [0, 0, 1 + k])
+            lay.mover(F.Mover(pos, mesh, tuple(c), "spin", (0, 0, -1), period=period, radius=R * 1.1))
+    return out
+
+
+def pendulum(lay, m, view):
+    """가운데 높은 막대 + 위 마름모 장식 (진자: 아래 받침 축에서 천천히 흔들림)."""
+    z = -60.0
+    base = view.at_z(np.array([485.0]), np.array([250.0]), z)[0]
     top = Y0 + 330
-    d.fill(x - 1, Y0, z - 1, x + 1, top, z + 1, "minecraft:polished_deepslate")
-    for k in range(-10, 11):                                    # 마름모 장식
-        w = 10 - abs(k)
-        d.fill(x - w // 2, Y0 + 70 + k, z, x + w // 2, Y0 + 70 + k, z, "minecraft:polished_blackstone")
-    d.fill(x - 1, Y0 + 62, z, x + 1, Y0 + 78, z, "minecraft:white_concrete")
-    d.fill(x - 7, Y0, z - 4, x + 7, Y0 + 30, z + 4, "minecraft:polished_deepslate")      # 받침 틀
-    d.fill(x - 6, Y0, z - 3, x + 6, Y0 + 29, z + 3, "minecraft:air")
-    d.fill(x - 1, Y0, z - 1, x + 1, Y0 + 29, z + 1, "minecraft:polished_deepslate")
-    for y in range(Y0 + 2, Y0 + 30, 7):
-        d.fill(x - 7, y, z + 4, x + 7, y, z + 4, "minecraft:iron_bars")
+    rod = F.box((base[0] - 0.8, Y0 + 30, z - 0.8), (base[0] + 0.8, top, z + 0.8), m["iron"], tile=4.0)
+    dia_c = np.array([base[0], Y0 + 70, z])
+    dia = F.concat([F.two_sided(F.Quads(np.array([[dia_c + [0, 10, 0.9], dia_c + [5, 0, 0.9], dia_c + [0, -10, 0.9],
+                                                   dia_c + [-5, 0, 0.9]]]), np.array([[[0.5, 0], [1, 0.5], [0.5, 1], [0, 0.5]]]) * 0.99,
+                                         M=m["iron"]))])
+    lay.mover(F.Mover((int(base[0]), Y0 + 40, int(z)), F.concat([rod, dia]), (base[0], top, z), "swing", (0, 0, 1),
+                      period=8.0, amp=1.5))
+    frame = F.box((base[0] - 7, Y0, z - 4), (base[0] + 7, Y0 + 30, z + 4), m["iron"], tile=4.0, faces="xXzZY")
+    return [frame]
 
 
-def balconies(d, rng, n=12, rmin=60, rmax=300):
-    """안개 속 겹친 복도: 난간 달린 발코니 판들 (높이·깊이 제각각)."""
+def balconies(m, rng, n=14):
+    out = []
     for _ in range(n):
-        x0 = int(rng.uniform(-rmax, rmax))
-        z = int(rng.uniform(-rmax, -rmin))
-        y = int(rng.uniform(Y0 - 20, Y0 + 160))
-        L = int(rng.integers(30, 90))
-        d.fill(x0, y, z - 3, x0 + L, y, z + 3, "minecraft:polished_deepslate")
-        d.fill(x0, y + 1, z + 3, x0 + L, y + 1, z + 3, "minecraft:iron_bars")
-        for x in range(x0, x0 + L + 1, 6):
-            d.fill(x, y - 12, z, x, y - 1, z, "minecraft:polished_deepslate")
-            _line(d, (x, y - 10, z), (x + 3, y - 1, z), "minecraft:iron_bars")
-
-
-def framework(d, rng):
-    """쇠 틀 (시계들 사이 가로·세로 들보)."""
-    for _ in range(40):
-        x, y, z = int(rng.uniform(-350, 350)), int(rng.uniform(Y0, Y0 + 300)), int(rng.uniform(-420, -140))
+        x0, z = rng.uniform(-300, 300), rng.uniform(-300, -60)
+        y = rng.uniform(Y0 - 20, Y0 + 160)
+        L = rng.uniform(30, 90)
+        out.append(F.box((x0, y - 0.6, z - 3), (x0 + L, y, z + 3), m["stone"], tile=4.0))
+        out.append(F.sweep(np.array([[x0, y + 1.1, z + 3], [x0 + L, y + 1.1, z + 3]]), 0.1, m["iron"], sides=4, step=8.0))
+        for x in np.arange(x0, x0 + L + 0.1, 6.0):
+            out.append(F.box((x - 0.3, y - 12, z - 0.3), (x + 0.3, y, z + 0.3), m["iron"], tile=4.0))
+            out.append(F.box((x - 0.06, y, z + 2.9), (x + 0.06, y + 1.1, z + 3.0), m["iron"]))
+    for _ in range(40):                                          # 쇠 틀
+        x, y, z = rng.uniform(-350, 350), rng.uniform(Y0, Y0 + 300), rng.uniform(-420, -140)
         if rng.random() < 0.5:
-            d.fill(x, y, z, x + int(rng.integers(30, 120)), y + 1, z + 1, "minecraft:polished_deepslate")
+            out.append(F.box((x, y, z), (x + rng.uniform(30, 120), y + 1.2, z + 1.2), m["iron"], tile=4.0))
         else:
-            d.fill(x, y, z, x + 1, y + int(rng.integers(30, 160)), z + 1, "minecraft:polished_deepslate")
-
-
-# ---------------------------------------------------------------- 호크마 방
-RW, RD, RH = 12, 18, 32
-
-
-def hokma_room(d, ox=ROOM_X):
-    y0, yt = RY, RY + RH
-    xs, zs = np.arange(ox - RW, ox + RW + 1), np.arange(-RD, RD + 1)
-    X, Z = np.meshgrid(xs, zs, indexing="ij")
-    fl = np.where(((X - ox) % 6 == 0) | (Z % 6 == 0), d.id("minecraft:polished_diorite"), d.id("minecraft:smooth_quartz"))
-    d.place(ox - RW, y0 - 1, -RD, fl[:, None, :])
-    x0, x1, z0, z1 = ox - RW - 1, ox + RW + 1, -RD - 1, RD + 1
-    # 양쪽 아주 높은 책장 벽 (아래 판넬, 위 처마 띠), 뒤·앞은 밝은 벽
-    for xw in (x0, x1):
-        d.fill(xw, y0, z0, xw, yt, z1, "minecraft:bookshelf")
-        d.fill(xw, y0, z0, xw, y0 + 4, z1, "minecraft:smooth_quartz")
-        for z in range(z0, z1 + 1, 6):
-            d.fill(xw, y0, z, xw, yt, z, "minecraft:quartz_pillar[axis=y]")
-        for y in (y0 + 5, y0 + 18):
-            d.fill(xw, y, z0, xw, y, z1, "minecraft:smooth_quartz")
-        inner = xw + (1 if xw < ox else -1)
-        d.fill(inner, y0 + 18, z0, inner, y0 + 18, z1, "minecraft:smooth_quartz_slab[type=top]")
-    d.fill(x0, y0, z0, x1, yt, z0, "minecraft:white_concrete")
-    d.fill(x0, y0, z1, x1, yt, z1, "minecraft:smooth_quartz")
-    d.fill(x0, yt, z0, x1, yt, z1, "minecraft:smooth_quartz")
-    # 가운데 나선계단: 기둥을 감고 오름 (반지름 5, 한 바퀴 16단), 바깥 난간, 회중시계 전등(랜턴)이 매달림
-    cx, cz = ox, -RD + 10
-    d.fill(cx, y0, cz, cx, yt - 1, cz, "minecraft:polished_diorite")
-    steps = RH - 2
-    for k in range(steps):
-        a = k * 2 * math.pi / 16
-        y = y0 + k
-        for rr in range(1, 6):
-            for da in (-0.12, 0.0, 0.12):
-                x = cx + int(round(rr * math.cos(a + da)))
-                z = cz + int(round(rr * math.sin(a + da)))
-                if d.get(x, y, z) == "minecraft:air":
-                    d.set(x, y, z, "minecraft:smooth_quartz_slab[type=top]")
-        ax, az = cx + int(round(6 * math.cos(a))), cz + int(round(6 * math.sin(a)))
-        d.set(ax, y + 1, az, "minecraft:iron_bars")
-        if k % 3 == 1:
-            lx, lz = cx + int(round(3 * math.cos(a + 0.5))), cz + int(round(3 * math.sin(a + 0.5)))
-            d.set(lx, y - 3, lz, "minecraft:lantern[hanging=true]")
-            d.set(lx, y - 2, lz, "minecraft:iron_chain[axis=y]")
-    # 계단 아래 책상
-    d.fill(cx - 3, y0, cz + 6, cx + 3, y0, cz + 7, "minecraft:smooth_quartz_slab[type=top]")
-    d.set(cx - 1, y0 + 1, cz + 6, "minecraft:white_carpet")
-    # 책 더미 (책장 아래)
-    rng = np.random.default_rng(2231)
-    for _ in range(16):
-        x = x0 + 1 if rng.random() < 0.5 else x1 - 1
-        z = int(rng.integers(-RD + 2, RD - 1))
-        for y in range(int(rng.integers(1, 3))):
-            d.set(x, y0 + y, z, ["minecraft:light_gray_terracotta", "minecraft:white_terracotta", "minecraft:gray_terracotta"][int(rng.integers(3))])
-    for z in range(-RD + 3, RD, 6):
-        for y in (y0 + 10, y0 + 22):
-            d.set(ox - 6, y, z, "minecraft:light[level=12]")
-            d.set(ox + 6, y, z, "minecraft:light[level=12]")
-    d.set_biome(ox - 40, -40, ox + 40, 40, "ruina:religion_room")
-    return cx, cz, y0 + steps
+            out.append(F.box((x, y, z), (x + 1.2, y + rng.uniform(30, 160), z + 1.2), m["iron"], tile=4.0))
+    for y in (Y0 - 40, Y0 - 10):                                 # 안개
+        out.append(F.plane((-500, y, -500), (1000, 0, 0), (0, 0, 1000), m["fog"], tile=(32, 32)).tint((1, 1, 1), 0.2))
+    return out
 
 
 def build(b):
-    from . import fragment as F
+    from . import fragment as Fr
+    from . import religion_room
     d = b.dim("religion")
-    rng = np.random.default_rng(2301)
-    stage(d, rng)
-    for (cx, cy, cz, R) in ((-230, Y0 + 120, -190, 110), (60, Y0 + 150, -250, 130), (290, Y0 + 190, -210, 90),
-                            (-120, Y0 + 60, -150, 70), (200, Y0 + 50, -160, 60), (-330, Y0 + 230, -300, 100),
-                            (330, Y0 + 260, -330, 120)):
-        clock(d, cx, cy, cz, R, h1=rng.uniform(0, 6.3), h2=rng.uniform(0, 6.3))
-    for i in range(8):                                          # ③ 먼 시계 (DH)
-        a = -math.pi / 2 + (i - 3.5) * 0.35
-        clock(d, int(800 * math.cos(a)), Y0 + int(rng.uniform(100, 300)), int(800 * math.sin(a)), int(rng.uniform(140, 200)),
-              h1=rng.uniform(0, 6.3), h2=rng.uniform(0, 6.3))
-    pendulum(d)
-    balconies(d, rng)
-    balconies(d, rng, n=10, rmin=500, rmax=1000)
-    framework(d, rng)
-    hokma_room(d)
-    F.stage(b, d, "apple", "종교의 층", (ARRIVE_X + 0.5, Y0, 0.5, -90), (ROOM_X + 0.5, RY, RD - 2.5, 180))
-    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 세피라 아이템 (모드)
-    b.extra_checks.append({"what": "호크마 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:religion_room",
-                           "expect": True})
+    lay = b.form("religion")
+    rng = np.random.default_rng(2201)
+    m = mats()
+    view = A.ArtView(CAM, 1000, 555)
+    near = stage(m, rng)
+    far = balconies(m, rng) + pendulum(lay, m, view)
+    lights = [((0, Y0 + 300, -300), (0.7, 0.7, 0.72), 800.0)]
+    kit.project_add(lay, CAM, m["art"], near=near, far=far, lights=lights, ambient=(0.62, 0.62, 0.64),
+                    glow_mats=[m["fog"]], min_facing=0.12, far_edge=6.0, far_min_facing=0.5, zres=(1000, 555))
+    for q in clocks(lay, m, view):
+        lay.add(F.bake_points(q, lights, ambient=(0.85, 0.85, 0.87)), max_edge=6.0)
+    lay.add(kit.glass_platform(d, m["glass"], m["iron"], -2.0, 3.0, HW + 6.5, HW + 10.5, PLAT))
+    lay.add(kit.glass_stairs(m["glass"], m["iron"], 4, 5, int(HW) + 10, int(HW) + 1, PLAT, Y0))
+    kit.art_sky(lay, "rel", CAM, ART, [(-90, (20, 20, 22)), (-10, (120, 120, 124)), (0, (190, 190, 194)),
+                                       (30, (210, 210, 214)), (60, (160, 160, 164)), (90, (90, 90, 94))],
+                cloud_e=(5.0, 25.0), below=(60, 60, 62), zenith=(90, 90, 94), clean=clean_art())
+    lay.emitter(F.Emitter((-60, Y0 + 1, -30, 60, Y0 + 40, 30), rate=3.0, sprites=("ruina:block/form/paper_1",),
+                          wind=(0.1, -0.1, 0.0), size=0.1, life=10.0, spin=0.3, color=(0.9, 0.9, 0.92), glow=True))
+    collision(d)
+    room = religion_room.build(b, d)
+    Fr.stage(b, d, "apple", "종교의 층", ARRIVE, room,
+             room_box=f"x={religion_room.OX - 200},y=-64,z=-1024,dx=400,dy=1024,dz=2048")
+    b.extra_checks += [
+        {"what": "호크마 방 바이옴", "cmd": f"execute in {d.dim} if biome {religion_room.OX} {religion_room.Y0} 0 "
+                                       f"ruina:religion_room", "expect": True},
+    ]
 
 
-_GREY = dict(sky=((150, 150, 150), (210, 210, 210)), fog=(190, 190, 190), stars=0, night=False)
-PREVIEW = [
-    {"file": "religion_compare_stage.png", "ref": "종교의 층 전경.png", "cam": (0.5, Y0 + 6, 46), "look": (0.5, Y0 + 50, -150),
-     "kw": dict(fov=82, max_dist=900, fog_dist=500, **_GREY),
-     "title": "종교의 층 — 원화(위) / 맵(아래): 무대 앞쪽에서 북쪽",
-     "notes": ["기와 돌판 무대·열주, 겹쳐 선 거대 시계 판들(눈금·바늘), 가운데 진자 막대, 난간 발코니 복도, 쇠 틀"]},
-    {"file": "religion_compare_room.png", "ref": "종교의 층 지정사서 방.png", "cam": (ROOM_X + 0.5, RY + 3, RD - 1),
-     "look": (ROOM_X + 0.5, RY + 12, -RD), "kw": dict(fov=78, max_dist=120, sky=((180, 180, 180), (220, 220, 220)),
-                                                       fog=(200, 200, 200), fog_dist=80, stars=0, night=False),
-     "title": "호크마 방 — 원화(위) / 맵(아래)",
-     "notes": ["양쪽 높은 책장 벽, 반들 바닥, 가운데 나선계단(꼭대기 = 총류의 층), 회중시계 전등, 계단 아래 책상"]},
-]
+def collision(d):
+    d.fill(-BX, Y0 - 1, -int(HW), BX, Y0 - 1, int(HW), "minecraft:barrier")
+    d.fill(-BX, Y0, -int(HW) - 1, BX, Y0, -int(HW) - 1, "minecraft:barrier")
+    d.fill(-BX, Y0, int(HW) + 1, BX, Y0, int(HW) + 1, "minecraft:barrier")
+    kit.stair_collision(d, 4, 5, int(HW) + 10, int(HW) + 1, PLAT, Y0)
+    d.fill(4, Y0, int(HW) + 1, 5, Y0, int(HW) + 1, "minecraft:air")
+
+
+PREVIEW_CAMS = [("무대 위에서 시계", F.Camera((0.5, Y0 + 1.62, 0.0), 180.0, -20.0)),
+                ("무대 옆", F.Camera((60.0, Y0 + 1.62, 6.0), 120.0, -5.0))]
+
+
+def preview(b):
+    build(b)

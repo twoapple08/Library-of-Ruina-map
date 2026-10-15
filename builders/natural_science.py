@@ -1,17 +1,10 @@
-"""자연과학의 층 (티페리트). 접대 공간(황금 돔 앞 무대) ↔ 지정사서 방 (금발판 F), 돔 색감 전환 (마그마크림 F).
+"""자연과학의 층 (티페리트) — 자유 형체 판 (2026-10-15).
 
-참고: reference/자연과학의 층 전경.png (금빛), reference/자연과학의 층 전경 (색 바뀐 판).jpg (어두운 청록),
-reference/자연과학의 층 지정사서 방.png, PLAN.md 8절 ("매우 넓고 화려한 방 하나가 중심").
-
-원화(전경): 갈비뼈 같은 살이 꼭대기 빛 구멍으로 모이는 반원 돔, 벽 가득 촛불 든 아치 감실, 겹겹이 작아지는 아치 끝의
-빛나는 뾰족 아치 문, 가운데 받침대 위 금잔·파란 수정, 앞 무대(모자이크 띠 + 붉은 카펫), 무대 앞면 금테 유리판,
-아래로 왼쪽 파란 / 오른쪽 주황 휘장.
-색 바뀐 판: 같은 구도, 돔이 어두운 청록, 감실 빛이 차가운 흰빛, 받침대 없음.
-원화(방): 금빛 나무 책장 벽(사다리), 큰 아치 창(마름모 문양, 청록 보석) — 다음 층 입구, 붉은 카펫이 계단 위
-둥근 탁자·안락의자로, 양옆 체크무늬 바닥, 갈비 천장, 왼쪽 어두운 아치 문, A자 사다리.
-
-크기 (1024×400, 사람 기준): 돔 반지름 90·높이 130, 무대 300×15 (서 있는 Y 100), 휘장 Y 30까지.
-색감 전환(티페리트 F, 청록 돔)은 지금 만들지 않음 (사용자 2026-10-12). 청록 색표 TEAL·VARIANT_DX 는 나중을 위해 남김.
+reference/자연과학의 층 전경.png: 무대(모자이크 띠 + 붉은 카펫)를 옆 조금 위(유리 전망 발판, 도착)에서 봄 — 뒤로
+갈비뼈 같은 살이 꼭대기 빛 구멍으로 모이는 반원 황금 돔, 벽 가득 촛불 든 아치 감실, 겹겹이 작아지는 아치 끝 빛나는
+뾰족 아치 문, 가운데 받침대 위 금잔·파란 수정·작은 불꽃, 위에서 쏟아지는 빛줄기, 무대 앞면 금테 유리판, 아래
+왼쪽 파란 / 오른쪽 주황 휘장 (살랑 흔들림). 색 바뀐 판(청록 돔)·티페리트 F 전환은 지금 만들지 않음 (사용자 2026-10-12).
+지정사서 방: builders/natural_science_room.py.
 """
 from __future__ import annotations
 
@@ -19,236 +12,206 @@ import math
 
 import numpy as np
 
-from tools import shapes as S
+from tools import form_textures as T
+from tools import forms as F
+
+from . import kit
 
 Y0 = 100
 DOME_R, DOME_H = 90, 130
-DZ = -6                   # 돔 중심 z (무대 바로 뒤)
-STAGE_X, STAGE_Z0, STAGE_Z1 = 150, 2, 16
-VARIANT_DX = 1400
-ARRIVE = (0.5, Y0, 9.5, 180)
-ROOM_X = 4000
-RY = 64
-
-GOLD = {
-    "wall": ["minecraft:smooth_sandstone", "minecraft:cut_sandstone", "minecraft:sandstone", "minecraft:smooth_sandstone"],
-    "rib": "minecraft:gold_block", "rib2": "minecraft:raw_gold_block",
-    "niche": "minecraft:ochre_froglight", "frame": "minecraft:gold_block",
-    "door": "minecraft:pearlescent_froglight", "oculus": "minecraft:pearlescent_froglight",
-    "floor": "minecraft:cut_sandstone", "tile": ["minecraft:chiseled_sandstone", "minecraft:cut_red_sandstone",
-                                                 "minecraft:smooth_red_sandstone"],
-    "carpet": "minecraft:red_wool", "glass": "minecraft:yellow_stained_glass", "pedestal": True,
-}
-TEAL = {   # 색 바뀐 판 (reference/자연과학의 층 전경 (색 바뀐 판).jpg)
-    "wall": ["minecraft:polished_deepslate", "minecraft:deepslate_tiles", "minecraft:tuff", "minecraft:polished_deepslate"],
-    "rib": "minecraft:dark_prismarine", "rib2": "minecraft:prismarine_bricks",
-    "niche": "minecraft:sea_lantern", "frame": "minecraft:polished_blackstone",
-    "door": "minecraft:sea_lantern", "oculus": "minecraft:sea_lantern",
-    "floor": "minecraft:polished_deepslate", "tile": ["minecraft:deepslate_tiles", "minecraft:polished_blackstone_bricks",
-                                                       "minecraft:cracked_deepslate_tiles"],
-    "carpet": "minecraft:gray_wool", "glass": "minecraft:light_blue_stained_glass", "pedestal": False,
-}
+DZ = -6
+SX, SZ0, SZ1 = 150, 2.0, 16.0
+PLAT = Y0 + 2
+CAM = F.Camera((0.5, PLAT + 1.62, SZ1 + 7.4), 180.0, 6.0)
+ARRIVE = (0.5, PLAT, SZ1 + 7.4, 180.0, 6.0)
+ART = "reference/자연과학의 층 전경.png"
+SPACE = "natural_science"
+UP = np.array([0, 1.0, 0])
 
 
-def dome(d, ox, pal):
-    """북쪽 반원 돔 (타원 껍질), 갈비살 24줄, 감실 격자, 꼭대기 빛 구멍."""
-    walls = np.array([d.id(s) for s in pal["wall"]])
-    rib, rib2, niche, frame = d.id(pal["rib"]), d.id(pal["rib2"]), d.id(pal["niche"]), d.id(pal["frame"])
-    R = DOME_R + 1
-    xs, zs = np.arange(-R, R + 1), np.arange(-R, 1)
-    X, Z = np.meshgrid(xs, zs, indexing="ij")
-    A = np.arctan2(-Z, X)                                   # 0..pi (동 → 북 → 서)
-    for y in range(Y0 - 1, Y0 + DOME_H + 1):
-        t = (y - (Y0 - 1)) / DOME_H
-        r = DOME_R * math.sqrt(max(0.0, 1 - t * t))
-        rr = np.hypot(X, Z)
-        shell = (rr <= r + 0.5) & (rr > r - 1.0) & (Z <= 0)
-        if t > 0.97:
-            shell = (rr <= r + 0.5) & (Z <= 0)
-        ids = walls[(S.hash01((A * 40).astype(int), np.full_like(X, y // 3), seed=1501) * len(walls)).astype(int)
-                    .clip(0, len(walls) - 1)]
-        k = A / math.pi * 24
-        ids = np.where(np.abs(k - np.round(k)) < 0.06 + 0.5 / max(r, 1), np.where(y % 6 < 3, rib, rib2), ids)
-        # 감실: 각도 격자 × 높이 격자 (아래 70%만), 1×2 빛 + 위 아치 테
-        kk = A / math.pi * 40
-        cell = (np.abs(kk - np.round(kk) - 0.5) < 0.18) & (t < 0.7)
-        yy = (y - Y0) % 9
-        ids = np.where(cell & (yy in (3, 4)), niche, ids)
-        ids = np.where(cell & (yy == 5), frame, ids)
-        if t > 0.94:
-            ids = np.where(rr < DOME_R * 0.12, d.id(pal["oculus"]), ids)
-        d.place(ox - R, y, -R + DZ, np.where(shell, ids, -1)[:, None, :].astype(np.int32))
-    # 돔 바닥
-    disk = (np.hypot(X, Z) <= DOME_R) & (Z <= 0)
-    d.place(ox - R, Y0 - 1, -R + DZ, np.where(disk, d.id(pal["floor"]), -1)[:, None, :].astype(np.int32))
+def mats():
+    m = {}
+    m["art"] = F.mat("ns_art", T.art("art/natural_science", ART), emissive=True, flat=True, ao=False)
+    m["wall"] = F.mat("ns_wall", T.stone_slab("ns_wall", (150, 106, 40), (230, 180, 90), seed=151), emissive=True,
+                      flat=True, ao=False)
+    m["gold"] = F.mat("ns_gold", T.metal("ns_gold", (150, 100, 30), (255, 220, 120), seed=152), emissive=True,
+                      flat=True, ao=False)
+    m["candle"] = F.mat("ns_candle", T.glow("ns_candle", (255, 226, 160)), emissive=True, flat=True, ao=False, glow=3)
+    m["mosaic"] = F.mat("ns_mosaic", T.herringbone("ns_mosaic", (120, 90, 50), (230, 196, 130), brick=(8, 8), seed=153),
+                        emissive=True, flat=True, ao=False)
+    m["carpet"] = F.mat("ns_carpet", T.flat("ns_carpet", (180, 40, 30)), emissive=True, flat=True, ao=False)
+    m["glass"] = F.mat("ns_glass", T.glow("ns_glass", (255, 236, 170)), layer="translucent", emissive=True, flat=True,
+                       ao=False)
+    m["blue"] = F.mat("ns_blue", T.wood("ns_blue", (40, 60, 100), (120, 150, 200), seed=154), emissive=True, flat=True,
+                      ao=False)
+    m["orange"] = F.mat("ns_orange", T.wood("ns_orange", (160, 50, 20), (250, 150, 60), seed=155), emissive=True,
+                        flat=True, ao=False)
+    m["ray"] = F.mat("ns_ray", T.glow("ns_ray", (255, 240, 200)), layer="translucent", emissive=True, flat=True,
+                     ao=False)
+    m["crystal"] = F.mat("ns_crystal", T.glow("ns_crystal", (140, 200, 255)), emissive=True, flat=True, ao=False,
+                         glow=4)
+    m["door"] = F.mat("ns_door", T.glow("ns_door", (255, 246, 220)), emissive=True, flat=True, ao=False, glow=3)
+    return m
 
 
-def arches(d, ox, pal):
-    """겹겹이 작아지는 아치 (돔 안쪽 → 빛나는 뾰족 아치 문)."""
+def dome(m, rng):
+    """북쪽 반원 돔 (안쪽이 앞), 갈비살 24줄, 아치 감실(촛불) 격자, 꼭대기 빛 구멍."""
+    out = []
+    ys = np.linspace(0, DOME_H, 30)
+    prof = [(DOME_R * math.sqrt(max(0.0, 1 - (y / DOME_H) ** 2)) + 0.01, Y0 + y) for y in ys if y < DOME_H * 0.97]
+    q = F.revolve(prof, m["wall"], segs=96, center=(0, 0, DZ), tiles_around=48, tile_up=6.0, arc=(180, 360)).flipped()
+    out.append(q)
+    for k in range(25):                                         # 갈비살
+        a = math.pi + k * math.pi / 24
+        pts = np.array([[math.cos(a) * r, y, DZ + math.sin(a) * r] for r, y in prof])
+        out.append(F.sweep(pts * [0.985, 1, 1] + [0, 0, DZ * 0.015], 0.9, m["gold"], sides=6, step=3.0, tile_along=4))
+    for k in range(40):                                         # 감실: 각도 40칸 × 높이 7줄 (아래 70%)
+        a = math.pi + (k + 0.5) * math.pi / 40
+        for j in range(7):
+            y = 8 + j * 12
+            if y > DOME_H * 0.7:
+                continue
+            r = DOME_R * math.sqrt(max(0.0, 1 - (y / DOME_H) ** 2)) - 0.3
+            n = np.array([-math.cos(a), 0, -math.sin(a)])
+            t = np.array([-math.sin(a), 0, math.cos(a)])
+            c = np.array([math.cos(a) * r, Y0 + y, DZ + math.sin(a) * r])
+            out.append(F.plane(c - t * 1.1 - UP * 1.6 + n * 0.05, t * 2.2, UP * 3.2, m["gold"]).flipped())
+            out.append(F.plane(c - t * 0.7 - UP * 1.2 + n * 0.1, t * 1.4, UP * 2.4, m["candle"]).flipped())
+    out.append(F.revolve([(DOME_R * 0.22, Y0 + DOME_H * 0.97), (DOME_R * 0.12, Y0 + DOME_H + 2)], m["door"], segs=24,
+                         center=(0, 0, DZ), tiles_around=6, tile_up=4.0, arc=(180, 360)).flipped())
+    out.append(F.plane((-DOME_R, Y0, DZ), (2 * DOME_R, 0, 0), (0, 0, -DOME_R), m["mosaic"], tile=(4, 4)).flipped())
+    return out
+
+
+def arches(m):
+    """겹겹이 작아지는 아치 → 빛나는 뾰족 아치 문."""
+    out = []
     for k, z in enumerate(range(DZ - 30, DZ - DOME_R + 4, -10)):
-        w = 46 - k * 5
-        h = 90 - k * 9
-        for x in range(-w, w + 1):
-            top = int(h * math.sqrt(max(0.0, 1 - (x / w) ** 2)) ** 0.8)
-            for t in (0, 1):
-                d.set(ox + x, Y0 + top + t, z, pal["rib"] if t == 0 else pal["rib2"])
-        for xx in (-w, w):
-            d.fill(ox + xx, Y0, z, ox + xx, Y0 + 10, z, pal["rib"])
+        w, h = 46 - k * 5, 90 - k * 9
+        t = np.linspace(-1, 1, 30)
+        pts = np.stack([w * t, Y0 + h * np.sqrt(np.maximum(0, 1 - t ** 2)) ** 0.8, np.full_like(t, z)], 1)
+        out.append(F.sweep(pts, 1.4, m["gold"], sides=6, step=3.0))
     zd = DZ - DOME_R + 2
-    for x in range(-7, 8):                                   # 뾰족 아치 문 (빛)
-        top = int(26 - 10 * (abs(x) / 7) ** 1.6)
-        d.fill(ox + x, Y0, zd, ox + x, Y0 + top, zd, pal["door"])
-    d.fill(ox - 9, Y0 - 1, zd + 1, ox + 9, Y0 - 1, zd + 6, pal["frame"])
-    d.fill(ox - 8, Y0, zd + 4, ox + 8, Y0, zd + 6, pal["tile"][0])       # 문 앞 단
+    xs = np.linspace(-7, 7, 15)
+    G = np.stack([np.stack([xs, np.full_like(xs, Y0), np.full_like(xs, zd)], 1),
+                  np.stack([xs, Y0 + 26 - 10 * (np.abs(xs) / 7) ** 1.6, np.full_like(xs, zd)], 1)], 1)
+    UV = np.stack([np.stack([(xs + 7) / 14 * 0.99, np.zeros(15)], 1), np.stack([(xs + 7) / 14 * 0.99, np.full(15, 0.99)], 1)], 1)
+    out.append(F.grid(G, UV, m["door"], N=np.broadcast_to([0, 0, 1.0], G.shape)))
+    return out
 
 
-def pedestal(d, ox):
-    """가운데 받침대: 금 기둥, 넓은 그릇, 금잔·파란 수정 상자·작은 불꽃."""
-    x, z = ox, DZ - 16
-    d.fill(x - 1, Y0, z - 1, x + 1, Y0, z + 1, "minecraft:chiseled_sandstone")
-    d.fill(x, Y0 + 1, z, x, Y0 + 3, z, "minecraft:gold_block")
-    d.fill(x - 2, Y0 + 4, z - 1, x + 2, Y0 + 4, z + 1, "minecraft:gold_block")
-    d.set(x - 1, Y0 + 5, z, "minecraft:light_blue_stained_glass")
-    d.set(x, Y0 + 5, z, "minecraft:gold_block")
-    d.set(x, Y0 + 6, z, "minecraft:shroomlight")
-    d.set(x + 1, Y0 + 5, z, "minecraft:candle[lit=true,candles=1]")
+def pedestal(m):
+    x, z = 0.5, DZ - 16
+    out = [F.revolve([(1.6, Y0), (1.4, Y0 + 0.6), (0.5, Y0 + 1.0), (0.45, Y0 + 3.4), (1.2, Y0 + 3.8), (2.4, Y0 + 4.4),
+                      (2.5, Y0 + 4.7), (0.01, Y0 + 4.7)], m["gold"], segs=24, center=(x, 0, z), tiles_around=6,
+                     tile_up=2.0)]
+    out.append(F.revolve([(0.3, Y0 + 4.7), (0.12, Y0 + 5.2), (0.5, Y0 + 5.9), (0.55, Y0 + 6.2)], m["gold"], segs=16,
+                         center=(x - 1.2, 0, z), tiles_around=4, tile_up=1.0))
+    out.append(F.box((x - 0.2, Y0 + 4.7, z - 0.35), (x + 0.6, Y0 + 5.6, z + 0.35), m["crystal"]))
+    out.append(F.ellipsoid((x + 1.2, Y0 + 5.2, z), (0.2, 0.45, 0.2), m["candle"], 8, 4))
+    return out
 
 
-def stage(d, ox, pal):
-    """앞 무대: 모자이크 띠 / 붉은 카펫 / 모자이크 띠, 앞 가장자리 금 난간, 앞면 금테 유리판, 아래 휘장 (왼쪽 파랑, 오른쪽 주황)."""
-    tile = np.array([d.id(s) for s in pal["tile"]])
-    xs, zs = np.arange(-STAGE_X, STAGE_X + 1), np.arange(STAGE_Z0 - 8, STAGE_Z1 + 1)
-    X, Z = np.meshgrid(xs, zs, indexing="ij")
-    ids = tile[(S.hash01(X // 2, Z, seed=1511) * len(tile)).astype(int).clip(0, len(tile) - 1)]
-    ids = np.where((Z >= STAGE_Z0 + 4) & (Z <= STAGE_Z1 - 4), d.id(pal["carpet"]), ids)
-    ids = np.where(X % 4 == 0, np.where((Z < STAGE_Z0 + 4) | (Z > STAGE_Z1 - 4), d.id(pal["frame"]), ids), ids)
-    d.place(ox - STAGE_X, Y0 - 1, STAGE_Z0 - 8, ids[:, None, :])
-    zf = STAGE_Z1 + 1
-    d.fill(ox - STAGE_X, Y0 - 1, zf, ox + STAGE_X, Y0 - 1, zf, pal["frame"])
-    d.fill(ox - STAGE_X, Y0, zf, ox + STAGE_X, Y0, zf, "minecraft:light_weighted_pressure_plate")   # 금 난간 윗줄
-    # 앞면: 금테 유리판 (높이 18, 위로 휘는 테)
-    for x in range(-STAGE_X, STAGE_X + 1):
-        d.fill(ox + x, Y0 - 19, zf, ox + x, Y0 - 2, zf, pal["glass"])
-        if x % 40 == 0:
-            d.fill(ox + x, Y0 - 19, zf, ox + x, Y0 - 2, zf, pal["frame"])
-        bend = int(6 * (1 - (((x % 40) - 20) / 20) ** 2))
-        d.set(ox + x, Y0 - 19 + bend, zf, pal["frame"])
-        d.set(ox + x, Y0 - 12 + bend, zf, pal["frame"])
-    d.fill(ox, Y0 - 19, zf, ox, Y0 - 2, zf, pal["frame"])
-    # 휘장: 왼쪽 파랑, 오른쪽 주황 (세로 주름 + 주황엔 빛 줄기)
-    blue = ["minecraft:blue_wool", "minecraft:light_blue_wool", "minecraft:cyan_wool", "minecraft:blue_wool"]
-    orange = ["minecraft:orange_wool", "minecraft:red_wool", "minecraft:orange_wool", "minecraft:yellow_wool"]
-    for x in range(-STAGE_X, STAGE_X + 1):
-        cols = blue if x < 0 else orange
-        st = cols[(x // 2) % len(cols)]
-        bottom = 30 + int(4 * math.sin(x / 6))
-        d.fill(ox + x, bottom, zf + 1 + (x // 2) % 2, ox + x, Y0 - 20, zf + 1 + (x // 2) % 2, st)
-        if x > 0 and x % 9 == 0:
-            d.fill(ox + x, bottom + 5, zf + 2, ox + x, Y0 - 30, zf + 2, "minecraft:ochre_froglight")
+def stage(m):
+    """무대: 모자이크 띠 / 붉은 카펫 / 모자이크 띠, 앞 금 난간, 앞면 금테 유리판."""
+    out = [F.plane((-SX, Y0, SZ1), (2 * SX, 0, 0), (0, 0, SZ0 - 8 - SZ1), m["mosaic"], tile=(2, 2))]
+    out.append(F.plane((-SX, Y0 + 0.02, SZ1 - 4), (2 * SX, 0, 0), (0, 0, -(SZ1 - SZ0 - 8)), m["carpet"], tile=(4, 4)))
+    zf = SZ1
+    out.append(F.sweep(np.array([[-SX, Y0 + 0.3, zf], [SX, Y0 + 0.3, zf]]), 0.3, m["gold"], sides=6, step=8.0, tile_along=8))
+    out.append(F.plane((-SX, Y0 - 19, zf + 0.2), (2 * SX, 0, 0), (0, 18.5, 0), m["glass"], tile=(4, 4)).tint((1, 1, 1), 0.45))
+    for x0 in np.arange(-SX, SX, 20.0):                        # 금테: 세로 + 위로 휘는 테 두 줄
+        out.append(F.box((x0 - 0.3, Y0 - 19, zf), (x0 + 0.3, Y0, zf + 0.5), m["gold"]))
+        for base in (Y0 - 19, Y0 - 12):
+            t = np.linspace(0, 1, 12)
+            arc = np.stack([x0 + 20 * t, base + 6 * (1 - (2 * t - 1) ** 2), np.full_like(t, zf + 0.4)], 1)
+            out.append(F.sweep(arc, 0.25, m["gold"], sides=4, step=2.0))
+    return out
 
 
-def reception(d, ox, pal):
-    dome(d, ox, pal)
-    arches(d, ox, pal)
-    if pal["pedestal"]:
-        pedestal(d, ox)
-    stage(d, ox, pal)
-    for x in range(-60, 61, 12):   # 돔 안 고른 빛 (보이지 않는 빛 블록)
-        for z in range(DZ - 70, DZ, 12):
-            if x * x + (z - DZ) ** 2 < 80 ** 2 and d.get(ox + x, Y0 + 30, z) == "minecraft:air":
-                d.set(ox + x, Y0 + 30, z, "minecraft:light[level=15]")
+def curtains(lay, m, rng):
+    """무대 아래 휘장 (왼쪽 파랑, 오른쪽 주황): 세로 주름 띠, 가까운 쪽은 살랑 흔들림."""
+    out = []
+    zf = SZ1 + 1.2
+    for x0 in np.arange(-SX, SX, 4.0):
+        mat = m["blue"] if x0 < 0 else m["orange"]
+        bottom = 30 + 4 * math.sin(x0 / 6)
+        t = np.linspace(0, 1, 9)
+        path = np.stack([np.full_like(t, x0 + 2), Y0 - 20 - (Y0 - 20 - bottom) * t, np.full_like(t, zf)], 1)
+        rib = F.ribbon(path, 4.2, mat, up=[0, 0, 1], step=4.0, tile_along=8.0)
+        rib = rib.color_by(lambda P, N: 0.75 + 0.25 * np.cos((P[:, 0:1] - x0) * 1.6))
+        if abs(x0) < 40:
+            piv = (x0 + 2, Y0 - 20, zf)
+            lay.mover(F.Mover((int(x0 + 2), int(Y0 - 25), int(zf)), rib, piv, "swing", (1, 0, 0), period=7.0 + rng.random(),
+                              amp=1.2, phase=rng.random()))
+        else:
+            out.append(rib)
+    return out
 
 
-# ---------------------------------------------------------------- 티페리트 방
-RW, RD, RH = 13, 12, 20
-
-
-def tiphereth_room(d, ox=ROOM_X):
-    y0, yt = RY, RY + RH
-    xs, zs = np.arange(ox - RW, ox + RW + 1), np.arange(-RD, RD + 1)
-    X, Z = np.meshgrid(xs, zs, indexing="ij")
-    chk = np.where(((X + Z) % 2) == 0, d.id("minecraft:smooth_quartz"), d.id("minecraft:smooth_sandstone"))
-    chk = np.where(np.abs(X - ox) <= 2, d.id("minecraft:red_wool"), chk)             # 붉은 카펫 길
-    d.place(ox - RW, y0 - 1, -RD, chk[:, None, :])
-    x0, x1, z0, z1 = ox - RW - 1, ox + RW + 1, -RD - 1, RD + 1
-    for (a0, b0, a1, b1) in ((x0, z0, x1, z0), (x0, z1, x1, z1), (x0, z0, x0, z1), (x1, z0, x1, z1)):
-        d.fill(a0, y0, b0, a1, yt, b1, "minecraft:bookshelf")
-        for y in range(y0 + 4, yt, 4):
-            d.fill(a0, y, b0, a1, y, b1, "minecraft:oak_planks")
-        d.fill(a0, y0, b0, a1, y0, b1, "minecraft:stripped_oak_wood")
-    for z in range(-RD, RD + 1, 4):                            # 금빛 기둥
-        d.fill(x0 + 1, y0, z, x0 + 1, yt - 1, z, "minecraft:stripped_oak_log[axis=y]")
-        d.fill(x1 - 1, y0, z, x1 - 1, yt - 1, z, "minecraft:stripped_oak_log[axis=y]")
-    # 갈비 천장 (둥근 나무 살)
-    for z in range(z0, z1 + 1):
-        for x in range(-RW - 1, RW + 2):
-            y = yt + int(5 * math.sqrt(max(0.0, 1 - (x / (RW + 1)) ** 2)))
-            d.set(ox + x, y, z, "minecraft:oak_planks" if z % 3 else "minecraft:stripped_oak_log[axis=x]")
-        for y in range(yt, yt + 6):
-            d.set(x0, y, z, "minecraft:oak_planks")
-            d.set(x1, y, z, "minecraft:oak_planks")
-    # 큰 아치 창 (북쪽 벽) + 마름모 문양·청록 보석 = 다음 층 입구
-    for x in range(-5, 6):
-        top = int(16 + 3 * math.sqrt(max(0.0, 1 - (x / 5) ** 2)))
-        d.fill(ox + x, y0 + 3, z0, ox + x, y0 + top, z0, "minecraft:pearlescent_froglight")
-        if x % 3 == 0:   # 창살 (창 면 안에 — 앞을 막지 않게)
-            d.fill(ox + x, y0 + 3, z0, ox + x, y0 + top - 4, z0, "minecraft:stripped_oak_log[axis=y]")
-    for k in range(-3, 4):                                     # 마름모 테 (창 면 안에)
-        d.set(ox + k, y0 + 15 + (3 - abs(k)), z0, "minecraft:gold_block")
-        d.set(ox + k, y0 + 15 - (3 - abs(k)), z0, "minecraft:gold_block")
-    d.set(ox, y0 + 15, z0, "minecraft:diamond_block")         # 청록 보석
-    # 창 앞 단 3칸 + 둥근 탁자 + 안락의자
-    for k in range(3):
-        d.fill(ox - 6, y0 + k, z0 + 1, ox + 6, y0 + k, z0 + 6 - k * 2, "minecraft:smooth_sandstone")
-        d.fill(ox - 2, y0 + k, z0 + 7 - k * 2, ox + 2, y0 + k, z0 + 7 - k * 2, "minecraft:red_wool")
-    d.set(ox - 1, y0 + 3, z0 + 3, "minecraft:oak_fence")
-    d.set(ox - 1, y0 + 4, z0 + 3, "minecraft:oak_pressure_plate")
-    d.set(ox + 2, y0 + 3, z0 + 3, "minecraft:oak_stairs[facing=east]")
-    d.set(ox + 3, y0 + 4, z0 + 3, "minecraft:oak_trapdoor[facing=west,open=true]")
-    # 사다리 (왼쪽 벽), A자 사다리 (오른쪽), 왼쪽 어두운 아치 문
-    d.fill(x0 + 1, y0, -6, x0 + 1, yt - 2, -6, "minecraft:ladder[facing=east]")
-    d.fill(ox + 8, y0, 5, ox + 8, y0 + 3, 5, "minecraft:ladder[facing=north]")
-    d.fill(ox + 8, y0, 6, ox + 8, y0 + 3, 6, "minecraft:oak_planks")
-    d.fill(x0, y0, 2, x0, y0 + 5, 5, "minecraft:black_concrete")
-    d.fill(x0 + 1, y0 + 5, 2, x0 + 1, y0 + 5, 5, "minecraft:oak_stairs[facing=west,half=top]")
-    # 바닥 책 더미
-    rng = np.random.default_rng(1531)
-    for _ in range(18):
-        x, z = ox + int(rng.integers(-RW + 1, RW)), int(rng.integers(-RD + 7, RD))
-        if abs(x - ox) <= 3 or d.get(x, y0, z) != "minecraft:air":
-            continue
-        for y in range(int(rng.integers(1, 3))):
-            d.set(x, y0 + y, z, ["minecraft:brown_terracotta", "minecraft:yellow_terracotta",
-                                 "minecraft:terracotta"][int(rng.integers(3))])
-    for x in range(-RW + 3, RW, 6):
-        for z in range(-RD + 3, RD, 6):
-            if d.get(ox + x, yt - 2, z) == "minecraft:air":
-                d.set(ox + x, yt - 2, z, "minecraft:light[level=13]")
-    d.set_biome(ox - 40, -40, ox + 40, 40, "ruina:natural_science_room")
+def rays(m):
+    """빛 구멍에서 쏟아지는 빛줄기 (반투명 판)."""
+    out = []
+    rng = np.random.default_rng(5)
+    for k in range(9):
+        a = rng.uniform(-0.9, 0.9)
+        top = np.array([0.5 + 8 * a, Y0 + DOME_H - 4, DZ - 25])
+        bot = np.array([0.5 + 55 * a, Y0, DZ - 10 + rng.uniform(-10, 10)])
+        w = rng.uniform(5, 10)
+        side = np.array([1.0, 0, 0]) * w
+        out.append(F.two_sided(F.Quads(np.array([[top - side * 0.3, top + side * 0.3, bot + side, bot - side]]),
+                                       np.array([[[0, 0], [0.99, 0], [0.99, 0.99], [0, 0.99]]]), M=m["ray"]))
+                   .tint((1, 1, 1), 0.12))
+    return out
 
 
 def build(b):
-    from . import fragment as F
+    from . import fragment as Fr
+    from . import natural_science_room
     d = b.dim("natural_science")
-    reception(d, 0, GOLD)
-    tiphereth_room(d)
-    F.stage(b, d, "gplate", "자연과학의 층", ARRIVE, (ROOM_X + 0.5, RY, RD - 2.5, 180))
-    # 원화 속 출구(빛나는 문·창)는 조형물로만 — 층 사이 이동은 세피라 아이템 (모드)
+    lay = b.form("natural_science")
+    rng = np.random.default_rng(1501)
+    m = mats()
+    near = stage(m) + pedestal(m)
+    far = dome(m, rng) + arches(m) + curtains(lay, m, rng)
+    lights = [((0.5, Y0 + DOME_H, DZ - 20), (1.0, 0.85, 0.5), 260.0)]
+    kit.project_add(lay, CAM, m["art"], near=near, far=far, lights=lights, ambient=(0.7, 0.58, 0.4),
+                    glow_mats=[m["candle"], m["door"], m["crystal"], m["glass"]], min_facing=0.12, far_edge=4.0,
+                    far_min_facing=0.35)
+    for q in rays(m):
+        lay.add(q, max_edge=6.0)
+    lay.add(kit.glass_platform(d, m["glass"], m["gold"], -2.0, 3.0, SZ1 + 5.0, SZ1 + 9.0, PLAT))
+    lay.add(kit.glass_stairs(m["glass"], m["gold"], 4, 5, int(SZ1) + 8, int(SZ1) + 1, PLAT, Y0))
+    kit.art_sky(lay, "ns", CAM, ART, [(-90, (90, 50, 20)), (0, (240, 200, 120)), (40, (250, 220, 150)),
+                                      (90, (255, 240, 200))], cloud_e=(70.0, 80.0), below=(90, 60, 30),
+                zenith=(255, 240, 200))
+    lay.emitter(F.Emitter((-40, Y0 + 2, DZ - 60, 40, Y0 + 60, SZ1), rate=4.0, sprites=("ruina:block/form/paper_gold",),
+                          wind=(0.0, -0.1, 0.0), size=0.1, life=10.0, spin=0.1, color=(1.0, 0.9, 0.6), glow=True))
+    collision(d)
+    room = natural_science_room.build(b, d)
+    Fr.stage(b, d, "gplate", "자연과학의 층", ARRIVE, room,
+             room_box=f"x={natural_science_room.OX - 200},y=-64,z=-1024,dx=400,dy=1024,dz=2048")
     b.extra_checks += [
-        {"what": "티페리트 방 바이옴", "cmd": f"execute in {d.dim} if biome {ROOM_X} {RY} 0 ruina:natural_science_room",
-         "expect": True},
+        {"what": "티페리트 방 바이옴", "cmd": f"execute in {d.dim} if biome {natural_science_room.OX} "
+                                       f"{natural_science_room.Y0} 0 ruina:natural_science_room", "expect": True},
     ]
 
 
-_GOLDSKY = dict(sky=((90, 70, 30), (160, 120, 50)), fog=(150, 110, 50), stars=0, night=False)
-PREVIEW = [
-    {"file": "natural_science_compare_stage.png", "ref": "자연과학의 층 전경.png", "cam": (0.5, Y0 + 3, 40),
-     "look": (0.5, Y0 + 22, -60), "kw": dict(fov=78, max_dist=400, fog_dist=300, **_GOLDSKY),
-     "title": "자연과학의 층 — 원화(위) / 맵(아래): 무대 앞에서 돔 쪽",
-     "notes": ["황금 반원 돔(갈비살·촛불 감실·빛 구멍), 겹 아치 끝 빛나는 문, 받침대 금잔", "무대(모자이크·붉은 카펫), 금테 유리판, 파랑/주황 휘장"]},
-    {"file": "natural_science_compare_room.png", "ref": "자연과학의 층 지정사서 방.png", "cam": (ROOM_X + 0.5, RY + 2.5, RD - 1),
-     "look": (ROOM_X + 0.5, RY + 8, -RD), "kw": dict(fov=80, max_dist=120, sky=((60, 44, 20), (120, 90, 40)),
-                                                      fog=(120, 90, 40), fog_dist=70, stars=0),
-     "title": "티페리트 방 — 원화(위) / 맵(아래)",
-     "notes": ["금빛 책장 벽·사다리, 큰 아치 창(마름모·보석), 붉은 카펫 계단 위 탁자·의자, 체크무늬 바닥"]},
-]
+def collision(d):
+    d.fill(-SX, Y0 - 1, int(SZ0) - 8, SX, Y0 - 1, int(SZ1) - 1, "minecraft:barrier")
+    d.fill(-SX, Y0, int(SZ1), SX, Y0, int(SZ1), "minecraft:barrier")                   # 앞 난간
+    for i in range(720):                                                                # 돔 바닥 + 벽
+        a = math.pi + math.pi * i / 720
+        for r in np.arange(0, DOME_R, 2.0):
+            d.set(int(math.floor(r * math.cos(a))), Y0 - 1, int(math.floor(DZ + r * math.sin(a))), "minecraft:barrier")
+        x, z = int(math.floor(DOME_R * math.cos(a))), int(math.floor(DZ + DOME_R * math.sin(a)))
+        d.fill(x, Y0, z, x, Y0 + 20, z, "minecraft:barrier")
+    kit.stair_collision(d, 4, 5, int(SZ1) + 8, int(SZ1) + 1, PLAT, Y0)
+    d.fill(4, Y0, int(SZ1), 5, Y0, int(SZ1), "minecraft:air")
+
+
+PREVIEW_CAMS = [("무대 위에서 돔", F.Camera((0.5, Y0 + 1.62, 6.0), 180.0, -20.0)),
+                ("돔 안에서 무대", F.Camera((20.0, Y0 + 1.62, -50.0), 20.0, -5.0))]
+
+
+def preview(b):
+    build(b)

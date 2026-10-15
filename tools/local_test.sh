@@ -3,6 +3,7 @@
 #   bash tools/local_test.sh            바닐라 게임 테스트 (약 17분)
 #   bash tools/local_test.sh bsl        + Iris+Sodium+맵 전용 BSL (장소당 5~6분, 소프트웨어 GL)
 #   bash tools/local_test.sh build      건축물·모드 빌드만
+#   bash tools/local_test.sh only <공간>  건축물은 있는 그대로(world.zip) 두고 그 공간만 게임 테스트 (작업 중 확인, 몇 분)
 # 결과: python -m tools.ci modtest → ci_out/mod/ (sheet.jpg, sheet_bsl.jpg, SUMMARY.md)
 # 주의: 이 환경의 Xvfb 에서는 GLX 창을 못 만듦 ("Couldn't find matching GLX visual") → SDL 을 EGL 로 (SDL_VIDEO_FORCE_EGL=1)
 set -e
@@ -27,7 +28,9 @@ cd mod
 R=build/run/clientGameTest
 rm -rf build/vanilla
 set +e
-xvfb-run -a -s "-screen 0 1920x1080x24" ./gradlew runClientGameTest > build/gametest_gradle.log 2>&1
+ONLY=""
+[ "$1" = only ] && ONLY="-Ponly=$2"
+xvfb-run -a -s "-screen 0 1920x1080x24" ./gradlew runClientGameTest $ONLY > build/gametest_gradle.log 2>&1
 export GAMETEST_OUTCOME=$([ $? = 0 ] && echo success || echo failure)
 if [ "$1" = bsl ]; then
   mkdir -p build/vanilla && cp -r $R/screenshots $R/ruina_test.txt $R/logs/latest.log build/vanilla/

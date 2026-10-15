@@ -83,6 +83,7 @@ public final class FormStore {
 	private static final Map<String, Optional<FormData>> REGIONS = new ConcurrentHashMap<>();
 	private static final Map<String, Map<Long, MoverSpec>> MOVERS = new ConcurrentHashMap<>();
 	private static final Map<String, List<EmitterSpec>> EMITTERS = new ConcurrentHashMap<>();
+	private static final Map<String, Optional<FormData>> SKIES = new ConcurrentHashMap<>();
 
 	public static void clear() {
 		materials = null;
@@ -90,6 +91,7 @@ public final class FormStore {
 		REGIONS.clear();
 		MOVERS.clear();
 		EMITTERS.clear();
+		SKIES.clear();
 	}
 
 	/** 지금 차원이 형체가 있는 도서관 공간이면 그 이름, 아니면 null. */
@@ -139,6 +141,11 @@ public final class FormStore {
 	public static FormData region(String space, int rx, int rz) {
 		return REGIONS.computeIfAbsent(space + "/r." + rx + "." + rz, k -> Optional.ofNullable(load("forms/" + k + ".bin")))
 				.orElse(null);
+	}
+
+	/** 그린 하늘 (sky.bin, 카메라 기준 좌표). 없으면 null. */
+	public static FormData sky(String space) {
+		return SKIES.computeIfAbsent(space, k -> Optional.ofNullable(load("forms/" + k + "/sky.bin"))).orElse(null);
 	}
 
 	public static MoverSpec mover(String space, long posKey) {

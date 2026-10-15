@@ -14,9 +14,10 @@ import ruina.library.client.form.Ambient;
 import ruina.library.client.form.FormModel;
 import ruina.library.client.form.FormStore;
 import ruina.library.client.form.MoverRenderer;
+import ruina.library.client.form.PaintedSky;
 import ruina.library.form.Forms;
 
-/** 내 화면 쪽: 이펙트 받기 + 화면 위에 그리기, 자유 형체(형체 블록 모델·움직이는 형체·종이 파티클). */
+/** 내 화면 쪽: 이펙트 받기 + 화면 위에 그리기, 자유 형체(형체 블록 모델·움직이는 형체·종이 파티클·그린 하늘). */
 public class RuinaClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
@@ -29,5 +30,6 @@ public class RuinaClient implements ClientModInitializer {
 		});
 		BlockEntityRenderers.register(Forms.MOVER_ENTITY, c -> new MoverRenderer());
 		ClientTickEvents.END_CLIENT_TICK.register(Ambient::tick);
+		PaintedSky.init();
 	}
 }

@@ -34,6 +34,7 @@ MAX_EDGE = 1.0               # 칸 배정 전 면 최대 변 길이 (블록)
 FORM_BLOCK = "ruina:form"
 MOVER_BLOCK = "ruina:mover"
 BARRIER = "minecraft:barrier"
+HALF_SOLID = "minecraft:petrified_oak_slab[type=bottom,waterlogged=false]"   # 아래 반 칸 충돌 자리 표시
 LAYERS = ("solid", "cutout", "translucent")
 
 
@@ -473,6 +474,24 @@ def bake_light(q: Quads, sun=(-0.4, 0.8, 0.45), sun_rgb=(1.0, 0.95, 0.85), sky_r
     return q.color_by(fn)
 
 
+def bake_points(q: Quads, lights, ambient=(0.25, 0.2, 0.18), ao_floor: float | None = None) -> Quads:
+    """등불 빛을 꼭짓점 색에 구움 (방 안 따뜻한 빛 웅덩이): lights = [(위치, (r,g,b) 세기, 반지름)].
+    세기 = rgb × (1 - 거리/반지름)² × 면이 빛을 향하는 정도(0.35~1). ambient = 기본 밝기.
+    ao_floor: 이 높이 아래로 갈수록 살짝 어둡게 (바닥 구석)."""
+    def fn(P, N):
+        c = np.broadcast_to(np.asarray(ambient, float), P.shape).copy()
+        for pos, rgb, rad in lights:
+            d = np.asarray(pos, float) - P
+            dist = np.linalg.norm(d, axis=1, keepdims=True)
+            fall = np.clip(1 - dist / rad, 0, 1) ** 2
+            face = 0.35 + 0.65 * np.clip((N * d).sum(1, keepdims=True) / np.maximum(dist, 1e-6), 0, 1)
+            c += np.asarray(rgb, float) * fall * face
+        if ao_floor is not None:
+            c *= np.clip(0.7 + 0.3 * (P[:, 1:2] - ao_floor), 0.7, 1.0)
+        return c
+    return q.color_by(fn)
+
+
 def gradient_y(q: Quads, y0: float, y1: float, c0, c1) -> Quads:
     """높이에 따라 색 배수 (아래 c0 → 위 c1)."""
     c0, c1 = np.asarray(c0, float), np.asarray(c1, float)
@@ -571,18 +590,23 @@ def zbuffer(qs: list[Quads], cam: Camera, W: int = 640, H: int = 360) -> np.ndar
 
 
 def project_scene(parts: list[Quads], cam: Camera, art_mat: int, occluders: list[Quads] = (), zres=(640, 360),
-                  **kw) -> list[Quads]:
-    """여러 면 묶음에 한꺼번에 원화 투영 (Z버퍼 한 번). 반환: 투영한 면 묶음들 (같은 순서)."""
+                  masks: list | None = None, **kw) -> list[Quads]:
+    """여러 면 묶음에 한꺼번에 원화 투영 (Z버퍼 한 번). masks: 묶음마다 원화 마스크 (None = 제한 없음).
+    반환: 투영한 면 묶음들 (같은 순서)."""
     zb = zbuffer([*parts, *occluders], cam, *zres)
-    return [project_art(q, cam, art_mat, zres=zres, zb=zb, **kw)[0] for q in parts]
+    masks = masks or [None] * len(parts)
+    return [project_art(q, cam, art_mat, zres=zres, zb=zb, mask=m, **kw)[0] for q, m in zip(parts, masks)]
 
 
 def project_art(target: Quads, cam: Camera, art_mat: int, occluders: list[Quads] = (), zres=(640, 360),
                 tol: float = 0.02, min_facing: float = 0.02, margin: float = 0.03, keep_color: bool = False,
-                zb: np.ndarray | None = None) -> tuple[Quads, np.ndarray]:
+                zb: np.ndarray | None = None, mask: np.ndarray | None = None,
+                min_seen: int = 4) -> tuple[Quads, np.ndarray]:
     """원화 투영: 카메라에서 보이는 target 면에 원화(art_mat 의 스프라이트)를 화면 좌표로 입힘.
     occluders: 가리는 면 (target 은 자동 포함). zb: 미리 만든 Z버퍼 (project_scene). 반환: (새 면 묶음, 투영된 면 표시 bool).
-    보이지 않거나 화면 밖 면은 원래 재질 그대로 (뒷면·가린 곳은 직접 만든 텍스처)."""
+    보이지 않거나 화면 밖 면은 원래 재질 그대로 (뒷면·가린 곳은 직접 만든 텍스처).
+    mask: 원화 크기 bool 그림 (True = 이 형체가 원화에서 차지하는 곳) → 꼭짓점 3개 이상이 마스크 안인 면만 투영
+    (다른 물체의 원화 색이 묻지 않게: 예) 탑 가장자리에 하늘 색)."""
     W, H = zres
     if zb is None:
         zb = zbuffer([target, *occluders], cam, W, H)
@@ -599,8 +623,13 @@ def project_art(target: Quads, cam: Camera, art_mat: int, occluders: list[Quads]
     # 허용 깊이: 픽셀 하나가 덮는 깊이 차 (비스듬한 면일수록 큼) + 여유
     pix = 2 * math.tan(math.radians(cam.fov) / 2) / H
     slack = (2.0 * Z * pix / np.maximum(cosv, 0.05)[:, None]) + Z * tol + 0.15
-    seen = (Z <= zb[yi, xi] + slack).sum(1) >= 4
+    seen = (Z <= zb[yi, xi] + slack).sum(1) >= min_seen
     sel = inside & facing & seen
+    if mask is not None:
+        mh, mw = mask.shape
+        mx = np.clip((sx * mw).astype(int), 0, mw - 1)
+        my = np.clip((sy * mh).astype(int), 0, mh - 1)
+        sel &= mask[my, mx].sum(1) >= 3
     q = target.copy()
     q.M[sel] = art_mat
     q.UV[sel] = np.stack([np.clip(sx[sel], 0, 1), np.clip(sy[sel], 0, 1)], -1)
@@ -648,15 +677,21 @@ class FormLayer:
     def __init__(self, space_id: str, dim):
         self.space = space_id
         self.dim = dim
-        self.parts: list[Quads] = []
+        self.parts: list[tuple[Quads, float]] = []
+        self.sky_mesh: Quads | None = None
         self.movers: list[Mover] = []
         self.emitters: list[Emitter] = []
         self.cells = None        # finalize 결과
         self.stats = {}
 
-    def add(self, q: Quads):
+    def add(self, q: Quads, max_edge: float = MAX_EDGE):
+        """형체 추가. max_edge: 칸 배정 전 나눌 면 크기 (먼 곳·큰 면은 2~4 로 면 수를 줄임, 최대 8)."""
         if len(q):
-            self.parts.append(q)
+            self.parts.append((q, min(float(max_edge), 8.0)))
+
+    def sky(self, q: Quads):
+        """그린 하늘 (카메라 기준 좌표의 구, 반지름 아무거나): 매 프레임 카메라 자리에 가장 먼 깊이로 그림 (안개 없음)."""
+        self.sky_mesh = q if self.sky_mesh is None else concat([self.sky_mesh, q])
 
     def mover(self, m: Mover):
         self.movers.append(m)
@@ -671,12 +706,19 @@ class FormLayer:
     def solid_box(self, x0, y0, z0, x1, y1, z1):
         self.dim.fill(x0, y0, z0, x1, y1, z1, BARRIER)
 
+    def half_box(self, x0, y0, z0, x1, y1, z1):
+        """아래 반 칸만 충돌하는 칸 (형체 계단 한 단 = 반 칸 → 점프 없이 오름)."""
+        self.dim.fill(x0, y0, z0, x1, y1, z1, HALF_SOLID)
+
     # ---------------------------------------------- 칸 배정
     def finalize(self):
-        q = subdivide(concat(self.parts))
+        q = concat([subdivide(p, e) for p, e in self.parts])
         d = self.dim
-        n0 = len(q)
         cell = np.floor(q.P.mean(1) + 1e-7).astype(np.int64)
+        inside = (cell[:, 1] >= d.min_y + 1) & (cell[:, 1] < d.min_y + d.height - 1)    # 차원 높이 밖 면은 버림
+        out_of_range = int((~inside).sum())
+        q, cell = q.take(inside), cell[inside]
+        n0 = len(q)
         ok_state = _placeholder_ids(d)
         dropped = 0
         moved = 0
@@ -731,7 +773,7 @@ class FormLayer:
         d.extra_chunks |= {(int(p[0]) >> 4, int(p[2]) >> 4) for p in mcells}
         states = [d.get(*map(int, c)) for c in ucell]
         self.anchor_states = [_anchor_state(s, int(g)) for s, g in zip(states, glow)]
-        self.stats = {"면": len(q), "칸": len(uk), "옮김": moved, "버림": dropped, "움직임": len(self.movers),
+        self.stats = {"면": len(q), "칸": len(uk), "옮김": moved, "버림": dropped + out_of_range, "움직임": len(self.movers),
                       "파티클": len(self.emitters)}
         return self.stats
 
@@ -761,6 +803,13 @@ class FormLayer:
                            "motion": m.motion, "axis": [float(v) for v in _unit(np.asarray(m.axis, float))],
                            "period": m.period, "amp": m.amp, "phase": m.phase,
                            "radius": float(m.radius or ext * math.sqrt(3))})
+        sky = os.path.join(out, "sky.bin")
+        if self.sky_mesh is not None and len(self.sky_mesh):
+            ext = float(np.abs(self.sky_mesh.P).max())
+            _write_cells(sky, self.sky_mesh, np.zeros((1, 3), np.int64), np.array([0]), np.array([len(self.sky_mesh)]),
+                         scale=32000.0 / ext)
+        elif os.path.exists(sky):
+            os.remove(sky)
         with open(os.path.join(out, "movers.json"), "w") as f:
             json.dump(movers, f)
         with open(os.path.join(out, "emitters.json"), "w") as f:
@@ -796,7 +845,8 @@ def _placeholder_ids(d) -> np.ndarray:
     """팔레트 번호 → 형체 블록 자리로 쓸 수 있나 (공기·barrier·light)."""
     ok = np.zeros(len(d.palette) + 1, bool)
     for i, s in enumerate(d.palette):
-        ok[i] = s == "minecraft:air" or s == BARRIER or s.startswith("minecraft:light[") or s == "minecraft:light"
+        ok[i] = (s == "minecraft:air" or s == BARRIER or s == HALF_SOLID or s.startswith("minecraft:light[")
+                 or s == "minecraft:light")
     return ok
 
 
@@ -811,13 +861,15 @@ def _neighbor_order(fn) -> np.ndarray:
 
 
 def _anchor_state(placeholder: str, glow: int) -> str:
-    solid = placeholder == BARRIER
+    solid = placeholder in (BARRIER, HALF_SOLID)
+    half = placeholder == HALF_SOLID
     light = 0
     if placeholder.startswith("minecraft:light"):
         light = 15
         if "level=" in placeholder:
             light = int(placeholder.split("level=")[1].split(",")[0].rstrip("]"))
-    return f"{FORM_BLOCK}[glow={glow},light={light},solid={'true' if solid else 'false'}]"
+    return (f"{FORM_BLOCK}[glow={glow},half={'true' if half else 'false'},light={light},"
+            f"solid={'true' if solid else 'false'}]")
 
 
 def _write_cells(path, q: Quads, cell_pos, start, count, scale: float = CELL_SCALE):
@@ -936,13 +988,19 @@ def inject(world_dir: str, anchors: dict[str, dict]) -> dict:
                 for it in items:
                     by_sec.setdefault(it[1] >> 4, []).append(it)
                 for sy, its in by_sec.items():
-                    sec = secs[sy]
+                    sec = secs.get(sy)
+                    if sec is None:      # 서버가 저장하지 않은 빈 구역 → 공기 구역을 새로 (바이옴은 가까운 구역 것)
+                        near = min(secs, key=lambda k: abs(k - sy))
+                        sec = {"Y": nbt.Byte(sy), "biomes": secs[near]["biomes"],
+                               "block_states": {"palette": nbt.List([{"Name": AIR}])}}
+                        ch["sections"].append(sec)
+                        secs[sy] = sec
                     arr = decode_section_blocks(sec)
                     if arr is None:
                         arr = np.full((16, 16, 16), AIR, dtype=object)
                     for x, y, z, st in its:
                         cur = arr[y & 15, z & 15, x & 15]
-                        if not (cur == AIR or cur == BARRIER or cur.startswith("minecraft:light")):
+                        if not (cur == AIR or cur == BARRIER or cur == HALF_SOLID or cur.startswith("minecraft:light")):
                             stats["자리 아님"] += 1
                             continue
                         arr[y & 15, z & 15, x & 15] = st
@@ -973,6 +1031,7 @@ def render_preview(qs: list[Quads], cam: Camera, W: int = 960, H: int = 540, bg=
     """형체 원근 미리보기 (PIL 이미지). 텍스처는 등록된 forms 텍스처 (바닐라 스프라이트는 회색).
     emissive·flat 재질은 색 그대로, 나머지는 간단한 램버트."""
     from PIL import Image
+    qs = [q.take(q.C[..., 3].mean(1) >= 0.5) for q in qs]        # 반투명(유리·안개)은 미리보기에서 뺌
     q, (pix, z, qi, s, t) = _splat_points(qs, cam, W, H)
     img = np.empty((H * W, 3))
     img[:] = bg

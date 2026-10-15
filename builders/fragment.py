@@ -81,15 +81,15 @@ CHAIN: list = []
 
 
 def stage(b, d, key, title, scene, room, room_box=ROOM_BOX, to_a=None, to_b=None, scene_name=None, room_name=None):
-    """층 등록: 전경·방 자리 + 방전환. scene/room = (x, y, z, yaw).
+    """층 등록: 전경·방 자리 + 방전환. scene/room = (x, y, z, yaw[, pitch]).
     to_a/to_b 를 주면 그 이동(예: 같은 상대 위치)을 쓰고, 없으면 고정 자리로."""
     L = b.links
     name = d.dim.split(":")[1]
     sn, rn = scene_name or f"{name}_entrance", room_name or f"{name}_room"
-    ex, ey, ez, eyaw = scene
-    rx, ry, rz, ryaw = room
-    L.anchor(sn, d.dim, ex, ey, ez, yaw=eyaw, title=title)   # 제목은 암전으로 올 때만 (세피라·정문)
-    L.anchor(rn, d.dim, rx, ry, rz, yaw=ryaw, title=title)
+    ex, ey, ez, eyaw, *ep = scene
+    rx, ry, rz, ryaw, *rp = room
+    L.anchor(sn, d.dim, ex, ey, ez, yaw=eyaw, pitch=(ep or [0.0])[0], title=title)   # 제목은 암전으로 올 때만
+    L.anchor(rn, d.dim, rx, ry, rz, yaw=ryaw, pitch=(rp or [0.0])[0], title=title)
     st = Stage(key, d.dim, title, sn, rn, room_box)
     CHAIN.append(st)
     setup(L, key, d.dim, room_box, to_a=list(to_a or fixed(sn)), to_b=list(to_b or fixed(rn)))

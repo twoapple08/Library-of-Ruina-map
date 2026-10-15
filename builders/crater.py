@@ -56,7 +56,7 @@ def terraces(d, seed=91):
     pave = np.array([d.id(s) for s in PAVE])
     street = d.id(STREET)
     # 분화구 바닥 (광장 바깥 ~ 첫 옹벽)
-    for x0, z0, m, rr, ang in _ring_cells(108 * K, RINGS[0] * K):
+    for x0, z0, m, rr, ang in _ring_cells(134.5, RINGS[0] * K):   # 광장(형체 판자, r 134) 바깥부터
         ids = np.where(m, pave[1], -1)
         d.place(x0, FLOOR_Y, z0, ids[:, None, :])
     for i, top in enumerate(TOPS):
@@ -228,65 +228,3 @@ def ring_landmark(seed=121):
                        int(pz + 9 * K)).with_(paint=S.mix(["minecraft:blackstone", "minecraft:polished_blackstone",
                                                            "minecraft:basalt[axis=y]"], seed=seed + 1)))
     return parts
-
-
-# ---------------------------------------------------------------- 빛기둥 (건축물)
-
-SPIRE_CORE = (["minecraft:ochre_froglight", "minecraft:glowstone", "minecraft:pearlescent_froglight",
-               "minecraft:sea_lantern"], [50, 25, 15, 10])
-
-
-def light_spire(d, top_y: int, y_end: int | None = None, seed=131):
-    """탑 꼭대기에서 하늘 끝까지 솟는 빛기둥 건축물 (신호기 대신, 테스터 의견).
-
-    - 받침: 꼭대기 테두리에서 가운데 기둥으로 모이는 검은 갈비살 8개 + 금빛 고리 (등불 갓 모양)
-    - 기둥: 발광 블록 (겉 한 겹만), 위로 갈수록 가늘어짐 (반지름 15 → 6). 유리 겹·금 테는 없앰 (테스트 3차)
-    반환: 기둥 꼭대기 y
-    """
-    rng = np.random.default_rng(seed)
-    y_end = (d.min_y + d.height - 1) if y_end is None else y_end
-    y0 = top_y - 2
-    core_ids = np.array([d.id(x) for x in SPIRE_CORE[0]])
-    cw = np.cumsum(SPIRE_CORE[1]) / np.sum(SPIRE_CORE[1])
-    yel, white = d.id("minecraft:yellow_stained_glass"), d.id("minecraft:white_stained_glass")
-    band = d.id("minecraft:gold_block")
-    # 원화의 빛기둥은 탑 몸통만큼 굵음 → 흰 유리 겹 반지름 15 → 6
-    R = 17
-    xs = np.arange(-R, R + 1)
-    X, Z = np.meshgrid(xs, xs, indexing="ij")
-    rr = np.hypot(X, Z)
-    for y in range(y0, y_end + 1):
-        t = (y - y0) / max(1, y_end - y0)
-        # 테스트 3차 ⑫: 유리 겉감싸기·금 테 없이 원화처럼 빛나는 기둥만 (반지름 15 → 6, 겉 한 겹만)
-        rc = 15.0 - 9.0 * t ** 0.8
-        layer = np.full(X.shape, -1, np.int32)
-        h = S.hash01(X, np.full_like(X, y), Z, seed=seed)
-        skin = (rr <= rc) & (rr > rc - 1.3)
-        layer[skin] = core_ids[np.searchsorted(cw, h[skin]).clip(0, len(core_ids) - 1)]
-        if y == y0:
-            layer[rr <= rc] = band
-        d.place(-R, y, -R, layer[:, None, :])
-    # 받침 갈비살: 몸통 꼭대기 테두리 → 기둥 (y0 + 40)
-    from builders.exterior import STONE, body_radius
-    rim = float(body_radius(top_y)) - 1.5
-    parts = []
-    mat = S.mix(["minecraft:polished_blackstone", "minecraft:polished_blackstone_bricks", "minecraft:gilded_blackstone"],
-                [6, 3, 1], seed=seed)
-    for k in range(8):
-        a = k * math.pi / 4 + 0.2
-        o = np.array([math.cos(a), 0, math.sin(a)])
-        p0 = o * rim + np.array([0, top_y - 6.0, 0])
-        p3 = o * 16.0 + np.array([0, y0 + 42.0, 0])
-        p1 = o * (rim + 4) + np.array([0, top_y + 14.0, 0])
-        p2 = o * 19.0 + np.array([0, y0 + 26.0, 0])
-        pts = S.resample(S.bezier(p0, p1, p2, p3, 60), 1.0)
-        parts.append(S.Tube(pts, np.linspace(2.4, 1.2, len(pts))).with_(paint=mat, smooth=STONE))
-    ring_y = top_y + 4.0
-    t = np.linspace(0, 2 * math.pi, 160)
-    ring = np.c_[(rim + 1.5) * np.cos(t), np.full_like(t, ring_y), (rim + 1.5) * np.sin(t)]
-    parts.append(S.Tube(ring, 1.6).with_(paint="minecraft:gold_block", smooth=None))
-    t2 = np.linspace(0, 2 * math.pi, 80)
-    ring2 = np.c_[17.0 * np.cos(t2), np.full_like(t2, y0 + 30.0), 17.0 * np.sin(t2)]
-    parts.append(S.Tube(ring2, 1.3).with_(paint="minecraft:gold_block", smooth=None))
-    S.carve(d, S.Union(*parts), shell=1, smooth=True, only_air=True)
-    return y_end

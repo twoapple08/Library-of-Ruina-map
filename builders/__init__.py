@@ -109,8 +109,6 @@ def build_all(only: list[str] | None = None) -> Build:
     philosophy.build(b)
     religion.build(b)
     general.build(b)
-    from . import form_showcase
-    form_showcase.build(b)  # 자유 형체 기반 시험대 (임시, 외부 구석 공중)
     fragment.finish(b)      # 방전환 디스패처 (모드 전용 함수)
     b.light_stats = lighting.light_all(b)   # 걸어 다니는 곳에 보이지 않는 빛 블록 (테스트 3차: 너무 어두움)
     b.form_stats = b.forms.finalize()       # 자유 형체 → 칸 배정 (형체 블록 자리는 공기·barrier·light 로 표시, 서버 저장 뒤 inject)
