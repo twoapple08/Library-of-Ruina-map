@@ -5,7 +5,8 @@
 - 원화에 안 보이는 쪽(뒤·옆·위)은 직접 만든 텍스처(판자·나무껍질)와 미리 구운 밤빛 (원화 색조에 맞춤)
 - 하늘·먼 도시는 그린 하늘(모드: 안개 없이 가장 먼 깊이) = 가지를 지운 원화 + 둘레로 이어지는 절차 그림
 - 걷는 곳·충돌: 광장·계단은 블록 / 탑·가지·종이 더미는 barrier (보이는 모습은 형체)
-좌표: 탑 중심 (0, 0), 광장 윗면 y=0, 정문은 남쪽(+Z). 분화구·도시·고리·구름은 builders/crater.py (블록).
+좌표: 탑 중심 (0, 0), 광장 윗면 y=0, 정문은 남쪽(+Z).
+분화구·도시·고리·구름은 builders/exterior_surroundings.py (형체, 충돌만 barrier).
 """
 from __future__ import annotations
 
@@ -14,6 +15,7 @@ import math
 import numpy as np
 
 import config
+from builders import detail as D
 from tools import artfit as A
 from tools import form_textures as T
 from tools import forms as F
@@ -65,9 +67,13 @@ def _materials():
                        emissive=True, flat=True, ao=False)
     m["plaza"] = F.mat("ext_plaza", T.planks("ext_plaza", (26, 22, 24), (70, 60, 58), boards=4, seed=41),
                        emissive=True, flat=True, ao=False)
+    m["plaza_edge"] = F.mat("ext_plaza_edge", T.stone_slab("ext_plaza_edge", (20,22,29), (60,62,76), seed=42),
+                            emissive=True, flat=True, ao=False)
     m["beam"] = F.mat("ext_beam", T.glow("ext_beam", (255, 236, 190), 16), emissive=True, flat=True, ao=False, glow=3)
     m["beam_halo"] = F.mat("ext_beam_halo", T.glow("ext_beam_halo", (255, 220, 150), 16), layer="translucent",
                            emissive=True, flat=True, ao=False)
+    m["pages"] = F.mat("ext_pages", T.paper("ext_pages", c=(238, 207, 148), lines=False),
+                       emissive=True, flat=True, ao=False)
     T.paper("paper_0")
     T.paper("paper_1", c=(250, 236, 200), lines=False, seed=9)
     T.paper("paper_gold", c=(255, 214, 120), lines=False, seed=10)
@@ -180,8 +186,18 @@ def tower(m):
     parts.append(F.plane((x0 - 0.3, y1 + 0.2, zf), (x1 - x0 + 0.6, 0, 0), (0, 0, zd - zf), m["dark"]))
     xm = (x0 + x1) / 2
     for a, b in ((x0, xm - 0.15), (xm + 0.15, x1)):
-        parts.append(F.plane((a, y0, zd), (b - a, 0, 0), (0, y1 - y0, 0), m["door"], tile=(4, 4)))
-    parts.append(F.plane((xm - 0.15, y0, zd - 0.05), (0.3, 0, 0), (0, y1 - y0, 0), m["dark"]))
+        # 닫힌 문짝: 빛나는 판넬에 안팎 두께, 세로 테두리, 손잡이.
+        parts.append(D.beveled_box((a, y0, zd-0.32), (b, y1, zd), m["door"], 0.035))
+        for x in (a, b-0.065):
+            parts.append(D.beveled_box((x, y0, zd), (x+0.065, y1, zd+0.075), m["ledge"], 0.018))
+        hx = b-0.22 if a == x0 else a+0.22
+        parts.append(D.beveled_box((hx, 6.2, zd+0.08), (hx+0.09, 7.4, zd+0.23), m["ledge"], 0.025))
+    parts.append(D.beveled_box((xm-0.15, y0, zd-0.4), (xm+0.15, y1, zd-0.05), m["dark"]))
+    # 문 주위: 겹친 문설주·상인방·받침. 보행 구역은 침범하지 않는다.
+    for x in (x0-0.65, x1+0.3):
+        parts.append(D.beveled_box((x, y0-0.12, zd-0.3), (x+0.35, y1+0.55, zf+0.1), m["ledge"], 0.09))
+        parts.append(D.beveled_box((x-0.18, 0, zd-0.4), (x+0.53, y0-0.12, zf+0.24), m["boards"][1], 0.08))
+    parts.append(D.beveled_box((x0-0.65, y1+0.2, zd-0.3), (x1+0.65, y1+0.65, zf+0.14), m["ledge"], 0.09))
     return parts
 
 
@@ -192,10 +208,9 @@ def windows(m, view: A.ArtView, fit, seed=5):
 
     def place(th, yc, w, h, mat, rad=None):
         r = (float(body_radius(yc)) + 1.2) if rad is None else rad
-        n = np.array([math.cos(th), 0, math.sin(th)])
-        t = np.array([-math.sin(th), 0, math.cos(th)])
-        c = n * r + UP * yc
-        return F.plane(c - t * w / 2 - UP * h / 2, t * w, UP * h, mat, tile=(max(w, 0.5), max(h, 0.5)))
+        # 기존 벽을 파괴하지 않는 돌출식 창. 벽의 최대 돌출 1.65보다 유리를 바깥에 둔다.
+        q = D.casement(w, h, m["ledge"], mat, m["dark"], depth=0.65)
+        return D.radial(q, th, r+1.3, yc)
 
     front = []
     for x0, y0, x1, y1 in fit["windows"]:
@@ -240,8 +255,17 @@ def windows(m, view: A.ArtView, fit, seed=5):
         for k in range(2):
             x = BAY_C[0] + side * (3.6 + k * 2.0)
             z = BAY_C[1] + math.sqrt(max(BAY_R ** 2 - (x - BAY_C[0]) ** 2, 0)) + 0.45
-            out.append(F.plane((x - 0.6, 3.0, z), (1.2, 0, 0), (0, 1.8, 0), m["window"]))
-    return out
+            th = math.atan2(z-BAY_C[1], x-BAY_C[0])
+            out.append(D.radial(D.casement(1.2, 1.8, m["ledge"], m["window"], m["dark"], depth=0.55),
+                                th, BAY_R+1.1, 3.9, BAY_C))
+    # 발광 유리는 제 색을 유지하고 창틀/창턱에는 방향별 밤빛을 굽는다.
+    result = []
+    for q in out:
+        baked = night(q)
+        glow = np.isin(q.M, [m["window"], m["slit"]])
+        baked.C[glow] = q.C[glow]
+        result.append(baked)
+    return result
 
 
 # ---------------------------------------------------------------- 가지·뿌리 (뒤쪽·수관은 절차, 앞쪽은 원화)
@@ -288,9 +312,10 @@ def _front(th, deg=62):
 
 def procedural_branches(rng):
     """뒤·옆 가지 (원화가 덮는 정면 ±62° 는 빼고), 수관(꼭대기 둘레 전부), 갈래. [(점, 반지름)]"""
-    out = []
+    out, families = [], []
     golden = math.pi * (3 - math.sqrt(5))
     for i in range(46):
+        first = len(out)
         u = rng.random() ** 0.8
         h = 45 + (TOP - 50) * u
         th = i * golden + rng.uniform(-0.25, 0.25)
@@ -318,8 +343,10 @@ def procedural_branches(rng):
             cp, cr, _ = _limb(rng, main[k], cdir, reach * rng.uniform(0.25, 0.45), reach * rng.uniform(-0.15, 0.2),
                               rr, max(1.1, rr * 0.55), _curl_dir(rng, cdir), max(2.6, rr * 2.2), rng.uniform(1.3, 2.2))
             out.append((cp, cr))
+        families.append((first, len(out), p0))
     # 수관: 꼭대기에서 꽃병처럼 위·바깥으로 (위치 전경 원화)
     for i in range(14):
+        first = len(out)
         th = i * 2 * math.pi / 14 + rng.uniform(-0.15, 0.15)
         o = np.array([math.cos(th), 0, math.sin(th)])
         y0 = TOP - rng.uniform(6, 26)
@@ -338,7 +365,36 @@ def procedural_branches(rng):
             cp, cr, _ = _limb(rng, main[k], cdir, reach * rng.uniform(0.18, 0.38), reach * rng.uniform(-0.1, 0.12),
                               rr, max(1.1, rr * 0.55), _curl_dir(rng, cdir), max(2.6, rr * 2.2), rng.uniform(1.4, 2.2))
             out.append((cp, cr))
-    return out
+        families.append((first, len(out), p0))
+    # 뒤쪽을 채우는 절차 가지가 도착 시점에서 원화 바깥으로 크게 튀어나오던 문제.
+    # 부모와 모든 갈래를 한꺼번에 줄여 연결을 유지한다. 고정 기하이므로 다른 시점에서도 실제 가지다.
+    mask = _dilate(A.load_mask("exterior"), 2)
+    right, up = CAM.basis()[1:]
+
+    def fits(family):
+        visible, outside = 0, 0
+        for P, R in family:
+            # 중심선뿐 아니라 굵기까지 원화 실루엣 안인지 검사한다.
+            P, R = np.asarray(P), np.asarray(R)
+            samples = np.concatenate([P, P+R[:, None]*right, P-R[:, None]*right,
+                                      P+R[:, None]*up, P-R[:, None]*up])
+            x, y, z = CAM.project(samples)
+            on = (x >= 0) & (x < 1) & (y >= 0) & (y < 1) & (z > .05)
+            xi = np.clip((x*mask.shape[1]).astype(int), 0, mask.shape[1]-1)
+            yi = np.clip((y*mask.shape[0]).astype(int), 0, mask.shape[0]-1)
+            visible += int(on.sum())
+            outside += int((on & ~mask[yi, xi]).sum())
+        return outside <= max(1, visible*.015)
+
+    fitted = []
+    for start, end, root in families:
+        family = out[start:end]
+        for scale in (1., .65, .4, .25, .15):
+            candidate = [(root+(P-root)*scale, R*scale) for P, R in family]
+            if fits(candidate):
+                fitted.extend(candidate)
+                break
+    return fitted
 
 
 def roots(rng):
@@ -378,8 +434,25 @@ def tube(P, R, mat, rings=True, sides=None):
         R = R * (1 + 0.14 * bump)
     rmax = float(R.max())
     sides = sides or int(np.clip(round(rmax * 2.2), 6, 14))
-    return F.sweep(P, lambda t: np.interp(t * L, s, R), mat, sides=sides, step=min(1.6, max(0.6, rmax * 0.35)),
-                   tile_along=3.0, profile=lambda th: 1 + 0.06 * np.cos(th * 5))
+    step = min(1.6, max(0.6, rmax * 0.35))
+    path = F.resample(P, step)
+    # sweep의 길이 타일 정렬까지 동일한 경로로 끝마개를 만든다.
+    extra = (-len(path)+1) % max(1, int(round(3.0/step)))
+    if extra:
+        path = np.vstack([path, path[-1]+(path[-1]-path[-2])*np.arange(1, extra+1)[:, None]*1e-3])
+    _, nn, bb = F.frames(path)
+    caps = []
+    for idx, rad, flip in ((0, R[0], True), (-1, R[-1], False)):
+        th = np.linspace(0, 2*math.pi, sides+1)
+        rr = rad*(1+0.06*np.cos(th*5))
+        ring = path[idx] + (np.cos(th)[:, None]*nn[idx]+np.sin(th)[:, None]*bb[idx])*rr[:, None]
+        for a, b in zip(ring[:-1], ring[1:]):
+            p = [path[idx], a, b, b]
+            q = F.Quads([p], [[[.5, .5], [0, 0], [1, 0], [1, 0]]], M=mat)
+            caps.append(q.flipped() if flip else q)
+    q = F.sweep(P, lambda t: np.interp(t * L, s, R), mat, sides=sides, step=step,
+                tile_along=3.0, profile=lambda th: 1 + 0.06 * np.cos(th * 5))
+    return F.concat([q, *caps])
 
 
 # ---------------------------------------------------------------- 황금 종이 물결
@@ -428,7 +501,8 @@ def _stream_height(path, seed):
 def paper_streams(m, rng):
     """종이 물결: 높이장 형체(빛나는 종이 더미) + 위에 흩어진 종이 장. 반환 (물결 면들, 종이 장, 충돌용 높이장 Part 들)."""
     faces, sheets, parts = [], [], []
-    for path, seed in stream_paths():
+    book_count = 0
+    for stream_index, (path, seed) in enumerate(stream_paths()):
         x0, z0 = path.min(0) - 30
         x1, z1 = path.max(0) + 30
         fy = _stream_height(path, seed)
@@ -437,7 +511,15 @@ def paper_streams(m, rng):
         c = q.P.mean(1)
         q = q.take(q.P[:, :, 1].max(1) > -0.2)          # 물결 바깥(바닥 아래) 버림
         q = q.color_by(lambda P, N: np.clip(0.75 + 0.1 * P[:, 1:2], 0.7, 1.15) * np.ones((1, 3)))
-        faces.append(q)
+        if stream_index < 2:
+            # 정문 쪽 두 물결은 가까운 부피 전체를 낱권/종이 묶음으로 쌓는다.
+            # 원화가 덮인 높이장 껍질은 먼 부분의 LOD에만 남긴다.
+            top = q.P.mean(1)
+            near = np.linalg.norm((top-np.asarray(CAM.pos))[:, [0, 2]], axis=1) < 84
+            faces.append(q.take(~near))
+            sheets.append(paper_reams(m, fy, (x0, z0, x1, z1), seed))
+        else:
+            faces.append(q)
         parts.append(S.HeightField(fy, x0, z0, x1, z1, y0=-0.5, ymax=22).with_(paint="minecraft:barrier"))
         # 흩어진 종이 장 (물결 위·가장자리)
         n = int(len(q) * 0.05)
@@ -447,15 +529,53 @@ def paper_streams(m, rng):
             a = rng.uniform(0, 2 * math.pi)
             du = np.array([math.cos(a), rng.uniform(-0.15, 0.15), math.sin(a)]) * 0.7
             dv = np.array([-math.sin(a), rng.uniform(-0.1, 0.25), math.cos(a)]) * 0.5
-            sheets.append(F.two_sided(F.plane(p - du / 2 - dv / 2, du, dv, m["sheet"])))
+            near = np.linalg.norm((p-np.asarray(CAM.pos))[[0, 2]]) < 65 and p[1] < 10
+            if near:
+                # 가까운 종이는 옆에서 보이는 얇은 종이 묶음, 일부는 표지/책등이 있는 실물 책.
+                if book_count < 180 and rng.random() < 0.22:
+                    w, h, thick = rng.uniform(.55, 1.1), rng.uniform(.8, 1.6), rng.uniform(.12, .26)
+                    qbook = D.flat_book(w, h, thick, m["paper"], m["pages"])
+                    sheets.append(night(qbook.rotate("y", math.degrees(a))).translate(p+(0, .03, 0)))
+                    book_count += 1
+                else:
+                    sheets.append(night(D.beveled_box((-.35, 0, -.25), (.35, .025, .25), m["sheet"], .006))
+                                  .rotate("y", math.degrees(a)).translate(p))
+            else:
+                sheets.append(F.two_sided(F.plane(p - du / 2 - dv / 2, du, dv, m["sheet"])))
     return faces, F.concat(sheets), parts
+
+
+def paper_reams(m, height, bounds, seed):
+    """물결의 가까운 부피: 바닥에서 꼭대기까지 겹쳐 쌓은 닫힌 책/종이 묶음.
+
+    멀리 있는 높이장과 겹치는 전이 띠를 둔다. 윗면만 덮은 빈 껍질이 아니다.
+    """
+    rng = np.random.default_rng(seed+400)
+    x0, z0, x1, z1 = bounds
+    xs, zs = np.meshgrid(np.arange(x0, x1, 2.0), np.arange(z0, z1, 2.4), indexing="ij")
+    X, Z = xs.ravel(), zs.ravel()
+    H = height(X, Z)
+    near = np.hypot(X-CAM.pos[0], Z-CAM.pos[2]) < 88
+    out = []
+    for x, z, top in zip(X[near & (H > .12)], Z[near & (H > .12)], H[near & (H > .12)]):
+        layers = max(1, int(math.ceil(top/.55)))
+        thick = top/layers
+        for layer in range(layers):
+            w, h = rng.uniform(2.0, 2.5), rng.uniform(2.5, 3.0)
+            cover = m["sheet"] if rng.random() < .7 else m["paper"]
+            # 먼 작은 부품의 모서리 면은 생략하되 표지·책등·종이 묶음은 실제로 분리한다.
+            q = D.flat_book(w, h, thick, cover, m["pages"], bevel=0)
+            q = q.rotate("y", rng.uniform(-13, 13))
+            out.append(q.translate((x+rng.uniform(-.12, .12), layer*thick, z+rng.uniform(-.12, .12))))
+    return F.bake_light(F.concat(out), sun=(-.35,.8,.3), sun_rgb=(.20,.16,.04),
+                        sky_rgb=(1.0,.87,.49), ground_rgb=(.76,.55,.21))
 
 
 # ---------------------------------------------------------------- 광장 (형체 겉면, 걷는 건 barrier)
 
 def plaza_faces(m):
     """방사형 나무 판자 바닥 (y=0 윗면). 판자 띠 = 각도 96칸 × 반지름 9칸마다 색조."""
-    rr = np.arange(0, PLAZA_R + 1, 4.0)
+    rr = np.unique(np.r_[np.arange(0, PLAZA_R, 4.0), PLAZA_R])
     rr[0] = 0.5
     out = []
     n = 96
@@ -471,6 +591,27 @@ def plaza_faces(m):
         tone = 0.8 + 0.35 * S.hash01(np.full(len(q), k), ring, seed=52)
         q.C[..., :3] *= tone[:, None, None]
         out.append(q)
+    # 아래·옆에서도 열린 판이 보이지 않게 받침의 밑면/모서리를 닫는다.
+    rim = F.revolve([(0,-3),(PLAZA_R-.5,-3),(PLAZA_R,-2.6),(PLAZA_R,0)],
+                    m["plaza_edge"], segs=192, tiles_around=48, tile_up=16)
+    out.append(night(rim))
+    return F.concat(out)
+
+
+def entrance_steps():
+    """정문 층계참 + 반 칸씩 내려가는 세 디딤판. 충돌/형체의 공통 치수."""
+    zf = int(BAY_C[1] + BAY_R)
+    return [(BAY_C[0]-6-k, BAY_C[0]+6+k, zf+k, zf+k+1, GATE_FLOOR-.5*k)
+            for k in range(4)]
+
+
+def entrance_faces(m):
+    out = [D.beveled_box((DOOR[0]-1, 0, int(DOOR_Z)-1),
+                         (DOOR[1]+1, GATE_FLOOR+.015, int(BAY_C[1]+BAY_R)), m["plaza"], .04)]
+    for x0, x1, za, zb, top in entrance_steps():
+        out.append(D.beveled_box((x0, 0, za), (x1, top+.015, zb), m["boards"][1], .035))
+        # 별도 돌출 코: 깎인 앞 모서리와 아래 그림자 틈.
+        out.append(D.beveled_box((x0-.06, top-.10, zb-.08), (x1+.06, top+.025, zb+.10), m["ledge"], .025))
     return F.concat(out)
 
 
@@ -528,10 +669,7 @@ def tree_collision(branches, roots_):
     return parts, tubes
 
 
-def build(b, city: bool = True, clouds: bool = True):
-    from builders import crater
-    d = b.dim("exterior")
-    lay = b.form("exterior")
+def _geometry(lay, y_end):
     rng = np.random.default_rng(7)
     m = _materials()
     fit = A.load_fit("exterior")
@@ -539,12 +677,8 @@ def build(b, city: bool = True, clouds: bool = True):
     mask = A.load_mask("exterior")
     paper_mask = A.load_mask("exterior", "paper")
 
-    # ---------------------------------------------- 걷는 곳 (블록·barrier)
-    plaza_blocks(d)
-    stair_end = stairs(d)
-
     # ---------------------------------------------- 형체
-    body = tower(m)
+    body = tower(m) + [entrance_faces(m)]
     wins = windows(m, view, fit)
     ab = art_branches(view, fit)
     pb = procedural_branches(rng)
@@ -571,10 +705,22 @@ def build(b, city: bool = True, clouds: bool = True):
     lay.add(sheets)
     for q in wins:
         lay.add(q)
-    y_end = d.min_y + d.height - 8
     for q in light_spire(m, y_end):
         lay.add(q, max_edge=4.0)
     sky(lay)
+
+    return ab, pb, rt, paper_parts, tree_parts
+
+
+def build(b, city: bool = True, clouds: bool = True):
+    from builders import exterior_surroundings
+    d = b.dim("exterior")
+    lay = b.form("exterior")
+    # ---------------------------------------------- 걷는 곳 (블록·barrier)
+    plaza_blocks(d)
+    stair_end = stairs(d)
+
+    ab, pb, rt, paper_parts, tree_parts = _geometry(lay, d.min_y + d.height - 8)
 
     # ---------------------------------------------- 충돌 (barrier)
     body_parts, tubes = tree_collision(ab + pb, rt)
@@ -593,12 +739,8 @@ def build(b, city: bool = True, clouds: bool = True):
                           wind=(0.3, -0.7, 0.2), size=0.35, glow=True))
 
     stats = {"faces_tree": sum(len(q) for q in tree_parts), "branches": len(ab) + len(pb) + len(rt)}
-    if city:
-        crater.terraces(d)
-        stats["city"] = crater.terrace_city(d)
-        stats["ring"] = S.carve(d, S.Union(*crater.ring_landmark()), shell=1, smooth=True)
-    if clouds:
-        stats["clouds"] = crater.clouds(d)
+    stats["surroundings"] = exterior_surroundings.build(lay, d, city_enabled=city, clouds_enabled=clouds,
+                                                       projection=(CAM,F.mat("ext_art")))
 
     L = b.links
     L.anchor("exterior_spawn", d.dim, *SPAWN[:3], yaw=SPAWN[3], pitch=SPAWN[4], title="도서관")
@@ -640,18 +782,30 @@ def plaza_blocks(d):
     disk = rr <= R
     d.place_mask(-R, -1, -R, disk[:, None, :], "minecraft:barrier")
     rim = disk & (rr > R - 2)
-    d.place_mask(-R, -3, -R, np.repeat(rim[:, None, :], 2, axis=1), "minecraft:polished_deepslate")
+    d.place_mask(-R, -3, -R, np.repeat(rim[:, None, :], 2, axis=1), "minecraft:barrier")
 
 
 def stairs(d):
-    """문 홈 바닥(블록) + 앞 계단 2단 (y 1 → 0). 반환: 계단 끝 z."""
-    cx = BAY_C[0]
+    """입체 계단과 같은 치수의 barrier/반 칸 충돌 (점프 없이 정문까지)."""
     zf = int(BAY_C[1] + BAY_R)
-    d.fill(int(DOOR[0]) - 1, 0, int(DOOR_Z) - 1, int(DOOR[1]) + 1, GATE_FLOOR - 1, zf, "minecraft:dark_oak_planks")
-    d.fill(int(cx) - 6, 0, zf + 1, int(cx) + 6, 0, zf + 2, "minecraft:dark_oak_planks")
-    d.fill(int(cx) - 6, 1, zf + 1, int(cx) + 6, 1, zf + 1, "minecraft:dark_oak_stairs[facing=north,half=bottom]")
-    d.fill(int(cx) - 8, 0, zf + 3, int(cx) + 8, 0, zf + 3, "minecraft:dark_oak_stairs[facing=north,half=bottom]")
-    return zf + 4
+    d.fill(int(DOOR[0])-1, 0, int(DOOR_Z)-1, int(DOOR[1])+1, GATE_FLOOR-1, zf, "minecraft:barrier")
+    for x0, x1, za, zb, top in entrance_steps():
+        # 블록 중심이 실물 디딤판 안에 있는 칸만 사용한다.
+        xa, xb = math.ceil(x0-.5), math.floor(x1-.5)
+        full = int(top)
+        if full:
+            d.fill(xa, 0, za, xb, full-1, zb-1, "minecraft:barrier")
+        if top-full >= .5:
+            d.fill(xa, full, za, xb, full, zb-1, F.HALF_SOLID)
+    return zf+4
+
+
+def preview(b):
+    """실제 형체 조립과 동일. 미리보기에는 충돌 블록 생성만 생략한다."""
+    from builders import exterior_surroundings
+    d = b.dim("exterior")
+    _geometry(b.form("exterior"), d.min_y+d.height-8)
+    exterior_surroundings.build(b.form("exterior"), d, collision=False, projection=(CAM,F.mat("ext_art")))
 
 
 def gate_walkable(d, box):
@@ -668,6 +822,8 @@ def gate_walkable(d, box):
 
 
 PREVIEW_CAMS = [
+    ("근접 정문·창·반 칸 계단", F.Camera.look_at((7, 3.62, 68), (0.5, 6.5, 59))),
+    ("근접 옆 창틀·판자", F.Camera.look_at((15, 4.62, 69), (7, 4, 59))),
     ("정문 앞 (계단에서 올려다봄)", F.Camera.look_at((14, 1.62, 82), (0, 60, 0))),
     ("옆 (동쪽 광장)", F.Camera.look_at((120, 6, 30), (0, 110, 0))),
     ("뒤 (북서쪽 멀리)", F.Camera.look_at((-200, 60, -230), (0, 180, 0))),

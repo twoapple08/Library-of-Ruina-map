@@ -37,7 +37,9 @@ def clean_art():
 
 def mats():
     m = {}
-    m["art"] = F.mat("rel_art", T.art("art/religion", ART, img=clean_art()), emissive=True, flat=True, ao=False)
+    # 시계 지우기는 하늘 전용. 같은 마스크가 무대 중앙까지 덮으므로
+    # 지운 그림을 바닥에 투영하면 거대한 검은 얼룩이 생긴다.
+    m["art"] = F.mat("rel_art", T.art("art/religion", ART), emissive=True, flat=True, ao=False)
     m["slate"] = F.mat("rel_slate", T.herringbone("rel_slate", (70, 70, 74), (150, 150, 156), brick=(16, 8), seed=231),
                        emissive=True, flat=True, ao=False)
     m["stone"] = F.mat("rel_stone", T.stone_slab("rel_stone", (110, 110, 114), (190, 190, 194), seed=232), emissive=True,

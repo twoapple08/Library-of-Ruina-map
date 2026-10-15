@@ -12,15 +12,25 @@ import sys
 import time
 
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def caption_font(size=19):
+    for path in (os.environ.get("RUINA_PREVIEW_FONT", ""),
+                 "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+                 "/tmp/ruina-fonts/NanumGothic-Regular.ttf"):
+        if path and os.path.isfile(path):
+            return ImageFont.truetype(path, size)
+    return ImageFont.load_default(size=size)
 
 
 def render(space: str, out: str, W: int = 960, H: int = 540, kw=None):
     sys.path.insert(0, ROOT)
     from builders import Build
     from tools import forms as F
+    from tools import form_raster as R
     mod = importlib.import_module(f"builders.{space}")
     b = Build()
     t0 = time.time()
@@ -38,19 +48,23 @@ def render(space: str, out: str, W: int = 960, H: int = 540, kw=None):
         tiles.append(("원화", ref))
     for name, cam in cams:
         t1 = time.time()
-        img = F.render_preview(parts, cam, W, H, bg=(0, 0, 0))
+        moving = [R.mover_mesh(m, cam) for m in lay.movers]
+        img, depth = R.render(parts + moving, cam, W, H, bg=(0, 0, 0))
         if lay.sky_mesh is not None:
-            sky = F.render_preview([lay.sky_mesh.translate(cam.pos)], cam, W, H, bg=(0, 0, 0))
+            sky, _ = R.render([lay.sky_mesh.translate(cam.pos)], cam, W, H, bg=(0, 0, 0))
             a = np.asarray(img)
-            empty = (a.sum(-1) == 0)[..., None]
+            empty = ~np.isfinite(depth)[..., None]
             img = Image.fromarray(np.where(empty, np.asarray(sky), a))
         tiles.append((name, img))
         print(f"  {name} {time.time() - t1:.0f}초")
-    sheet = Image.new("RGB", (W, (H + 28) * len(tiles)), (20, 16, 28))
+    bar = 38
+    sheet = Image.new("RGB", (W, (H + bar) * len(tiles)), (20, 16, 28))
     dr = ImageDraw.Draw(sheet)
+    font = caption_font()
     for i, (name, img) in enumerate(tiles):
-        sheet.paste(img, (0, i * (H + 28) + 28))
-        dr.text((8, i * (H + 28) + 6), name, fill=(255, 255, 255))
+        sheet.paste(img, (0, i * (H + bar) + bar))
+        label = name if name == "원화" else "오프라인 미리보기 · " + name
+        dr.text((10, i * (H + bar) + 8), label, font=font, fill=(255, 255, 255))
     sheet.save(out)
     print(out)
 

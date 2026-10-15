@@ -1,65 +1,111 @@
-# 인수인계 (현재판)
+# 인수인계 — 현재 상태
 
-새 세션은 **이 문서 → `docs/mod/형체.md`(자유 형체 기반 사용법) → `docs/mod/기초구성.md`(모드 요구사항)** 순서로 읽고 4절부터 이어서 한다.
-지난 사실·결정·이력(세이브 구조, 데이터팩 함정, BSL 개조, CI 사용법, 테스트 기록 등)은 **`docs/handoff/기록.md`** (지난 기록판) — 필요할 때만 찾아본다.
-마지막 갱신: 2026-10-12 저녁 (**자유 형체 기반 완성**. 다음 = 외부부터 공간별로 다시 만들기, 노력 medium).
+갱신: 2026-10-16. 먼저 이 문서 → `docs/mod/형체.md` → `docs/mod/기초구성.md`를 읽는다.
+과거 이력은 `docs/handoff/기록.md`와 git 이력. 이 문서의 상태/최신 사용자 지시가 옛 문서보다 우선한다.
 
-## 0. 사용자와 일하는 방식
-- 사용자는 **폰으로만** 작업 (한국어). PC 테스트는 다른 사람(테스터, GTX1050ti·i7-8700·16GB). **테스트는 전부 구축한 뒤 한 번에**
-- 토큰 절약, 답변은 짧게. 큰 작업 전에는 계획을 먼저 보여 주고 "시작"이라고 하면 진행. 질문은 추천안과 함께 짧게
-- "하지 말 것"이면 분석만, "일시정지"면 멈춤. 토큰이 다 떨어지면 다시 생길 때까지 멈춘 상태로 둠
-- **커밋은 main 에 바로**. 세션마다 지정 브랜치가 다름 → `git push origin main:<지정 브랜치>` 도 함께
-- **공간 하나를 끝낼 때마다 원화와 나란히 놓은 비교 그림**(로컬 게임 스크린샷 ↔ 원화)을 `SendUserFile` 로 보냄. 그림은 꼭 필요할 때만 직접 열어 봄
-- 아이템 이미지·사운드는 테스트 끝난 뒤 사용자가 넣음 (지금 것은 임시)
-- 컨텍스트가 길어지면 공간 단위로 끊고 이 문서를 갱신. 기록이 길어지면 지난 내용은 `docs/handoff/기록.md` 로 옮김
-- 노력 수준: 사용자가 정함. 기반이 끝났으므로 공간별 작업은 **medium** (사용자 계획)
+## 사용자 지시와 진행 방식
 
-> **셰이더팩(BSL) 작업은 멈춤 (사용자 지시 2026-10-15).** 모드에만 집중. BSL 판 게임 테스트·`tools/shaderpack.py` 수정 안 함
-> (형체 glow 값은 그대로 두되 BSL 확인은 나중에).
+- 한국어, 답변 짧게. 사용자는 폰으로만 본다. 계획 확인/시작 허가 없이 공간 순서대로 작업한다.
+- 도움이 되는 도구·스킬·외부 도구는 별도 허가 없이 사용한다 (2026-10-16 재확인).
+- 순서: 외부 → 로비 → 역사 → 기술과학 → 문학 → 예술 → 자연과학 → 언어 → 사회과학 → 철학 → 종교 → 총류.
+  전경·지정사서 방·건축물·소품을 전부 자유 형체로 교체하고 디테일을 채운다.
+- **진짜 입체 부품**이 필수. 상자 몇 개/원화를 붙인 평판/비틀린 상자 더미로 완료 처리하지 않는다.
+  기둥=받침·몸통·주두, 책장=틀·선반·낱권, 책탑=쌓은 낱권, 창=틀·살·깊이, 계단=디딤판·챌판.
+  두께·돌출·홈·모서리 깎기·겹침을 만들고 옆·뒤·위·근접 시점도 확인한다.
+- 원화 투영은 **도착 시점의 색칠**. 원본 형상/뒤·옆 재질을 대체하지 않는다.
+- GTX1050ti FPS만 고려 (가까이 정밀, 멀리 단순). 모드 크기·블록 수 제한 없음.
+  정적 메시라는 이유만으로 FPS를 보장하지 않는다. 실측 전 성능 통과라고 쓰지 않는다.
+- 바닥·충돌은 블록/barrier/반 칸 충돌, 보이는 모습은 형체.
+- BSL/셰이더팩 작업 중단. 아이템 이미지·사운드는 임시 유지 (사용자가 나중에 제공).
+- **테스터 테스트는 전부 구축 후 한 번에**. 개발용 단위 검사·오프라인 미리보기와 구분한다.
+  공간 완료 시 로컬 게임 스크린샷↔원화 비교를 `previews/`에 저장한다.
+  오프라인 이미지를 게임 스크린샷이라고 부르지 않는다.
+- main에 커밋·푸시 + 지정 브랜치에도 반영. 최신 작업 기준 브랜치: `ccr-365e34b9-yzsq81`.
+- 컨텍스트가 길어지면 공간 단위로 상태를 기록하고 인수인계 프롬프트를 제공한다.
 
-## 1. 목표 (사용자 지시 2026-10-12)
-도서관 외견과 전경부터 → 로비 → 10개 층의 모든 구성 요소(건축물·지정사서 방·전경·소품)를 모드의 새 요소
-(**자유 형체·모드 블록·원화 투영·움직임**)로 교체하고 채워서 디테일까지. **3D 느낌과 원화 느낌을 둘 다**.
-모드 크기·모드 블록 가짓수 상관없음, GTX1050ti fps 만 고려 (가까이 정밀, 멀리 단순). 기존 블록 건축물은 "퀄리티는 올리면서 최적의 방법으로" (사용자 답):
-→ 걷는 바닥·충돌은 블록(필요하면 barrier), 보이는 모습은 형체로 덮거나 바꿈. 바닐라 블록이 더 나은 곳은 그대로.
+## 받은 상태 (1687043)
 
-## 2. 현재 상태
-- 모드(Fabric 26.3): 아이템 12개(초대장·방전환·세피라 10), 차원·건축물 설치(world.zip), 이동 이펙트 — 데이터팩 시절 맵 그대로 들어 있음
-- **자유 형체 기반 (이번 세션)**: `docs/mod/형체.md` 참고
-  - Python `tools/forms.py`(도형·원화 투영·칸 배정·리전 주입·미리보기), `tools/form_textures.py`, 테스트 `tests/test_forms.py`
-  - Java `ruina:form`(칸별 형체, solid/light/glow 속성), `ruina:mover`(움직임 블록 엔티티 렌더러), 종이 파티클(`client/form/Ambient`)
-  - 빌드 흐름에 연결: `build_all` 끝 finalize → 서버 검증 → `forms.inject` → `mod_pack` 이 `assets/ruina/forms/` 씀. BSL 발광은 `config.MOD_BLOCKS`(form:glow=N)
-  - **임시 시험대** `builders/form_showcase.py` (외부 (700,500,700) 공중): 게임 테스트 `forms_art`(원화 투영 정면)·`forms_3d`(옆, 움직임·종이).
-    외부 작업에서 형체가 자리 잡으면 시험대와 게임 테스트의 `formShowcase` 를 지움
-- 예전 시험 블록 MeshProbe 는 지움 (형체 블록이 대신함)
+- 모든 공간의 형체 빌더 **초안**은 있음. 입체 모델링 기준으로 대부분 재작업 필요.
+- `42748e8`: 전 공간 초안·그린 하늘·반 칸 충돌·only 테스트. `1687043`: 총류 초안 조정.
+  처음 인계받을 때 지정 브랜치가 main보다 이 두 커밋 앞서 있었음.
+- `builders/kit.py`: project_add/art_sky/glass_platform/glass_stairs/stair_collision/gear/chain/building.
+- `tools/artfit.py`: ArtView/clean_sky/sky_panorama/sky_dome.
+- `tools/art_fit.py`: scipy/scikit-image 원화 분석, 결과 `design/fit/`에 커밋되어 있음.
+- Java PaintedSky/FormStore sky.bin/half 충돌 있음. form_showcase는 이미 삭제됨.
+- 새 전 공간 초안으로 게임 테스트한 이력 없음. 월드 캐시 재생성 필요.
 
-## 3. 이번 세션 확인 결과 (로컬 전체 테스트, 2026-10-12~15)
-- 월드 빌드: 블록 검증 10268/10268, 2차 실행 경고 0, **형체 블록 주입 15083칸 / 청크 20 (자리 아님 0)**, 조명 27/27
-- 게임 테스트(바닐라, llvmpipe): 기존 26개 항목 + **형체 블록 있음 ✅ · 움직이는 형체 블록 엔티티 있음 ✅**, 스크린샷 27장
-- 비교 그림 `previews/forms_showcase_compare.png`: 원화 투영 정면 = 원화와 거의 같음, 옆에서 입체, 빛 고리(emissive) 밝게, 종이 파티클 날림
-- 남은 관찰 (외부 작업 때 같이 볼 것):
-  - 시험대 정면에 옅은 사각 경계 → 시험대가 공중 500 높이라 바닐라 구름층이 발밑에 깔린 탓으로 추정 (지상 공간엔 해당 없음)
-  - 밤이라 조명 받는 재질(나무껍질·돌판)이 매우 어두움 → 공간마다 light 블록·emissive·bake_light 로 밝기 맞출 것
-  - 외부의 기존 바닐라 잎 파티클(주황)이 같이 날림 (config 의 particles)
-  - BSL 판 게임 테스트는 하지 않음 (셰이더팩 작업 멈춤)
-- 환경: 새 컨테이너에는 **libEGL 이 없어 게임이 멈춤** → `local_test.sh` 가 자동 설치. 환경 기본 JAVA_HOME 이 21 → 스크립트가 /opt/jdk25 고정
-  (사용자가 환경 Setup script 에 `apt-get install -y libegl1 libegl-mesa0 libgbm1` 를 넣어 두면 더 좋음)
-- 모드 jar 크기: 건축물 world.zip ≈ 379MB (전체 층 포함)
+## 이번 작업
 
-## 4. 다음 할 일
-1. **외부(도서관 외견·주변 전경)** — 원화 `reference/도서관 외견.png`·`도서관 외견 단면도.png`·`도서관 위치 전경.png`, 분석 `design/exterior.md`.
-   지금 빌더 `builders/exterior.py`(탑)·`crater.py`(분화구·구름)·`city.py`(빌딩). 할 것(제안):
-   - 도착 시점 카메라를 원화 구도에 맞춤 (`F.Camera`, 스폰 (0.5, 0, 100.5) 북쪽) → 먼 배경(도시·하늘·구름)은 원화 투영 + follow 배경
-   - 탑 몸통: revolve + 판자 텍스처(형체), 가지: sweep(마디·소용돌이 끝), 창 불빛: glow 재질, 황금 종이 물결: 형체 + 종이 파티클
-   - 걷는 광장·계단은 블록 유지(또는 barrier + 형체 덮기)
-   - 끝나면: 로컬 게임 테스트 스크린샷 ↔ 원화 비교 그림 → 사용자에게, main push, 이 문서 갱신
-2. 로비 → 역사 → 기술과학 → 문학 → 예술 → 자연과학 → 언어 → 사회과학 → 철학 → 종교 → 총류 (전경·지정사서 방·건축물·소품)
-3. 전부 끝나면 테스터 테스트 (TESTING.md 정리) → 아이템 이미지·사운드(사용자)
+### 외부: 부품 보강 중 — **외부 전체 완료 아님**
 
-## 5. 작업 요령
-- 로컬 전체 확인: `bash tools/local_test.sh` (건축물 빌드 ~15분 + 게임 테스트 ~17분, 결과 `ci_out/mod/`), 셰이더 판 `bsl`.
-  건축물 코드가 그대로면 릴리스 캐시 재사용 (`tools/world_cache.py`)
-- 형체만 빠르게 볼 때: 빌더 하나만 실행 → `F.render_preview` (수 초). 원화 투영 정면이 원화와 같은지 먼저 확인
-- 모드 컴파일: `cd mod && JAVA_HOME=/opt/jdk25 PATH=/opt/jdk25/bin:$PATH ./gradlew compileJava compileGametestJava` (Maven 429 나면 다시)
-- 26.3 이름 찾기: `javap -cp ~/.gradle/caches/fabric-loom/26.3/minecraft-merged.jar <클래스>` (Fabric API jar 는 `~/.gradle/caches/modules-2/.../fabric-*`)
-- 테스트 `python -m unittest discover -s tests`, 블록 검사 `python build.py check`
+- `builders/detail.py`: 닫힌 26면 모서리 깎인 부품, 창틀/깊은 창턱/독립 창살/유리/뒷판,
+  낱권 책(표지2장·책등·종이), 받침/몸통/주두 기둥, 원통 접선 방향 배치.
+- `builders/exterior.py`:
+  - 평면 창을 깊이 있는 돌출 창으로 교체. 유리색 유지, 창틀/창턱은 밤빛 굽기.
+  - 문짝 두께·테두리·손잡이·문설주·상인방·받침.
+  - 정문 계단은 형체 디딤판/챌판/돌출 코 + 같은 치수의 barrier/half 충돌.
+  - 가지·뿌리 끝마개 (열린 관 끝 제거), 가까운 종이/책에 두께. 정문 물결 가까운 부분은 바닥부터 낱권/종이 묶음을 실제로 쌓으며 먼 부분만 높이장 LOD.
+  - 절차 가지가 원화 실루엣 바깥으로 튀는 문제를 부모+갈래 가족 전체의 고정 기하 축소로 완화.
+    분리된 갈래를 남기지 않는다. 원화에서 추출한 가지는 유지.
+  - `_geometry`는 실제 빌드와 오프라인 preview에서 공유. preview는 느린 충돌/도시 블록화를 생략.
+- `builders/exterior_surroundings.py`: 도시·테라스·고리·구름을 형체로 교체하고 실제 빌드에 연결.
+  가까운 도시 창/살/층 띠, 기단, 옥상 난간/기계실/환기기/안테나, 이중 고리/살/허브/받침/검은 기둥.
+  테라스는 닫힌 부피+돌출 턱, 구름은 부피와 윤곽 덩어리. 충돌만 barrier. 먼 건물은 창 무늬 LOD.
+  이 세부도 차이는 현재 도착 위치/배치를 기준으로 한 정적 구분이며, 접근 시 자동 전환되는 동적 LOD가 아님.
+  도시 504개. 실제 부품 제작/빛 굽기 뒤, 도착에서 보이는 면만 기존 원화로 색칠.
+  다른 면은 원본 도시 재질을 유지하며 부품/충돌을 투영으로 대체하지 않음. 고리는 도착 시야 밖 동쪽으로 이동(형체/충돌 동일 WHEEL_SHIFT). 광장과 첫 테라스 틈도 막음.
+  광장 밑면/돌 테두리도 형체로 닫고 보이는 바닐라 테두리는 barrier로 바꿈.
+- **남은 외부**: 도시의 높이/배치를 원화 도착 시야와 더 맞추기 (새 형체 도시가 원화 도시 앞에 겹침),
+  전체 충돌/칸 배정/최종 면 수 확인, 광장/몸통 근접 마감,
+  종이 물결의 원화 색과 낱권 형상 조화, 아직 튀어나오는 가지 실루엣 조정.
+  `reference/도서관 위치 전경.png`와 상공 시점을 별도로 맞춰 테라스/구름/고리를 비교할 것.
+  전체 오프라인 장면 생성/6개 시점 렌더 성공 (`lay.parts` 약 219만 면, 전체 finalize 전 수치이며 FPS 보장 아님).
+  현재는 코드/단위 검사 단계이며 전체 외부를 승인하거나 완성 처리하지 않았다. 로비 재작업은 그 뒤.
+
+### 미리보기 정확도 보강 / 진단
+
+- 기존 `F.render_preview`의 점 샘플은 확대 시 면이 점무늬로 뚫려 보임.
+- 새 `tools/form_raster.py` + `tools/form_raster.c`: 삼각형 면 채움, 깊이 검사, 원근 UV,
+  뒷면 제거, cutout 알파 검사. `cc`로 /tmp 공유 라이브러리 캐시를 만든다. **게임 실행 의존성 아님**.
+- `tools/form_preview.py`는 새 렌더러 사용. mover도 Java와 같은 축·위상의 t=0 스냅샷으로 표시.
+  검은 면을 빈 픽셀로 취급하지 않고 depth로 하늘 합성. 한국어 캡션(폰트 RUINA_PREVIEW_FONT/Noto, 현재 /tmp/ruina-fonts/NanumGothic-Regular.ttf).
+  반투명/실제 게임 조명/FPS는 이 도구로 검증 불가.
+- 검증용 렌더러만 바뀌어도 월드를 다시 만들지 않도록 `world_cache.py`의 TOOLS_SKIP에 미리보기 파일 추가.
+  실제 원화/추출 데이터 변경은 캐시를 무효화하도록 `reference/`, `design/fit/`도 지문에 포함.
+- 사회과학(전경/방), 종교 전경, 총류(전경/방)의 오프라인 비교 파일을 생성했다.
+  **생성만으로 승인/완료 아님**. 기존 초안은 평판·상자·늘어난 원화가 남아 재작업 필요.
+- 종교층: 시계를 지운 하늘용 그림을 무대에도 투영해 중앙 바닥에 검은 얼룩이 생기던 문제 수정.
+  `mats()['art']`에는 원본 원화, 하늘에는 clean_art를 사용. 새 렌더에서 무대 중앙 얼룩 제거를 확인했다.
+
+## 검증 상태 / 환경
+
+- `python -m unittest discover -s tests`: **35개 통과**.
+  기존23 + 닫힘/법선/가지 끝/계단/건물/테라스/고리 이동7 + 렌더러5 (큰 면·깊이/뒷면·검은면·cutout·mover).
+- `git diff --check`, `bash -n tools/local_test.sh`, workflow YAML 파싱 통과.
+- main 자동 CI와 일반 local_test에서 불필요한 BSL 팩 생성/테스트를 중단하도록 수정.
+  기존 수동 BSL 경로는 명시적 `shader_test` 입력이나 `bsl` 인자일 때만 남겨 둠 (실행하지 않음).
+- 이번 변경으로 **월드 빌드·실제 게임 테스트·1050ti FPS 실측은 아직 안 함**.
+  Java 컴파일을 시도했지만 아래 환경 제한으로 Loom 설정 단계에서 중단 (컴파일 성공으로 기록하지 말 것).
+- 현재 컨테이너에 **Temurin Java25 설치 완료** (`/opt/jdk25`, 25.0.4.1). Gradle 9.7.1 배포본도 받음.
+  Java는 HTTPS_PROXY를 자동 인식하지 않아 프록시 속성과 `/etc/ssl/certs/java/cacerts`를 지정해야 함.
+  `local_test.sh`에 이 처리를 넣었고 TLS 검증을 끄지 않음.
+  Loom 설정의 `CurrentPlatform.isUnixDomainSocketsSupported`가 환경의 Unix 소켓 제한으로
+  `SocketException: Operation not permitted`를 내며 중단. IPv4 설정으로 해결되지 않음.
+  소스 컴파일/게임 테스트에 도달하지 못함. 제한을 우회하거나 TLS 검증을 끄지 말고 GitHub CI 사용.
+  상세 진단은 `ci_out/local_compile.log` (현재 컨테이너에만 있는 임시 로그).
+  새 컨테이너에서 이 설치/캐시가 남아 있다고 가정하지 말 것.
+- 오프라인 검증: `python -u -m tools.form_preview exterior previews/exterior_detail_compare.png`.
+  다른 모듈도 동일 (예: social_science_room, religion, general, general_room).
+- 월드 재빌드 전: `rm -f mod/build/generated/ruina/ruina/world.zip`.
+  `bash tools/local_test.sh` 전체 / `bash tools/local_test.sh only <공간>`.
+  **only는 기존 world.zip을 자동 무효화하지 않는다. 코드 변경 뒤 캐시 삭제가 선행되어야 한다.**
+- 컴파일 명령 (Unix 소켓 가능한 환경/CI): `cd mod && JAVA_HOME=/opt/jdk25 ./gradlew compileJava compileGametestJava`.
+
+## 이 환경의 GitHub 반영 방법
+
+- clone/fetch는 되지만 CLI push는 GitHub 사용자 인증이 없어 실패했다. 같은 실패를 반복하지 않는다.
+- 연결된 GitHub 도구의 create_blob/create_tree/create_commit/update_ref를 이용한다.
+  main과 지정 브랜치의 기존 SHA를 확인하고 expected_sha + force=false로 갱신한다.
+- PNG는 base64로 blob 생성. exec_command 출력은 약 1MiB로 잘리므로 600000바이트(3의 배수)씩
+  읽어 코드 모드 안에서 합친다. 바이너리/base64를 대화에 출력하지 않는다.
+- 원본 파일의 git blob SHA와 업로드 SHA, 로컬 git write-tree와 API tree SHA를 비교해 누락/변형을 검사한다.

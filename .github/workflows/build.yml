@@ -15,6 +15,10 @@ on:
         description: "마인크래프트 버전 (비우면 최신 정식)"
         required: false
         default: ""
+      shader_test:
+        description: "BSL 테스트/팩 생성 (현재 작업 범위 밖, 기본 중단)"
+        type: boolean
+        default: false
   push:
     branches: [main]
     paths:
@@ -99,7 +103,7 @@ jobs:
 
       - name: 모드 게임 테스트 — 셰이더 (Iris + Sodium + 맵 전용 BSL, 몇 곳만)
         id: gametest_bsl
-        if: env.TASK == 'world'
+        if: env.TASK == 'world' && inputs.shader_test == true
         continue-on-error: true
         timeout-minutes: 45
         working-directory: mod
@@ -139,8 +143,11 @@ jobs:
           for f in Library-of-Ruina.zip Ruina_resources.zip Ruina_generated.zip; do   # 월드를 재사용한 실행에는 없음
             [ -f "out/release/$f" ] && gh release upload "$TAG" "out/release/$f" --clobber
           done
-          [ -f out/release/BSL_v10.1.6_Ruina.zip ] || python -m tools.shaderpack   # 맵 전용 BSL 개조판
-          gh release upload "$TAG" out/release/BSL_v10.1.6_Ruina.zip --clobber
+          # BSL 작업 중단: 일반 main 푸시는 셰이더팩을 만들거나 배포하지 않는다.
+          if [ "${{ inputs.shader_test }}" = true ]; then
+            [ -f out/release/BSL_v10.1.6_Ruina.zip ] || python -m tools.shaderpack
+            gh release upload "$TAG" out/release/BSL_v10.1.6_Ruina.zip --clobber
+          fi
           {
             echo "자동 빌드: $(date -u +%F' '%H:%M) UTC / Minecraft ${{ steps.mc.outputs.mc_version }} / 커밋 ${GITHUB_SHA::7}"
             echo

@@ -11,6 +11,21 @@ cd "$(dirname "$0")/.."
 # 환경 기본 JAVA_HOME 이 21 일 수 있음 (Loom 은 25 필요) → 있으면 항상 /opt/jdk25
 [ -d /opt/jdk25 ] && JAVA_HOME=/opt/jdk25
 export JAVA_HOME=${JAVA_HOME:-/opt/jdk25} PATH=/opt/jdk25/bin:$PATH SDL_VIDEO_FORCE_EGL=1 XDG_RUNTIME_DIR=/tmp/xdg
+# Java는 HTTPS_PROXY를 자동으로 읽지 않는다. 시스템 CA 저장소를 쓰며 TLS 검증은 유지한다.
+mapfile -t RUINA_GRADLE_ARGS < <(python - <<'PY'
+import os
+from urllib.parse import urlsplit
+p = urlsplit(os.environ.get('HTTPS_PROXY', ''))
+if p.hostname:
+    port = p.port or (443 if p.scheme == 'https' else 80)
+    for scheme in ('http', 'https'):
+        print(f'-D{scheme}.proxyHost={p.hostname}')
+        print(f'-D{scheme}.proxyPort={port}')
+    store = '/etc/ssl/certs/java/cacerts'
+    if os.path.isfile(store):
+        print(f'-Djavax.net.ssl.trustStore={store}')
+PY
+)
 mkdir -p /tmp/xdg && chmod 700 /tmp/xdg
 # 새 컨테이너에는 libEGL 이 없을 수 있음 → 게임이 "Could not load EGL library" 로 멈춤
 if [ "$1" != build ] && ! ls /usr/lib/x86_64-linux-gnu/libEGL.so.1 > /dev/null 2>&1; then
@@ -21,20 +36,20 @@ if [ ! -f mod/build/generated/ruina/ruina/world.zip ]; then
   python -m tools.world_cache fetch || { python -m tools.ci fetch && python -m tools.ci refs && python -m tools.ci reports \
     && python -m tools.ci world && python -m tools.world_cache save; }
 fi
-(cd mod && ./gradlew build -q)
+(cd mod && ./gradlew "${RUINA_GRADLE_ARGS[@]}" build -q)
 [ "$1" = build ] && exit 0
-python -m tools.shaderpack > /dev/null
+[ "$1" != bsl ] || python -m tools.shaderpack > /dev/null
 cd mod
 R=build/run/clientGameTest
 rm -rf build/vanilla
 set +e
 ONLY=""
 [ "$1" = only ] && ONLY="-Ponly=$2"
-xvfb-run -a -s "-screen 0 1920x1080x24" ./gradlew runClientGameTest $ONLY > build/gametest_gradle.log 2>&1
+xvfb-run -a -s "-screen 0 1920x1080x24" ./gradlew "${RUINA_GRADLE_ARGS[@]}" runClientGameTest $ONLY > build/gametest_gradle.log 2>&1
 export GAMETEST_OUTCOME=$([ $? = 0 ] && echo success || echo failure)
 if [ "$1" = bsl ]; then
   mkdir -p build/vanilla && cp -r $R/screenshots $R/ruina_test.txt $R/logs/latest.log build/vanilla/
-  xvfb-run -a -s "-screen 0 1920x1080x24" ./gradlew runClientGameTest -Pshaders > build/gametest_bsl_gradle.log 2>&1
+  xvfb-run -a -s "-screen 0 1920x1080x24" ./gradlew "${RUINA_GRADLE_ARGS[@]}" runClientGameTest -Pshaders > build/gametest_bsl_gradle.log 2>&1
   export GAMETEST_BSL_OUTCOME=$([ $? = 0 ] && echo success || echo failure)
 fi
 cd .. && python -m tools.ci modtest | grep -v "ℹ️"
