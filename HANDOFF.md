@@ -28,11 +28,20 @@
   - 빌드 흐름에 연결: `build_all` 끝 finalize → 서버 검증 → `forms.inject` → `mod_pack` 이 `assets/ruina/forms/` 씀. BSL 발광은 `config.MOD_BLOCKS`(form:glow=N)
   - **임시 시험대** `builders/form_showcase.py` (외부 (700,500,700) 공중): 게임 테스트 `forms_art`(원화 투영 정면)·`forms_3d`(옆, 움직임·종이).
     외부 작업에서 형체가 자리 잡으면 시험대와 게임 테스트의 `formShowcase` 를 지움
-  - 로컬 결과: (아래 3절에 기록)
 - 예전 시험 블록 MeshProbe 는 지움 (형체 블록이 대신함)
 
-## 3. 이번 세션 확인 결과
-(작성 중)
+## 3. 이번 세션 확인 결과 (로컬 전체 테스트, 2026-10-12~15)
+- 월드 빌드: 블록 검증 10268/10268, 2차 실행 경고 0, **형체 블록 주입 15083칸 / 청크 20 (자리 아님 0)**, 조명 27/27
+- 게임 테스트(바닐라, llvmpipe): 기존 26개 항목 + **형체 블록 있음 ✅ · 움직이는 형체 블록 엔티티 있음 ✅**, 스크린샷 27장
+- 비교 그림 `previews/forms_showcase_compare.png`: 원화 투영 정면 = 원화와 거의 같음, 옆에서 입체, 빛 고리(emissive) 밝게, 종이 파티클 날림
+- 남은 관찰 (외부 작업 때 같이 볼 것):
+  - 시험대 정면에 옅은 사각 경계 → 시험대가 공중 500 높이라 바닐라 구름층이 발밑에 깔린 탓으로 추정 (지상 공간엔 해당 없음)
+  - 밤이라 조명 받는 재질(나무껍질·돌판)이 매우 어두움 → 공간마다 light 블록·emissive·bake_light 로 밝기 맞출 것
+  - 외부의 기존 바닐라 잎 파티클(주황)이 같이 날림 (config 의 particles)
+  - BSL 판 게임 테스트(`bash tools/local_test.sh bsl`)는 아직 안 돌림 → 외부 작업 끝날 때 함께
+- 환경: 새 컨테이너에는 **libEGL 이 없어 게임이 멈춤** → `local_test.sh` 가 자동 설치. 환경 기본 JAVA_HOME 이 21 → 스크립트가 /opt/jdk25 고정
+  (사용자가 환경 Setup script 에 `apt-get install -y libegl1 libegl-mesa0 libgbm1` 를 넣어 두면 더 좋음)
+- 모드 jar 크기: 건축물 world.zip ≈ 379MB (전체 층 포함)
 
 ## 4. 다음 할 일
 1. **외부(도서관 외견·주변 전경)** — 원화 `reference/도서관 외견.png`·`도서관 외견 단면도.png`·`도서관 위치 전경.png`, 분석 `design/exterior.md`.

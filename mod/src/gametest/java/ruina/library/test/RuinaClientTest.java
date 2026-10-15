@@ -131,7 +131,7 @@ public class RuinaClientTest implements FabricClientGameTest {
 			return false;
 		}));
 		screenshot(ctx, sp, "forms_art");
-		sp.getServer().runCommand("execute in ruina:exterior run tp @a 733.5 506 706.5 120 8");
+		sp.getServer().runCommand("execute in ruina:exterior run tp @a 733.5 506 706.5 258 0");
 		ctx.waitTicks(20);
 		render(sp);
 		ctx.waitTicks(60);   // 톱니·추가 움직이고 종이가 날리게
