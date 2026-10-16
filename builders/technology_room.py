@@ -127,6 +127,11 @@ def build(b, d):
     lay = b.form("technology")
     m = mats()
     fs = faces(m, lay)
+    # 콘솔 위 키보드와 분리된 키캡.
+    fs.append(F.box((OX-3,Y0+2.1,2.1),(OX-1,Y0+2.22,2.75),m['panel']))
+    for ix in range(7):
+        for iz in range(2):
+            fs.append(F.box((OX-2.9+ix*.26,Y0+2.22,2.2+iz*.24),(OX-2.72+ix*.26,Y0+2.27,2.36+iz*.24),m['gear']))
     for x in (OX-8, OX-5, OX+5, OX+8):
         fs.append(F.box((x,Y0+6,ZB+.15),(x+1.1,Y0+6.12,ZB+.7),m['gear']))
     for j in range(6):
