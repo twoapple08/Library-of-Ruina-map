@@ -1,0 +1,447 @@
+{
+  Status: "minecraft:full",
+  zPos: -1,
+  block_entities: [],
+  yPos: -4,
+  LastUpdate: 454L,
+  structures: {
+    References: {},
+    starts: {}
+  },
+  InhabitedTime: 0L,
+  xPos: -10,
+  Heightmaps: {
+    OCEAN_FLOOR: [L; 0, 0, 0, 0, 0, 0, ... (43 total)],
+    MOTION_BLOCKING_NO_LEAVES: [L; 0, 0, 0, 0, 0, 0, ... (43 total)],
+    MOTION_BLOCKING: [L; 0, 0, 0, 0, 0, 0, ... (43 total)],
+    WORLD_SURFACE: [L; 0, 0, 0, 0, 0, 0, ... (43 total)]
+  },
+  sections: [
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: -4b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: -3b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: -2b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: -1b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 0b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 1b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 2b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 3b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 4b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      SkyLight: [B; -1, -1, -1, -1, -1, -1, ... (2048 total)],
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 5b
+    },
+    {
+      block_states: {
+        palette: [
+          {
+            : "minecraft:air"
+          },
+          {
+            : "minecraft:barrier"
+          },
+          {
+            id: "ruina:form",
+            properties: {
+              glow: "0",
+              half: "false",
+              light: "0",
+              solid: "false"
+            }
+          }
+        ],
+        data: [L; 0, 0, 0, 0, 0, 0, ... (256 total)]
+      },
+      SkyLight: [B; -1, -1, -1, -1, -1, -1, ... (2048 total)],
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 6b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      SkyLight: [B; -1, -1, -1, -1, -1, -1, ... (2048 total)],
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 7b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 8b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 9b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 10b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 11b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 12b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 13b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 14b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 15b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 16b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 17b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 18b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 19b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 20b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 21b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 22b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 23b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 24b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 25b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 26b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 27b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 28b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 29b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 30b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 31b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 32b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 33b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 34b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:natural_science"]
+      },
+      Y: 35b
+    }
+  ],
+  isLightOn: 1b,
+  block_ticks: [],
+  PostProcessing: [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+  ],
+  DataVersion: 5023,
+  fluid_ticks: []
+}

@@ -1,0 +1,23 @@
+{
+  Position: [I; 0, 3],
+  DataVersion: 5023,
+  Entities: [
+    {
+      Motion: [0.0d, 0.0d, 0.0d],
+      Invulnerable: 0b,
+      fall_distance: 0.0d,
+      Air: 300s,
+      OnGround: 0b,
+      PortalCooldown: 0,
+      Rotation: [0.0f, 0.0f],
+      Pos: [0.5d, 2.0d, 59.5d],
+      response: 1b,
+      Fire: 0s,
+      width: 4.0f,
+      id: "minecraft:interaction",
+      UUID: [I; -1248266207, 1218661866, -1162846833, 1197953516],
+      Tags: ["ruina.tp", "ruina.to.lobby_entrance"],
+      height: 12.0f
+    }
+  ]
+}

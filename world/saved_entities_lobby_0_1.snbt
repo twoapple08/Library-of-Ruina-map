@@ -1,0 +1,23 @@
+{
+  Position: [I; 0, 1],
+  DataVersion: 5023,
+  Entities: [
+    {
+      Motion: [0.0d, 0.0d, 0.0d],
+      Invulnerable: 0b,
+      fall_distance: 0.0d,
+      Air: 300s,
+      OnGround: 0b,
+      PortalCooldown: 0,
+      Rotation: [0.0f, 0.0f],
+      Pos: [0.5d, 66.0d, 24.5d],
+      response: 1b,
+      Fire: 0s,
+      width: 3.0f,
+      id: "minecraft:interaction",
+      UUID: [I; -189802192, 1853049211, -1243554352, -250186936],
+      Tags: ["ruina.to.exterior_gate", "ruina.tp"],
+      height: 4.0f
+    }
+  ]
+}

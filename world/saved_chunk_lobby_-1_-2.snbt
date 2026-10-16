@@ -1,0 +1,469 @@
+{
+  Status: "minecraft:full",
+  zPos: -2,
+  block_entities: [],
+  yPos: -4,
+  LastUpdate: 115L,
+  structures: {
+    References: {},
+    starts: {}
+  },
+  InhabitedTime: 0L,
+  xPos: -1,
+  Heightmaps: {
+    OCEAN_FLOOR: [L; 0, 0, 0, 0, 0, 0, ... (43 total)],
+    MOTION_BLOCKING_NO_LEAVES: [L; 0, 0, 0, 0, 0, 0, ... (43 total)],
+    MOTION_BLOCKING: [L; 0, 0, 0, 0, 0, 0, ... (43 total)],
+    WORLD_SURFACE: [L; 0, 0, 0, 0, 0, 0, ... (43 total)]
+  },
+  sections: [
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: -4b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: -3b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: -2b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: -1b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 0b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 1b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      SkyLight: [B; -1, -1, -1, -1, -1, -1, ... (2048 total)],
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 2b
+    },
+    {
+      block_states: {
+        data: [L; 0, 0, 0, 0, 0, 0, ... (256 total)],
+        palette: ["minecraft:air", "minecraft:barrier"]
+      },
+      SkyLight: [B; -1, -1, -1, -1, -1, -1, ... (2048 total)],
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      BlockLight: [B; 0, 0, 0, 0, 0, 0, ... (2048 total)],
+      Y: 3b
+    },
+    {
+      block_states: {
+        palette: [
+          {
+            : "minecraft:air"
+          },
+          {
+            : "minecraft:barrier"
+          },
+          {
+            id: "ruina:form",
+            properties: {
+              glow: "0",
+              half: "false",
+              light: "0",
+              solid: "false"
+            }
+          },
+          {
+            id: "ruina:form",
+            properties: {
+              glow: "0",
+              half: "false",
+              light: "0",
+              solid: "true"
+            }
+          },
+          {
+            id: "ruina:form",
+            properties: {
+              glow: "0",
+              half: "true",
+              light: "0",
+              solid: "true"
+            }
+          }
+        ],
+        data: [L; 0, 0, 0, 0, 0, 3530822107858468864, ... (256 total)]
+      },
+      SkyLight: [B; -1, -1, -1, -1, -1, -1, ... (2048 total)],
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      BlockLight: [B; 0, 0, 0, 0, 0, 0, ... (2048 total)],
+      Y: 4b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      SkyLight: [B; -1, -1, -1, -1, -1, -1, ... (2048 total)],
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 5b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 6b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 7b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 8b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 9b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 10b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 11b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 12b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 13b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 14b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 15b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 16b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 17b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 18b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 19b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 20b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 21b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 22b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 23b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 24b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 25b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 26b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 27b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 28b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 29b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 30b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 31b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 32b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 33b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 34b
+    },
+    {
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:lobby"]
+      },
+      Y: 35b
+    }
+  ],
+  isLightOn: 1b,
+  block_ticks: [],
+  PostProcessing: [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+  ],
+  DataVersion: 5023,
+  fluid_ticks: []
+}
