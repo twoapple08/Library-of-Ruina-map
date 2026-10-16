@@ -85,6 +85,11 @@ def chandelier(lay, m):
 def faces(m, lay):
     out = []
     yt = Y0 + H
+    # 방 바닥 외곽의 입체 걸레받이: 평판 벽과 바닥 사이 이음부 마감.
+    out.extend([F.box((X0, Y0, ZB), (X1, Y0+.22, ZB+.22), m["gear"]),
+                F.box((X0, Y0, ZS-.22), (X1, Y0+.22, ZS), m["gear"]),
+                F.box((X0-.22, Y0, ZB), (X0, Y0+.22, ZS), m["gear"]),
+                F.box((X1, Y0, ZB), (X1+.22, Y0+.22, ZS), m["gear"])])
     out.append(F.plane((X0, Y0, ZS), (X1 - X0, 0, 0), (0, 0, ZB - ZS), m["tile"], tile=(3, 3)))
     out.append(F.plane((X0, yt, ZB), (X1 - X0, 0, 0), (0, 0, ZS - ZB), m["panel"], tile=(3, 3)))
     out.append(F.plane((X0, Y0, ZB), (X1 - X0, 0, 0), (0, H, 0), m["panel"], tile=(3, 3)))      # 뒤 벽
