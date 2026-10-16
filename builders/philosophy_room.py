@@ -119,6 +119,8 @@ def build(b, d):
     rng = np.random.default_rng(2011)
     m = mats()
     fs = faces(m, rng)
+    for j in range(6):
+        fs.append(F.box((OX-6+j*2, Y0+.05, 3), (OX-5.3+j*2, Y0+.32, 3.6), m['wood']))
     lights = [((OX + 0.5, Y0 + 6, -RD + 1), (1.6, 1.0, 0.45), 30.0), ((OX + 6, Y0 + 1.5, 11), (0.6, 0.4, 0.2), 4.0)]
     kit.project_add(lay, CAM, m["art"], near=fs, lights=lights, ambient=(0.3, 0.22, 0.16),
                     glow_mats=[m["light"], *m["shelf"], m["shine"]], min_facing=0.1)
