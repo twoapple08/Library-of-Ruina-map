@@ -127,6 +127,8 @@ def build(b, d):
     m = mats()
     view = A.ArtView(CAM, AW, AH)
     fs = faces(m, rng, view) + tentacles(m, rng, view)
+    # 깊은 서고 전망턱의 두꺼운 가장자리.
+    fs.append(F.box((OX-12,Y0-.35,LEDGE-.65),(OX+12,Y0+.08,LEDGE),m['floor']))
     for x in (OX-45,OX-30,OX+30,OX+45):
         fs.append(F.box((x,Y0-.2,LEDGE-.7),(x+3,Y0+.12,LEDGE),m['floor']))
     for j in range(6):
