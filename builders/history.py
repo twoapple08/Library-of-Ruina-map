@@ -12,6 +12,7 @@ import math
 
 import numpy as np
 
+from builders import detail as D
 from tools import artfit as A
 from tools import form_textures as T
 from tools import forms as F
@@ -95,12 +96,26 @@ def rail(m, x0, x1, z, y):
 
 
 def case(m, x, z, y):
-    """유리 진열장: 검은 받침 + 유리 상자 + 책 한 권 (펼쳐 세움)."""
-    out = [F.box((x - 0.45, y, z - 0.35), (x + 0.45, y + 0.7, z + 0.35), m["case_base"])]
-    out.append(F.two_sided(F.box((x - 0.42, y + 0.7, z - 0.32), (x + 0.42, y + 1.75, z + 0.32), m["glass"])
-                           ).tint((1, 1, 1), 0.28))
-    out.append(F.box((x - 0.25, y + 0.72, z - 0.05), (x + 0.25, y + 1.1, z + 0.05), m["book"]).rotate(
-        "x", -15, origin=(x, y + 0.72, z)))
+    """실물 유리 진열장: 받침·상판·유리 4면·금속 테·펼친 책."""
+    out = [D.beveled_box((x-.48,y,z-.38),(x+.48,y+.7,z+.38),m["case_base"],.035)]
+    out.append(D.beveled_box((x-.46,y+1.72,z-.36),(x+.46,y+1.78,z+.36),m["case_base"],.02))
+    # 유리도 실제 두께를 가지며, 양면 렌더링으로 측면에서도 보인다.
+    for lo,hi in (
+        ((x-.43,y+.72,z-.35),(x+.43,y+1.72,z-.325)),
+        ((x-.43,y+.72,z+.325),(x+.43,y+1.72,z+.35)),
+        ((x-.43,y+.72,z-.325),(x-.405,y+1.72,z+.325)),
+        ((x+.405,y+.72,z-.325),(x+.43,y+1.72,z+.325)),
+    ):
+        out.append(F.two_sided(F.box(lo,hi,m["glass"])).tint((1,1,1),.28))
+    for xx in (x-.45,x+.42):
+        for zz in (z-.37,z+.34):
+            out.append(D.beveled_box((xx,y+.69,zz),(xx+.03,y+1.77,zz+.03),m["rail_top"],.005))
+    # 펼쳐진 책의 두 장: 종이 속지와 표지에 별도 두께.
+    for side in (-1,1):
+        cx=x+side*.135
+        leaf=D.flat_book(.25,.34,.055,m["book"],m["sand"])
+        out.append(leaf.rotate("z",side*13).translate((cx,y+.83,z)))
+    out.append(D.beveled_box((x-.025,y+.8,z-.2),(x+.025,y+.9,z+.2),m["book"],.008))
     return F.concat(out)
 
 
