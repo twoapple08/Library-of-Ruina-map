@@ -156,6 +156,7 @@ def build(b):
     m = mats()
     view = A.ArtView(CAM, 1000, 555)
     near = stage(m, rng)
+    near.extend(F.box((-BX, Y0-2, z-.35), (BX, Y0-1.5, z+.35), m['iron']) for z in (-HW+2, HW-2))
     far = balconies(m, rng) + pendulum(lay, m, view)
     lights = [((0, Y0 + 300, -300), (0.7, 0.7, 0.72), 800.0)]
     kit.project_add(lay, CAM, m["art"], near=near, far=far, lights=lights, ambient=(0.62, 0.62, 0.64),
