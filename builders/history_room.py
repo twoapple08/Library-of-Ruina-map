@@ -139,6 +139,10 @@ def build(b, d):
     rng = np.random.default_rng(551)
     m = mats()
     fs = faces(m, rng)
+    # 책상 위 펼친 책: 두 장의 종이와 두꺼운 표지를 분리한다.
+    fs.extend([F.box((OX-2,Y0+1.18,2.4),(OX-.2,Y0+1.23,3.4),m['paper']),
+               F.box((OX-.1,Y0+1.18,2.4),(OX+1.7,Y0+1.23,3.4),m['paper']),
+               F.box((OX-2.1,Y0+1.1,2.3),(OX+1.8,Y0+1.18,3.5),m['leather'])])
     for x in (OX-9, OX-5, OX+7, OX+10):
         fs.append(F.box((x,Y0+2,ZB+.18),(x+.85,Y0+2.12,ZB+.95),m['wood']))
     for j in range(7):
