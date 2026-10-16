@@ -199,12 +199,16 @@ def build(b):
 def collision(d):
     d.fill(-SX, Y0 - 1, int(SZ0) - 8, SX, Y0 - 1, int(SZ1) - 1, "minecraft:barrier")
     d.fill(-SX, Y0, int(SZ1), SX, Y0, int(SZ1), "minecraft:barrier")                   # 앞 난간
-    for i in range(720):                                                                # 돔 바닥 + 벽
-        a = math.pi + math.pi * i / 720
-        for r in np.arange(0, DOME_R, 2.0):
-            d.set(int(math.floor(r * math.cos(a))), Y0 - 1, int(math.floor(DZ + r * math.sin(a))), "minecraft:barrier")
-        x, z = int(math.floor(DOME_R * math.cos(a))), int(math.floor(DZ + DOME_R * math.sin(a)))
-        d.fill(x, Y0, z, x, Y0 + 20, z, "minecraft:barrier")
+    # 반원형 돔 바닥: 방사형 점 수만 개 대신 X별 연속 구간 fill.
+    # 원형 외곽벽도 같은 X 단면의 경계에 맞춰 배치해 시각/충돌 정합 유지.
+    radius = int(math.ceil(DOME_R))
+    for x in range(-radius, radius + 1):
+        dx = min(abs(x), DOME_R)
+        depth = math.sqrt(max(0.0, DOME_R * DOME_R - dx * dx))
+        z_edge = int(math.floor(DZ - depth))
+        z_back = int(math.floor(DZ))
+        d.fill(x, Y0 - 1, z_edge, x, Y0 - 1, z_back, "minecraft:barrier")
+        d.fill(x, Y0, z_edge, x, Y0 + 20, z_edge, "minecraft:barrier")
     kit.stair_collision(d, 4, 5, int(SZ1) + 8, int(SZ1) + 1, PLAT, Y0)
     d.fill(4, Y0, int(SZ1), 5, Y0, int(SZ1), "minecraft:air")
 
