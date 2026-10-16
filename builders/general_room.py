@@ -139,7 +139,15 @@ def build(b, d):
     for j in range(6):
         fs.append(F.box((OX-6+j*2, Y0+.05, ZG+2), (OX-5.3+j*2, Y0+.35, ZG+2.5), m['floor']))
     lights = [((OX + 2, Y0 + 40, ZG + 4), (1.1, 0.95, 0.75), 70.0)]
-    kit.project_add(lay, CAM, m["art"], near=fs, lights=lights, ambient=(0.45, 0.45, 0.47),
+    # 도착 턱은 정밀하게, 32블록 밖 서고·책탑은 기존 면을 불필요하게 1칸으로 더 쪼개지 않는다.
+    # 실제 부품은 유지하며, 정적 분류이므로 접근 시 동적으로 세분화되는 LOD는 아니다.
+    near, far = [], []
+    eye = np.asarray(CAM.pos)
+    for mesh in fs:
+        lo, hi = mesh.bounds()
+        distance = np.linalg.norm(eye - np.clip(eye, lo, hi))
+        (far if distance > 32 else near).append(mesh)
+    kit.project_add(lay, CAM, m["art"], near=near, far=far, far_edge=4.0, lights=lights, ambient=(0.45, 0.45, 0.47),
                     glow_mats=[m["bright"], m["light"], m["haze"]], min_facing=0.1)
     lay.emitter(F.Emitter((OX - 20, Y0 + 1, ZG, OX + 20, Y0 + 50, 30), rate=4.0, sprites=("ruina:block/form/paper_1",),
                           wind=(0.05, -0.05, 0.0), size=0.06, life=12.0, spin=0.2, color=(1.0, 0.92, 0.8), glow=True))
