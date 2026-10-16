@@ -95,6 +95,8 @@ def build(b, d):
     rng = np.random.default_rng(1621)
     m = mats()
     fs = faces(m, rng)
+    # 용광로 창 하단 창턱과 금속 받침.
+    fs.append(F.box((OX-4,Y0+1.3,ZB-.55),(OX+8,Y0+1.47,ZB+.3),m['frame']))
     # 낮은 탁자의 컵: 받침, 몸통, 윗테.
     fs.extend([F.box((OX+.1,Y0+.58,7.1),(OX+.8,Y0+.64,7.8),m['frame']),
                F.box((OX+.2,Y0+.64,7.2),(OX+.7,Y0+.98,7.7),m['glass']),
