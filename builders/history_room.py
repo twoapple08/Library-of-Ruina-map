@@ -139,6 +139,9 @@ def build(b, d):
     rng = np.random.default_rng(551)
     m = mats()
     fs = faces(m, rng)
+    # 책장 금빛 세로 이음부의 얇은 금속 덮개.
+    for x in SEAMS:
+        fs.append(F.box((x-.07,Y0+1.2,ZB+.35),(x+.07,Y0+H-.5,ZB+.42),m['gold']))
     # 책상 위 펼친 책: 두 장의 종이와 두꺼운 표지를 분리한다.
     fs.extend([F.box((OX-2,Y0+1.18,2.4),(OX-.2,Y0+1.23,3.4),m['paper']),
                F.box((OX-.1,Y0+1.18,2.4),(OX+1.7,Y0+1.23,3.4),m['paper']),
