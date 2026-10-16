@@ -134,6 +134,7 @@ def build(b):
     m = mats()
     view = A.ArtView(CAM, 1000, 562)
     near = log(m, rng)
+    near.extend(F.box((-BX, Y0-2, z-.35), (BX, Y0-1.5, z+.35), m['bark']) for z in (-HALF+2, HALF-2))
     far = [tree(m, rng, cx, cz, r, h, seed=i) for i, (cx, cz, r, h) in enumerate(TREES)]
     for i in range(9):
         a = 2 * math.pi * i / 9 + 0.2
