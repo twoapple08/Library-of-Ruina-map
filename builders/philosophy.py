@@ -87,6 +87,7 @@ def build(b):
     rng = np.random.default_rng(2001)
     m = mats()
     near = bridge(m, rng)
+    near.extend(F.box((-BX, Y0-2, z-.35), (BX, Y0-1.5, z+.35), m['stone']) for z in (-HW+2, HW-2))
     far = city(m, rng)
     lights = [((0, 600, -400), (0.6, 0.45, 0.35), 1200.0)]
     kit.project_add(lay, CAM, m["art"], near=near, far=far, lights=lights, ambient=(0.4, 0.36, 0.4),
