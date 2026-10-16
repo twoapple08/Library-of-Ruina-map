@@ -59,7 +59,7 @@ def dome(m, rng):
     out = []
     ys = np.linspace(0, DOME_H, 30)
     prof = [(DOME_R * math.sqrt(max(0.0, 1 - (y / DOME_H) ** 2)) + 0.01, Y0 + y) for y in ys if y < DOME_H * 0.97]
-    q = F.revolve(prof, m["wall"], segs=96, center=(0, 0, DZ), tiles_around=48, tile_up=6.0, arc=(180, 360)).flipped()
+    q = F.revolve(prof, m["wall"], segs=64, center=(0, 0, DZ), tiles_around=48, tile_up=6.0, arc=(180, 360)).flipped()
     out.append(q)
     for k in range(25):                                         # 갈비살
         a = math.pi + k * math.pi / 24
