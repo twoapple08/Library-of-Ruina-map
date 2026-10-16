@@ -341,7 +341,7 @@ def build(b):
     for q in near + far:                       # 빛나는 재질은 굽지 않은 제 색
         sel = np.isin(q.M, [m["strip"], m["fire"], m["glass"], m["fog"]])
         q.C[sel, :, :3] = 1.0
-    near_s = [F.subdivide(q, 1.0) for q in near]
+    near_s = [F.subdivide(q, 2.0) for q in near]  # GTX 1050 Ti: 근거리 과도한 세분화 억제
     far_s = [F.subdivide(q, 4.0) for q in far]
     proj = F.project_scene(near_s + far_s, CAM, m["art"], min_facing=0.15, zres=(1000, 562), min_seen=3)
     for i, q in enumerate(proj):
