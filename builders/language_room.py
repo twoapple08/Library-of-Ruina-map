@@ -95,6 +95,8 @@ def build(b, d):
     rng = np.random.default_rng(1621)
     m = mats()
     fs = faces(m, rng)
+    for y in (Y0+2,Y0+4,Y0+6):
+        fs.append(F.box((X0+.15,y,ZB+.2),(OX-4.2,y+.15,ZB+.8),m['frame']))
     for j in range(5):
         fs.append(F.box((OX-5+j*2, Y0+.06, ZB+2), (OX-4.4+j*2, Y0+.12, ZB+2.5), m['paper']))
     lights = [((OX + 2.0, Y0 + 4, ZB - 2), (1.4, 0.6, 0.25), 14.0)]
