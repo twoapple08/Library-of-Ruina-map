@@ -184,6 +184,7 @@ def build(b):
     m = mats()
     view = A.ArtView(CAM, 1000, 562)
     near = deck(m, rng)
+    near.extend(F.box((x-.25, Y0-1.8, -HW+2), (x+.25, Y0-1.45, HW-2), m['hull']) for x in np.arange(-BX+24, BX, 48))
     near.extend(F.box((-BX, Y0-2, z-.35), (BX, Y0-1.5, z+.35), m['hull']) for z in (-HW+2, HW-2))
     far = city(m, rng) + seaweed(lay, m, rng)
     lights = [((0, Y0 + 200, -150), (0.4, 0.75, 1.1), 500.0)]
