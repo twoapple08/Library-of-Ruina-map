@@ -195,6 +195,7 @@ def build(b):
     rng = np.random.default_rng(1001)
     m = mats()
     near = walkway(m)
+    near.extend(F.box((x-.2, Y0-1.5, -HW+1.5), (x+.2, Y0-1.15, HW-1.5), m['beam']) for x in np.arange(-BX+24, BX, 48))
     # 공중 보도의 하부 보강재: 원근에 관계없이 이어지는 입체 지지대.
     near += [F.box((-BX, Y0 - 1.7, z - .3), (BX, Y0 - 1.25, z + .3), m["rim"]) for z in (-HW + 1.5, HW - 1.5)]
     far = escalators(m, rng, 90, 40, 400, 7, 5) + escalators(m, rng, 40, 400, 700, 9, 7, far=True)
