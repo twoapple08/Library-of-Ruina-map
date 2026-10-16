@@ -59,7 +59,7 @@ def platform(m, rng):
     for x0 in np.arange(-BX, BX, 9.0):
         if rng.random() < 0.12:
             continue
-        for x in np.arange(x0, x0 + 9, 1.5):
+        for x in np.arange(x0, x0 + 9, 2.25):
             out.append(F.box((x - 0.07, Y0, z - 0.07), (x + 0.07, Y0 + 1.6, z + 0.07), m["rust"]))
         for y in (Y0 + 0.8, Y0 + 1.6):
             out.append(F.sweep(np.array([[x0, y, z], [x0 + 9, y, z]]), 0.08, m["rust"], sides=4, step=9.0))
