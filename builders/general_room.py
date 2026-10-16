@@ -126,6 +126,8 @@ def build(b, d):
     m = mats()
     view = A.ArtView(CAM, AW, AH)
     fs = faces(m, rng, view) + tentacles(m, rng, view)
+    for j in range(6):
+        fs.append(F.box((OX-6+j*2, Y0+.05, ZG+2), (OX-5.3+j*2, Y0+.35, ZG+2.5), m['floor']))
     lights = [((OX + 2, Y0 + 40, ZG + 4), (1.1, 0.95, 0.75), 70.0)]
     kit.project_add(lay, CAM, m["art"], near=fs, lights=lights, ambient=(0.45, 0.45, 0.47),
                     glow_mats=[m["bright"], m["light"], m["haze"]], min_facing=0.1)
