@@ -126,6 +126,9 @@ def build(b, d):
     rng = np.random.default_rng(1531)
     m = mats()
     fs = faces(m, rng)
+    # 아치 창 좌우 기둥의 금빛 테두리.
+    for x in WIN:
+        fs.append(F.box((x-.1,Y0+2,ZB+.05),(x+.1,Y0+H-2,ZB+.35),m['wood']))
     # 독서용 낮은 탁자의 모서리·발 받침.
     fs.extend([F.box((OX-1,Y0+.4,8),(OX+1,Y0+.55,9.6),m['wood']),F.box((OX-.8,Y0,8.2),(OX-.55,Y0+.4,8.45),m['wood']),F.box((OX+.55,Y0,9.15),(OX+.8,Y0+.4,9.4),m['wood'])])
     for x in (OX-5,OX-3,OX+6):
