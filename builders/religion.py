@@ -136,7 +136,7 @@ def balconies(m, rng, n=14):
         for x in np.arange(x0, x0 + L + 0.1, 6.0):
             out.append(F.box((x - 0.3, y - 12, z - 0.3), (x + 0.3, y, z + 0.3), m["iron"], tile=4.0))
             out.append(F.box((x - 0.06, y, z + 2.9), (x + 0.06, y + 1.1, z + 3.0), m["iron"]))
-    for _ in range(40):                                          # 쇠 틀
+    for _ in range(28):                                          # 쇠 틀
         x, y, z = rng.uniform(-350, 350), rng.uniform(Y0, Y0 + 300), rng.uniform(-420, -140)
         if rng.random() < 0.5:
             out.append(F.box((x, y, z), (x + rng.uniform(30, 120), y + 1.2, z + 1.2), m["iron"], tile=4.0))
