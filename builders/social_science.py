@@ -96,7 +96,7 @@ def deck(m, rng):
 def seaweed(lay, m, rng):
     """해초: 선체 아래·바닥에서 오르는 띠 (가까운 것은 살랑)."""
     out = []
-    for i in range(70):
+    for i in range(48):
         x, z = rng.uniform(-BX, BX), rng.uniform(HW + 1, HW + 25)
         h = rng.uniform(6, 22)
         t = np.linspace(0, 1, 8)
