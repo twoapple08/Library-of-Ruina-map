@@ -58,7 +58,7 @@ def mats():
 
 
 def stage(m, rng):
-    out = [F.plane((-BX, Y0, HW), (2 * BX, 0, 0), (0, 0, -2 * HW), m["slate"], tile=(2, 2))]
+    out = [F.box((-BX, Y0 - 0.3, -HW), (BX, Y0, HW), m["slate"], tile=2.0)]
     out.append(F.box((-BX, Y0 - 2.6, HW), (BX, Y0 + 0.1, HW + 1.2), m["stone"], tile=2.0))       # 앞 처마
     out.append(F.box((-BX, Y0, -HW - 0.5), (BX, Y0 + 0.5, -HW), m["stone"], tile=2.0))           # 뒤 턱
     out.append(F.plane((-BX, Y0 - 3, -HW), (2 * BX, 0, 0), (0, 0, 2 * HW), m["stone"], tile=(4, 4)))
