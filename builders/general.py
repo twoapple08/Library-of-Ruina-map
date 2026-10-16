@@ -202,6 +202,10 @@ def backdrop(m, rng):
         q = kit.building(-w / 2, -d / 2, w / 2, d / 2, WATER - 4, Y0 + h, m["shelf"][i % 2], tile=(6.0, 6.0))
         if r < 340:
             q = F.concat([q, F.box((-w/2-.8, WATER-4, -d/2), (-w/2+.8, Y0+h, d/2), m["slab"])])
+        if r < 340:
+            q = F.concat([q, F.box((w/2-.8, WATER-4, -d/2), (w/2+.8, Y0+h, d/2), m["slab"])])
+            for yy in np.arange(WATER+12, Y0+h, 24):
+                q = F.concat([q, F.box((-w/2, yy, -d/2-1), (w/2, yy+.5, -d/2+.5), m["slab"])])
         out.append(q.rotate("y", -math.degrees(a) + 90).translate((cx, 0, cz)))
     out.append(F.plane((-700, WATER, 700), (1400, 0, 0), (0, 0, -1400), m["water"], tile=(32, 32)))
     for y in (WATER + 20, Y0 - 15, Y0 + 60):
