@@ -117,6 +117,10 @@ def build(b, d):
     rng = np.random.default_rng(1311)
     m = mats()
     fs = faces(m, rng)
+    # 그림틀의 좌우·하단 목재 몰딩.
+    for x in (OX+6.08,OX+7.65):
+        fs.append(F.box((x,Y0+.95,ZB+1.85),(x+.09,Y0+2.82,ZB+2.12),m['wood']))
+    fs.append(F.box((OX+6.08,Y0+.95,ZB+1.85),(OX+7.74,Y0+1.04,ZB+2.12),m['wood']))
     # 화구용 캔버스 틀과 나무 받침대.
     fs.extend([F.box((OX+6.8,Y0+.2,ZB+2),(OX+7,Y0+3,ZB+2.3),m['wood']),F.box((OX+6,Y0+2.8,ZB+2),(OX+7.8,Y0+3,ZB+2.3),m['wood']),F.box((OX+6.15,Y0+1,ZB+1.9),(OX+7.65,Y0+2.7,ZB+2),m['canvas'])])
     for x in (OX-8,OX-6,OX+8):
