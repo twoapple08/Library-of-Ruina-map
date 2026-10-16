@@ -118,7 +118,7 @@ def stage(m):
     out.append(F.plane((-SX, Y0 + 0.02, SZ1 - 4), (2 * SX, 0, 0), (0, 0, -(SZ1 - SZ0 - 8)), m["carpet"], tile=(4, 4)))
     zf = SZ1
     out.append(F.sweep(np.array([[-SX, Y0 + 0.3, zf], [SX, Y0 + 0.3, zf]]), 0.3, m["gold"], sides=6, step=8.0, tile_along=8))
-    out.append(F.plane((-SX, Y0 - 19, zf + 0.2), (2 * SX, 0, 0), (0, 18.5, 0), m["glass"], tile=(4, 4)).tint((1, 1, 1), 0.45))
+    out.append(F.two_sided(F.box((-SX, Y0 - 19, zf + 0.18), (SX, Y0 - 0.5, zf + 0.24), m["glass"])).tint((1, 1, 1), 0.45))
     for x0 in np.arange(-SX, SX, 20.0):                        # 금테: 세로 + 위로 휘는 테 두 줄
         out.append(F.box((x0 - 0.3, Y0 - 19, zf), (x0 + 0.3, Y0, zf + 0.5), m["gold"]))
         for base in (Y0 - 19, Y0 - 12):
