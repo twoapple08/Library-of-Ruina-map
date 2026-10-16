@@ -97,6 +97,9 @@ def build(b, d):
     rng = np.random.default_rng(2231)
     m = mats()
     fs = faces(m, rng)
+    # 나선계단 기둥 주변의 금속 발판 연결대.
+    for j in range(8):
+        fs.append(F.box((OX+.1,Y0+j*2,-10.4),(OX+.9,Y0+j*2+.15,-9.6),m['iron']))
     for z in (-17,-11,-5,1,7,13):
         fs.append(F.box((OX-RW+.15,Y0+8,z),(OX-RW+.8,Y0+8.2,z+3),m['panel']))
     for j in range(6):
