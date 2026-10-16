@@ -64,6 +64,7 @@ def star_mesh(m, c, r):
 def faces(m, rng):
     out = []
     yt = Y0 + H
+    out.extend([F.box((OX-RW,Y0,-RD),(OX-RW+.25,Y0+.3,RD),m['wood']), F.box((OX+RW-.25,Y0,-RD),(OX+RW,Y0+.3,RD),m['wood'])])
     out.append(F.plane((OX - RW, Y0, RD + 2), (2 * RW, 0, 0), (0, 0, -2 * RD - 2), m["floor"], tile=(3, 3)))
     # 가운데 빛 비친 반들 바닥 (반투명 빛 판)
     for k in range(6):
