@@ -22,6 +22,13 @@ class FormsTest(unittest.TestCase):
                          F._anchor_state("minecraft:barrier[waterlogged=false]", 0))
         self.assertIn("solid=true", F._anchor_state("minecraft:barrier[waterlogged=false]", 0))
 
+    def test_default_slab_properties_keep_half_collision(self):
+        expected = F._anchor_state(F.HALF_SOLID, 0)
+        for state in F.HALF_SOLID_STATES:
+            with self.subTest(state=state):
+                self.assertEqual(F._anchor_state(state, 0), expected)
+        self.assertIn("half=true", expected)
+
     def test_inject_does_not_overwrite_real_structure(self):
         d = Dimension("ruina:test", 0, 64, "minecraft:plains")
         d.set(0, 1, 0, "minecraft:stone")
@@ -89,10 +96,12 @@ class FormsTest(unittest.TestCase):
         d = Dimension("ruina:test", 0, 64, "minecraft:plains")
         d.fill(0, 0, 0, 15, 0, 15, "minecraft:stone")
         d.set(5, 3, 5, "minecraft:barrier")
+        d.set(6, 3, 5, F.HALF_SOLID)
         d.set(7, 3, 5, "minecraft:light[level=12]")
         lay = F.FormLayer("test", d)
         glow = F.mat("lamp", "minecraft:block/glowstone", emissive=True, glow=3)
         lay.add(F.box((5.1, 3.1, 5.1), (5.9, 3.9, 5.9), self.m))          # barrier 칸
+        lay.add(F.box((6.1, 3.1, 5.1), (6.9, 3.4, 5.9), self.m))
         lay.add(F.box((7.2, 3.2, 5.2), (7.8, 3.8, 5.8), glow))           # light 칸
         lay.add(F.plane((2, 0.0, 2), (0, 0, 1), (1, 0, 0), self.m))      # 바닥(돌) 위 → 위 칸(y=1)으로 옮김
         lay.add(F.box((40.2, 10.2, 40.2), (40.8, 10.8, 40.8), self.m))   # 블록 없는 청크
@@ -134,6 +143,8 @@ class FormsTest(unittest.TestCase):
                         if isinstance(entry, str):
                             entry = {"": entry}
                         name = entry.get("", entry.get("id", entry.get("Name")))
+                        if name == "minecraft:petrified_oak_slab":
+                            entry = {"": name}  # 실제 26.3 서버가 기본 bottom/false 속성을 생략한 상태
                         if name == "minecraft:barrier":
                             entry = {"id": name, "properties": {"waterlogged": "false"}}
                         normalized.append(entry)
@@ -145,6 +156,7 @@ class FormsTest(unittest.TestCase):
             ch = region.read_region(os.path.join(rdir, "r.0.0.mca"))
             self.assertEqual(chunk_block(ch[(0, 0)], 5, 3, 5), "ruina:form[glow=0,half=false,light=0,solid=true]")
             self.assertEqual(chunk_block(ch[(0, 0)], 9, 4, 9), "ruina:mover")
+            self.assertEqual(chunk_block(ch[(0, 0)], 6, 3, 5), "ruina:form[glow=0,half=true,light=0,solid=true]")
             self.assertEqual(chunk_block(ch[(0, 0)], 3, 0, 3), "minecraft:stone")
             self.assertTrue(any(be["id"] == "ruina:mover" for be in ch[(0, 0)]["block_entities"]))
             self.assertEqual(chunk_block(ch[(2, 2)], 40, 10, 40), "ruina:form[glow=0,half=false,light=0,solid=false]")

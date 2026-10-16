@@ -146,12 +146,10 @@ def ci_world(argv) -> int:
         for dim, chunks in by_dim.items():
             _forceload(srv, dim, chunks, rep)
 
-        passed = 0
-        for c in checks:
-            ok = srv.test(f"execute in {c['dim']} if block {c['x']} {c['y']} {c['z']} {c['state']}")
-            passed += ok
-            if not ok:
-                fails.append(c)
+        commands = [f"execute in {c['dim']} if block {c['x']} {c['y']} {c['z']} {c['state']}" for c in checks]
+        results = srv.test_many(commands)
+        passed = sum(results)
+        fails.extend(c for c, ok in zip(checks, results) if not ok)
         rep.add(passed == len(checks), f"블록 검증 {passed}/{len(checks)} (팔레트 형식 {W.PALETTE_FORMAT})")
 
         for e in [e for e in b.extra_checks if not e.get("after_entities")]:
