@@ -87,6 +87,7 @@ def build(b):
     rng = np.random.default_rng(2001)
     m = mats()
     near = bridge(m, rng)
+    near.extend(F.box((x-.25, Y0-1.8, -HW+2), (x+.25, Y0-1.45, HW-2), m['stone']) for x in np.arange(-BX+24, BX, 48))
     near.extend(F.box((-BX, Y0-2, z-.35), (BX, Y0-1.5, z+.35), m['stone']) for z in (-HW+2, HW-2))
     far = city(m, rng)
     lights = [((0, 600, -400), (0.6, 0.45, 0.35), 1200.0)]
