@@ -127,6 +127,8 @@ def build(b, d):
     lay = b.form("technology")
     m = mats()
     fs = faces(m, lay)
+    for x in (OX-8, OX-5, OX+5, OX+8):
+        fs.append(F.box((x,Y0+6,ZB+.15),(x+1.1,Y0+6.12,ZB+.7),m['gear']))
     for j in range(6):
         fs.append(F.box((OX-6+j*1.8, Y0+.05, ZB+2), (OX-5.1+j*1.8, Y0+.55, ZB+2.65), m['box']))
     lights = [((OX - 2.7, Y0 + 8, 2.5), (0.8, 0.5, 1.1), 10.0), ((OX + 1.4, Y0 + 3, ZB + 1), (0.6, 0.4, 0.9), 7.0),
