@@ -95,8 +95,15 @@ def rail(m, x0, x1, z, y):
     return F.concat(out)
 
 
-def case(m, x, z, y):
+def case(m, x, z, y, detailed=True):
     """실물 유리 진열장: 받침·상판·유리 4면·금속 테·펼친 책."""
+    if not detailed:
+        # 원거리 진열장: 외곽 실루엣만 유지해 불필요한 면과 투명 중첩을 절감.
+        return F.concat([
+            F.box((x-.48,y,z-.38),(x+.48,y+.7,z+.38),m["case_base"]),
+            F.box((x-.43,y+.7,z-.34),(x+.43,y+1.72,z+.34),m["glass"]).tint((1,1,1),.22),
+            F.box((x-.46,y+1.72,z-.36),(x+.46,y+1.78,z+.36),m["case_base"])
+        ])
     out = [D.beveled_box((x-.48,y,z-.38),(x+.48,y+.7,z+.38),m["case_base"],.035)]
     out.append(D.beveled_box((x-.46,y+1.72,z-.36),(x+.46,y+1.78,z+.36),m["case_base"],.02))
     # 유리도 실제 두께를 가지며, 양면 렌더링으로 측면에서도 보인다.
@@ -128,7 +135,7 @@ def stage(m, rng, x0=-HX, x1=HX, z0=-HZ, z1=HZ, y=Y0, near=None):
         for i, x in enumerate(xs):
             if near is not None and not near(x, zr):
                 continue
-            out.append(case(m, x, zr + (1.2 if i % 2 == 0 else -1.2), y))
+            out.append(case(m, x, zr + (1.2 if i % 2 == 0 else -1.2), y, detailed=(abs(x) < 36 and zr > 30)))
     return out
 
 
