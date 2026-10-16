@@ -416,7 +416,8 @@ def cmd_modtest():
     for suf, report, title, env in (("", "ruina_test.txt", "바닐라 렌더", "GAMETEST_OUTCOME"),
                                     ("_bsl", "ruina_test_bsl.txt", "Iris+Sodium+맵 전용 BSL", "GAMETEST_BSL_OUTCOME")):
         outcome = os.environ.get(env, "" if suf else "?")
-        if suf and not outcome:
+        if outcome in ("skipped", ""):
+            lines.append(f"- ℹ️ {title}: 미실행 (건축 완료 후 최종 검사 때 실행)")
             continue
         n = len(thumbs["bsl_" if suf else ""])
         lines.append(f"- {'✅' if outcome == 'success' else '❌'} {title}: {outcome}, 스크린샷 {n}장 (ci-output 브랜치 mod/sheet{suf}.jpg)")

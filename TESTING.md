@@ -1,7 +1,7 @@
 # 테스트 안내 (PC 테스터용)
 
 도서관 맵을 PC에서 열어 보고 결과를 알려주시는 분을 위한 문서입니다.
-지금은 **5차: 모드로 전환 (모드화 ① 기본 틀)** 입니다. 이제 월드 파일을 받지 않고, **모드만 넣으면 아무 월드에서나** 도서관에 갈 수 있습니다.
+현재는 **전체 건축 품질 보완 중**입니다. 테스터의 최종 게임 검사는 건축 완료 후 한 번에 진행합니다. 이제 월드 파일을 받지 않고, **모드만 넣으면 아무 월드에서나** 도서관에 갈 수 있습니다.
 
 ## 1. 설치 (처음 한 번)
 
@@ -10,8 +10,7 @@
 | 1 | 마인크래프트 Java 에디션 **26.3** + **Fabric Loader** (26.3) | 지금 쓰는 Fabric 프로필 그대로 |
 | 2 | **도서관 모드** `Ruina.jar` | [Releases → world-latest](https://github.com/twoapple08/Library-of-Ruina-map/releases/tag/world-latest)에서 받아 `mods` 폴더에 |
 | 3 | **Fabric API** `fabric-api-….jar` | 같은 릴리스에 있음 (이미 있으면 26.3용 최신이면 됨) → `mods` 폴더 |
-| 4 | Sodium · Iris | 지금 쓰는 것 그대로 |
-| 5 | **맵 전용 BSL** `BSL_v10.1.6_Ruina.zip` | 같은 릴리스, `shaderpacks` 폴더에 zip 그대로 |
+| 4 | Sodium · Iris · BSL | 현재 필수 설치 아님. BSL 작업·검사는 중단 상태 |
 
 - **리소스팩(`Ruina_resources.zip`)은 이제 필요 없습니다** (소리가 모드 안에 들어감). 켜져 있으면 꺼 주세요.
 - 예전 월드 파일(`Library of Ruina`)은 백업 릴리스(world-datapack-final)에만 남겨 둡니다.
@@ -75,5 +74,6 @@
 
 - 각 공간은 별도 차원(`ruina:exterior`, `ruina:lobby`, …)입니다.
 - 명령어로 가기: `/function ruina:tp/to/exterior_spawn`, `/function ruina:tp/to/<층>_entrance` (예: `history_entrance`), 방은 `<층>_room`
-- 자동 테스트(CI)가 실제 게임으로 아이템을 써 보고 도착 화면을 찍어 둡니다 (`ci-output` 브랜치 `mod/`). 사람이 볼 것은 플레이 느낌·fps·셰이더입니다.
+- 일반 푸시에서는 단위 검사·월드 생성·JAR 검증·배포만 수행합니다. 최종 클라이언트 검사는 Actions 수동 실행에서 `game_test`를 켤 때 수행하며, 미실행은 통과로 기록하지 않습니다.
+- 배포된 `Ruina-build.json`에는 소스 전체 커밋, JAR 빌드 시각(UTC), 건축 데이터 버전·지문, 파일 크기·SHA-256이 있습니다. JAR를 ZIP으로 열면 `ruina/build.json`, `ruina/world.id`, `ruina/source.sha`에서도 확인할 수 있습니다. 건축 캐시를 재사용하면 건축 버전과 모드 소스 커밋은 다를 수 있으며, 현재 건축 지문과 일치해야 배포됩니다.
 - 미리보기 그림은 `previews/` 폴더 (아이템 아이콘: `previews/mod_items.png`).
