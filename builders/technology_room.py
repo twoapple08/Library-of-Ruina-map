@@ -127,6 +127,10 @@ def build(b, d):
     lay = b.form("technology")
     m = mats()
     fs = faces(m, lay)
+    # 서랍 손잡이: 각 층의 중앙 금속 손잡이.
+    for x in (OX-9,OX+8):
+        for y in (Y0+2,Y0+4,Y0+6):
+            fs.append(F.box((x-.38,y,ZB+.42),(x+.38,y+.12,ZB+.58),m['gear']))
     # 콘솔 위 키보드와 분리된 키캡.
     fs.append(F.box((OX-3,Y0+2.1,2.1),(OX-1,Y0+2.22,2.75),m['panel']))
     for ix in range(7):
