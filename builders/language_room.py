@@ -95,6 +95,10 @@ def build(b, d):
     rng = np.random.default_rng(1621)
     m = mats()
     fs = faces(m, rng)
+    # 낮은 탁자의 컵: 받침, 몸통, 윗테.
+    fs.extend([F.box((OX+.1,Y0+.58,7.1),(OX+.8,Y0+.64,7.8),m['frame']),
+               F.box((OX+.2,Y0+.64,7.2),(OX+.7,Y0+.98,7.7),m['glass']),
+               F.box((OX+.15,Y0+.98,7.15),(OX+.75,Y0+1.02,7.75),m['frame'])])
     for y in (Y0+2,Y0+4,Y0+6):
         fs.append(F.box((X0+.15,y,ZB+.2),(OX-4.2,y+.15,ZB+.8),m['frame']))
     for j in range(5):
