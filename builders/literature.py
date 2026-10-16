@@ -60,7 +60,7 @@ def walkway(m):
     for s in (-1, 1):
         z = s * HW
         out.append(F.box((-BX, Y0 - 0.6, min(z, z + s * 0.4)), (BX, Y0 + 0.15, max(z, z + s * 0.4)), m["rim"], tile=4.0))
-    out.append(F.plane((-BX, Y0 - 3, -HW), (2 * BX, 0, 0), (0, 0, 2 * HW), m["beam"], tile=(4, 4)))
+    out.append(F.box((-BX, Y0 - 3.2, -HW), (BX, Y0 - 2.9, HW), m["beam"], tile=4.0))
     # 양 옆면: 팔각 아치가 이어진 검은 벽 (들보 + 기둥 + 깎은 모서리 + 밝은 테) + 아치 안 줄 전구
     period, ow, yb, ya = 9.0, 6.6, Y0 - 1.2, Y0 - 16      # 원화: 아치 9칸마다 (도착 시점 아치 자리와 맞춤)
     oa, ob, cut = Y0 - 14, Y0 - 2.6, 1.6
