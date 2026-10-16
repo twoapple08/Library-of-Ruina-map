@@ -68,6 +68,7 @@ def gap_x(view):
 def faces(m, rng, view):
     out = []
     gx0, gx1 = gap_x(view)
+    out.extend([F.box((OX-60,Y0-.35,LEDGE-.6),(OX+61,Y0+.05,LEDGE),m['floor']), F.box((OX-60,Y0-.3,41),(OX-59.6,Y0+.3,LEDGE),m['floor'])])
     out.append(F.plane((OX - 60, Y0, 41), (121, 0, 0), (0, 0, LEDGE - 41), m["floor"], tile=(4, 4)))
     out.append(F.plane((OX - 60, Y0, LEDGE), (121, 0, 0), (0, PIT - Y0, 0), m["shelf"][0], tile=(2, 2)))     # 턱 앞면
     out.append(F.box((OX - 60, Y0 - 0.4, LEDGE - 0.4), (OX + 61, Y0 + 0.05, LEDGE), m["floor"], tile=2.0, faces="zyY"))
