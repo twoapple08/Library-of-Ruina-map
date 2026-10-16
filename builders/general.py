@@ -164,6 +164,8 @@ def tower(m, rng, path, layer=1.0):
             yaw = 12 * math.sin(t * 0.07 + ph) + rng.uniform(-8, 8)
             out.append(F.box((-w / 2, -h / 2, -d / 2), (w / 2, h / 2, d / 2), m["books"][int(rng.integers(3))],
                              tile=max(1.0, layer * 1.5)).rotate("y", yaw).translate((c[0] + off[0], c[1], c[2] + off[1])))
+        if r > 3 and int(t) % 7 == 0:
+            out.append(F.box((c[0]-r/2,c[1]+h/2,c[2]-r/2),(c[0]+r/2,c[1]+h/2+.08,c[2]+r/2),m["slab"]))
         t += min(h * 0.9, max(0.3, r * 0.5))
     return out
 
