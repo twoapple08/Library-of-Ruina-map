@@ -77,7 +77,7 @@ def deck(m):
     out.append(F.plane((-BX, Y0 - 4, -HW), (2 * BX, 0, 0), (0, 0, 2 * HW), m["steel"], tile=(8, 8)))
     for s in (-1, 1):                                             # 난간: 기둥 2칸마다 + 두 줄 가로대
         z = s * (HW + 0.5)
-        for x in np.arange(-BX, BX + 0.1, 2.0):
+        for x in np.arange(-BX, BX + 0.1, 3.0):
             out.append(F.box((x - 0.08, Y0 + 0.3, z - 0.08), (x + 0.08, Y0 + 1.4, z + 0.08), m["steel"]))
         for y in (Y0 + 0.9, Y0 + 1.4):
             out.append(F.sweep(np.array([[-BX, y, z], [BX, y, z]]), 0.09, m["steel"], sides=6, step=8.0, tile_along=8))
