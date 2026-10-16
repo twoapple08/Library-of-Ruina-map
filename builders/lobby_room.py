@@ -77,9 +77,9 @@ def shelf_wall(m, x0, x1, y0, y1, z, facing=1, seed=0, depth=0.6):
             book_depth = float(rng.uniform(0.28, 0.45))
             cover = m["wood_l"] if rng.random() < 0.18 else m["shelf"][int(rng.integers(3))]
             q = D.upright_book(width, height, book_depth, cover, m["paper"])
-            q = q.translate((cursor + width / 2, base, zi + facing * (book_depth / 2 + 0.05)))
             if facing < 0:
-                q = q.rotate("y", 180, origin=(cursor + width / 2, 0, zi))
+                q = q.rotate("y", 180)
+            q = q.translate((cursor + width / 2, base, zi + facing * (book_depth / 2 + 0.05)))
             out.append(q)
             cursor += width + float(rng.uniform(0.015, 0.045))
     # 칸 안 옆·위·아래 면 (깊이)
