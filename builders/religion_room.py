@@ -96,6 +96,8 @@ def build(b, d):
     rng = np.random.default_rng(2231)
     m = mats()
     fs = faces(m, rng)
+    for j in range(6):
+        fs.append(F.box((OX-6+j*2, Y0+.05, ZB+2), (OX-5.3+j*2, Y0+.35, ZB+2.5), m['panel']))
     lights = [((OX + 0.5, Y0 + 12, ZB + 2), (0.9, 0.9, 0.92), 40.0)]
     kit.project_add(lay, CAM, m["art"], near=fs, lights=lights, ambient=(0.62, 0.62, 0.64),
                     glow_mats=[m["fog"], m["haze"], m["watch"]], min_facing=0.1)
