@@ -1005,7 +1005,7 @@ def inject(world_dir: str, anchors: dict[str, dict]) -> dict:
                         arr = np.full((16, 16, 16), AIR, dtype=object)
                     for x, y, z, st in its:
                         cur = arr[y & 15, z & 15, x & 15]
-                        if not (cur == AIR or cur in BARRIER_STATES or cur == HALF_SOLID or cur.startswith("minecraft:light")):
+                        if not (cur == AIR or cur in BARRIER_STATES or cur == HALF_SOLID or (cur == "minecraft:light" or cur.startswith("minecraft:light["))):
                             stats["자리 아님"] += 1
                             stats["비정상 상태"][cur] = stats["비정상 상태"].get(cur, 0) + 1
                             if len(stats["예시"]) < 16:

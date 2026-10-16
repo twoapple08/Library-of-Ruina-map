@@ -26,16 +26,18 @@ class FormsTest(unittest.TestCase):
         d = Dimension("ruina:test", 0, 64, "minecraft:plains")
         d.set(0, 1, 0, "minecraft:stone")
         d.set(1, 1, 0, "minecraft:barrier[waterlogged=true]")
+        d.set(2, 1, 0, "minecraft:light_blue_concrete")
         with tempfile.TemporaryDirectory() as tmp:
             rdir = os.path.join(tmp, "dimensions/ruina/test/region")
             d.write_regions(rdir, 5023, workers=1)
             st = F._anchor_state("minecraft:barrier", 0)
-            stats = F.inject(tmp, {"ruina:test": {(0, 1, 0): st, (1, 1, 0): st}})
-            self.assertEqual(stats["자리 아님"], 2)
+            stats = F.inject(tmp, {"ruina:test": {(0, 1, 0): st, (1, 1, 0): st, (2, 1, 0): st}})
+            self.assertEqual(stats["자리 아님"], 3)
             self.assertEqual(stats["칸"], 0)
             ch = region.read_region(os.path.join(rdir, "r.0.0.mca"))[(0, 0)]
             self.assertEqual(chunk_block(ch, 0, 1, 0), "minecraft:stone")
             self.assertEqual(chunk_block(ch, 1, 1, 0), "minecraft:barrier[waterlogged=true]")
+            self.assertEqual(chunk_block(ch, 2, 1, 0), "minecraft:light_blue_concrete")
 
     def test_sweep_faces_outward(self):
         path = np.array([[0, 0, 0], [0, 5, 0], [2, 9, 0]], float)
