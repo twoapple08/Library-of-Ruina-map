@@ -106,6 +106,8 @@ def build(b, d):
     rng = np.random.default_rng(1721)
     m = mats()
     fs = faces(m, rng)
+    # 큰 격자창 아래 창턱 및 세로 몰딩.
+    fs.append(F.box((OX-6.1,Y0+2.5,ZB-.42),(OX+.4,Y0+2.68,ZB+.32),m['wall']))
     # 커피 드리퍼를 받치는 입체 받침과 유리 용기.
     fs.extend([F.box((OX+1.2,Y0+1.05,2.6),(OX+2,Y0+1.12,3.4),m['table']),
                F.box((OX+1.35,Y0+1.12,2.75),(OX+1.85,Y0+1.65,3.25),m['glass'])])
