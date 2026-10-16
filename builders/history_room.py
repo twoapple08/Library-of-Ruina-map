@@ -134,6 +134,8 @@ def build(b, d):
     rng = np.random.default_rng(551)
     m = mats()
     fs = faces(m, rng)
+    for j in range(7):
+        fs.append(F.box((OX-7+j*2, Y0+.1, ZB+1), (OX-6.7+j*2, Y0+.8, ZB+1.6), m['leather']))
     lights = [((OX + 3.0, Y0 + 5, ZB - 6), (1.5, 1.1, 0.6), 18.0)]
     lights += [((x, Y0 + 6, ZB + 0.5), (0.5, 0.36, 0.2), 4.0) for x in SEAMS]
     glow = [m["seam"], m["gold"], m["haze"]]
