@@ -82,14 +82,16 @@ def shelf_block(m, x0, z0, x1, z1, y0, y1, rng, cap=True):
                 out.append(F.box((min(p[0],q[0])-.28,yy,min(p[2],q[2])),
                                  (max(p[0],q[0])+.28,yy+.10,max(p[2],q[2])),m["wood"]))
             # 거리별 밀도: 원거리 탑도 개별 책으로 구성하되 간격을 키운다.
-            step = .23 if abs((x0+x1)/2-OX)<30 and abs((z0+z1)/2)<30 else .43
+            near = abs((x0+x1)/2-OX)<30 and abs((z0+z1)/2)<30
+            step = .23 if near else 1.1
             count = max(1,int((length-.55)/step))
             for j in range(count):
                 pos = .3+(j+.5)*(length-.6)/count
                 height = float(rng.uniform(.68,.98))
                 width = min(step*.82,.27)
-                book = D.upright_book(width,height,.34,
-                                      m["book"][int(rng.integers(len(m["book"])))],m["paper"])
+                cover = m["book"][int(rng.integers(len(m["book"])))]
+                book = (D.upright_book(width,height,.34,cover,m["paper"]) if near
+                        else F.box((-width/2,0,-.17),(width/2,height,.17),cover))
                 # 로컬 +Z 책등을 외부 방향으로 배치.
                 angle = math.degrees(math.atan2(tangent[2],tangent[0]))
                 book = book.rotate("y",-angle)
