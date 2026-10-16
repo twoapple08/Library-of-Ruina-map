@@ -52,6 +52,11 @@ def mats():
 def faces(m, rng):
     out = []
     yt = Y0 + H
+    # 방 바닥 외곽의 입체 걸레받이: 평판 벽과 바닥 사이 이음부 마감.
+    out.extend([F.box((X0, Y0, ZB), (X1, Y0+.22, ZB+.22), m["wall"]),
+                F.box((X0, Y0, ZS-.22), (X1, Y0+.22, ZS), m["wall"]),
+                F.box((X0-.22, Y0, ZB), (X0, Y0+.22, ZS), m["wall"]),
+                F.box((X1, Y0, ZB), (X1+.22, Y0+.22, ZS), m["wall"])])
     out.append(F.plane((X0, Y0, ZS), (X1 - X0, 0, 0), (0, 0, ZB - ZS), m["floor"], tile=(2, 2)))
     out.append(F.plane((X0, yt, ZB), (X1 - X0, 0, 0), (0, 0, ZS - ZB), m["wall"], tile=(2, 2)))
     # 북쪽: 큰 격자 창 (왼쪽) + 뒤 선반 (오른쪽) + 아래 벽
