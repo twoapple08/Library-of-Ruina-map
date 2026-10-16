@@ -53,7 +53,7 @@ def bridge(m, rng):
     out = [F.fit_tiles(F.grid(G, UV, m["pave"], N=np.broadcast_to([0, 1.0, 0], G.shape)))]
     for _ in range(int(2 * BX * 2 * HW * 0.012)):              # 박힌 금빛 등
         x, z = rng.uniform(-BX, BX), rng.uniform(-HW + 6, HW)
-        out.append(F.plane((x, Y0 + 0.02, z + 0.4), (0.4, 0, 0), (0, 0, -0.4), m["lamp"]))
+        out.append(F.box((x, Y0 + 0.015, z), (x + 0.4, Y0 + 0.06, z + 0.4), m["lamp"]))
     Gs = np.stack([np.stack([xs, np.full_like(xs, Y0 - 6), back], 1), np.stack([xs, np.full_like(xs, Y0), back], 1)], 1)
     out.append(F.fit_tiles(F.grid(Gs, UV, m["stone"], N=np.broadcast_to([0, 0, -1.0], Gs.shape))))
     out.append(F.box((-BX, Y0 - 6, HW - 0.5), (BX, Y0, HW), m["stone"], tile=4.0, faces="Z"))
