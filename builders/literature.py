@@ -195,6 +195,8 @@ def build(b):
     rng = np.random.default_rng(1001)
     m = mats()
     near = walkway(m)
+    # 공중 보도의 하부 보강재: 원근에 관계없이 이어지는 입체 지지대.
+    near += [F.box((-BX, Y0 - 1.7, z - .3), (BX, Y0 - 1.25, z + .3), m["rim"]) for z in (-HW + 1.5, HW - 1.5)]
     far = escalators(m, rng, 90, 40, 400, 7, 5) + escalators(m, rng, 40, 400, 700, 9, 7, far=True)
     # 나무 탑: 원화의 셋은 원화 자리 (도착 시점에서 픽셀 상자 → 깊이), 나머지는 둘레
     for cx, cz, w, h in ((0.6, -60, 30, 200), (-91, -80, 24, 205), (116, -90, 27, 210),
