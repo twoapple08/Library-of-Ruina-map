@@ -11,6 +11,7 @@ import math
 
 import numpy as np
 
+from builders import detail as D
 from tools import form_textures as T
 from tools import forms as F
 
@@ -60,12 +61,27 @@ def shelf_wall(m, x0, x1, y0, y1, z, facing=1, seed=0, depth=0.6):
     rng = np.random.default_rng(seed)
     out = []
     zf = z + facing * 0.02
-    # 책 줄 (안쪽으로 depth 만큼 들어감)
+    # 선반마다 독립적인 낱권 책: 종이 속지·앞뒤 표지·책등에 실제 두께.
+    # 양쪽 벽면도 같은 로컬 +Z 부품을 뒤집어 책등이 실내를 향하게 한다.
     zi = z - facing * depth
-    for k, (a, b) in enumerate([(y0 + 0.6 + i, y0 + 1.6 + i) for i in range(int(y1 - y0 - 1.2))]):
-        mat = m["shelf"][int(rng.integers(3))]
-        p = F.plane((x0 if facing > 0 else x1, a, zi), ((x1 - x0) * facing, 0, 0), (0, b - a, 0), mat, tile=(1.0, 1.0))
-        out.append(p)
+    inner_width = max(0.1, x1 - x0 - 0.65)
+    rows = int(y1 - y0 - 1.2)
+    for i in range(rows):
+        base = y0 + 0.68 + i
+        cursor = x0 + 0.36
+        while cursor < x1 - 0.42:
+            width = float(rng.uniform(0.13, 0.23))
+            if cursor + width > x1 - 0.34:
+                break
+            height = float(rng.uniform(0.62, 0.87))
+            book_depth = float(rng.uniform(0.28, 0.45))
+            cover = m["wood_l"] if rng.random() < 0.18 else m["shelf"][int(rng.integers(3))]
+            q = D.upright_book(width, height, book_depth, cover, m["paper"])
+            q = q.translate((cursor + width / 2, base, zi + facing * (book_depth / 2 + 0.05)))
+            if facing < 0:
+                q = q.rotate("y", 180, origin=(cursor + width / 2, 0, zi))
+            out.append(q)
+            cursor += width + float(rng.uniform(0.015, 0.045))
     # 칸 안 옆·위·아래 면 (깊이)
     out.append(F.box((x0, y0, zi - 0.05 if facing > 0 else z), (x0 + 0.25, y1, z if facing > 0 else zi + 0.05),
                      m["wood"], faces="xXzZ"))
