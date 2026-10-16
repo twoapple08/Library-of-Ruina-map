@@ -25,6 +25,17 @@ def ref_pack(values, bits):
 
 
 class NbtTest(unittest.TestCase):
+    def test_populate_server_empty_end_list(self):
+        # Mojang가 저장한 비어 있는 block_entities/sections를 읽고 원소를 추가하는 경우.
+        root = nbt.loads(nbt.dumps({"block_entities": nbt.List(elem_tag=nbt.TAG_END)}))
+        self.assertEqual(root["block_entities"].elem_tag, nbt.TAG_END)
+        root["block_entities"].append({"id": "ruina:mover", "x": nbt.Int(4)})
+        back = nbt.loads(nbt.dumps(root))
+        self.assertEqual(back["block_entities"].elem_tag, nbt.TAG_COMPOUND)
+        self.assertEqual(back["block_entities"][0]["id"], "ruina:mover")
+        empty = nbt.loads(nbt.dumps({"list": nbt.List(elem_tag=nbt.TAG_END)}))
+        self.assertEqual(empty["list"].elem_tag, nbt.TAG_END)
+
     def test_roundtrip(self):
         root = {
             "b": nbt.Byte(-1), "s": nbt.Short(300), "i": nbt.Int(-5), "l": nbt.Long(-(1 << 62)),

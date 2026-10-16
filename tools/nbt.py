@@ -169,7 +169,9 @@ def _w_payload(out: list, t: int, v):
         if len(v) == 0:
             et = et or TAG_END
         else:
-            et = tag_of(v[0]) if et is None else et
+            # 서버는 빈 리스트를 TAG_END로 저장할 수 있다. 읽은 뒤 블록 엔티티나
+            # section을 추가하면 END는 원소 타입이 될 수 없으므로 실제 타입을 추론한다.
+            et = tag_of(v[0]) if et in (None, TAG_END) else et
         out.append(bytes((et,)))
         out.append(_S_I.pack(len(v)))
         for item in v:

@@ -8,7 +8,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from tools import forms as F, region  # noqa: E402
+from tools import forms as F, region, nbt  # noqa: E402
 from tools.world import Dimension, chunk_block  # noqa: E402
 
 
@@ -100,6 +100,12 @@ class FormsTest(unittest.TestCase):
             wdir = os.path.join(tmp, "world")
             rdir = os.path.join(wdir, "dimensions", "ruina", "test", "region")
             d.write_regions(rdir, 4000, workers=1)
+            # 실제 서버는 블록 엔티티 없는 청크의 리스트를 TAG_END로 저장한다.
+            rp = os.path.join(rdir, "r.0.0.mca")
+            server_chunks = region.read_region(rp)
+            for chunk in server_chunks.values():
+                chunk["block_entities"] = nbt.List(elem_tag=nbt.TAG_END)
+            region.write_region(rp, server_chunks)
             stats = F.inject(wdir, fs.anchors())
             self.assertEqual(stats["자리 아님"], 0)
             ch = region.read_region(os.path.join(rdir, "r.0.0.mca"))
