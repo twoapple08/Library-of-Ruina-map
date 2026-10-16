@@ -172,6 +172,7 @@ def build(b):
     rng = np.random.default_rng(1501)
     m = mats()
     near = stage(m) + pedestal(m)
+    near.append(F.box((-SX, Y0-.6, SZ1-.6), (SX, Y0+.25, SZ1), m['gold']))
     far = dome(m, rng) + arches(m) + curtains(lay, m, rng)
     lights = [((0.5, Y0 + DOME_H, DZ - 20), (1.0, 0.85, 0.5), 260.0)]
     kit.project_add(lay, CAM, m["art"], near=near, far=far, lights=lights, ambient=(0.7, 0.58, 0.4),
