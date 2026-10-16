@@ -164,7 +164,7 @@ def bulb_mesh(m, p, size, wire):
     return F.concat([glass, core, cap, line])
 
 
-def bulbs(lay, m, rng, n_static=420, n_swing=110, r=380):
+def bulbs(lay, m, rng, n_static=280, n_swing=72, r=380):
     """줄에 매달린 전구: 보도 가까이는 살랑 흔들리는 움직이는 형체, 멀리는 정적."""
     static = []
     placed = 0
