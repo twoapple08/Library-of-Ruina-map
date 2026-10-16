@@ -106,6 +106,8 @@ def build(b, d):
     rng = np.random.default_rng(1721)
     m = mats()
     fs = faces(m, rng)
+    for y in (Y0+3.5,Y0+5.5):
+        fs.append(F.box((OX+1,y,ZB+.18),(X1-.4,y+.14,ZB+.8),m['wall']))
     for j in range(6):
         fs.append(F.box((OX-6+j*2, Y0+.05, ZB+2), (OX-5.4+j*2, Y0+.35, ZB+2.5), m['table']))
     lights = [((OX - 3, Y0 + 5, ZB - 2), (0.4, 0.9, 1.2), 14.0)]
