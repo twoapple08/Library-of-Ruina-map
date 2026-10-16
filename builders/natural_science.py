@@ -172,6 +172,7 @@ def build(b):
     rng = np.random.default_rng(1501)
     m = mats()
     near = stage(m) + pedestal(m)
+    near.extend(F.box((x-.22, Y0-.65, SZ1-.9), (x+.22, Y0+.32, SZ1-.55), m['gold']) for x in np.arange(-SX+12, SX, 24))
     near.append(F.box((-SX, Y0-.6, SZ1-.6), (SX, Y0+.25, SZ1), m['gold']))
     far = dome(m, rng) + arches(m) + curtains(lay, m, rng)
     lights = [((0.5, Y0 + DOME_H, DZ - 20), (1.0, 0.85, 0.5), 260.0)]
