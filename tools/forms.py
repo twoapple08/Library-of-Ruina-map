@@ -34,6 +34,7 @@ MAX_EDGE = 1.0               # 칸 배정 전 면 최대 변 길이 (블록)
 FORM_BLOCK = "ruina:form"
 MOVER_BLOCK = "ruina:mover"
 BARRIER = "minecraft:barrier"
+BARRIER_STATES = {BARRIER, BARRIER + "[waterlogged=false]"}  # 서버 저장 시 기본 속성을 명시할 수 있음
 HALF_SOLID = "minecraft:petrified_oak_slab[type=bottom,waterlogged=false]"   # 아래 반 칸 충돌 자리 표시
 LAYERS = ("solid", "cutout", "translucent")
 
@@ -849,7 +850,7 @@ def _placeholder_ids(d) -> np.ndarray:
     """팔레트 번호 → 형체 블록 자리로 쓸 수 있나 (공기·barrier·light)."""
     ok = np.zeros(len(d.palette) + 1, bool)
     for i, s in enumerate(d.palette):
-        ok[i] = (s == "minecraft:air" or s == BARRIER or s == HALF_SOLID or s.startswith("minecraft:light[")
+        ok[i] = (s == "minecraft:air" or s in BARRIER_STATES or s == HALF_SOLID or s.startswith("minecraft:light[")
                  or s == "minecraft:light")
     return ok
 
@@ -865,7 +866,7 @@ def _neighbor_order(fn) -> np.ndarray:
 
 
 def _anchor_state(placeholder: str, glow: int) -> str:
-    solid = placeholder in (BARRIER, HALF_SOLID)
+    solid = placeholder in BARRIER_STATES or placeholder == HALF_SOLID
     half = placeholder == HALF_SOLID
     light = 0
     if placeholder.startswith("minecraft:light"):
@@ -973,7 +974,7 @@ def inject(world_dir: str, anchors: dict[str, dict]) -> dict:
     조명 값은 그대로 (형체 블록은 빛을 막지 않고, light 자리는 같은 밝기로 빛남)."""
     from . import nbt, region
     from .world import AIR, block_bits, decode_section_blocks, pack_indices, parse_state
-    stats = {"칸": 0, "청크": 0, "자리 아님": 0}
+    stats = {"칸": 0, "청크": 0, "자리 아님": 0, "비정상 상태": {}, "예시": []}
     for dim, cells in anchors.items():
         rdir = os.path.join(world_dir, "dimensions", *dim.split(":"), "region")
         by_region: dict[tuple, dict] = {}
@@ -1004,8 +1005,11 @@ def inject(world_dir: str, anchors: dict[str, dict]) -> dict:
                         arr = np.full((16, 16, 16), AIR, dtype=object)
                     for x, y, z, st in its:
                         cur = arr[y & 15, z & 15, x & 15]
-                        if not (cur == AIR or cur == BARRIER or cur == HALF_SOLID or cur.startswith("minecraft:light")):
+                        if not (cur == AIR or cur in BARRIER_STATES or cur == HALF_SOLID or cur.startswith("minecraft:light")):
                             stats["자리 아님"] += 1
+                            stats["비정상 상태"][cur] = stats["비정상 상태"].get(cur, 0) + 1
+                            if len(stats["예시"]) < 16:
+                                stats["예시"].append({"dim": dim, "pos": [x, y, z], "state": cur})
                             continue
                         arr[y & 15, z & 15, x & 15] = st
                         stats["칸"] += 1
@@ -1026,6 +1030,8 @@ def inject(world_dir: str, anchors: dict[str, dict]) -> dict:
                 out[(cx, cz)] = ch
                 stats["청크"] += 1
             region.write_region(path, out)
+    if stats["비정상 상태"]:
+        print(f"형체 주입 거부: {stats['비정상 상태']}, 예시: {stats['예시']}", flush=True)
     return stats
 
 

@@ -17,6 +17,26 @@ class FormsTest(unittest.TestCase):
         F.reset()
         self.m = F.mat("stone", "minecraft:block/stone")
 
+    def test_default_barrier_properties_keep_solid_collision(self):
+        self.assertEqual(F._anchor_state("minecraft:barrier", 0),
+                         F._anchor_state("minecraft:barrier[waterlogged=false]", 0))
+        self.assertIn("solid=true", F._anchor_state("minecraft:barrier[waterlogged=false]", 0))
+
+    def test_inject_does_not_overwrite_real_structure(self):
+        d = Dimension("ruina:test", 0, 64, "minecraft:plains")
+        d.set(0, 1, 0, "minecraft:stone")
+        d.set(1, 1, 0, "minecraft:barrier[waterlogged=true]")
+        with tempfile.TemporaryDirectory() as tmp:
+            rdir = os.path.join(tmp, "dimensions/ruina/test/region")
+            d.write_regions(rdir, 5023, workers=1)
+            st = F._anchor_state("minecraft:barrier", 0)
+            stats = F.inject(tmp, {"ruina:test": {(0, 1, 0): st, (1, 1, 0): st}})
+            self.assertEqual(stats["자리 아님"], 2)
+            self.assertEqual(stats["칸"], 0)
+            ch = region.read_region(os.path.join(rdir, "r.0.0.mca"))[(0, 0)]
+            self.assertEqual(chunk_block(ch, 0, 1, 0), "minecraft:stone")
+            self.assertEqual(chunk_block(ch, 1, 1, 0), "minecraft:barrier[waterlogged=true]")
+
     def test_sweep_faces_outward(self):
         path = np.array([[0, 0, 0], [0, 5, 0], [2, 9, 0]], float)
         q = F.sweep(path, 1.0, self.m, sides=8, step=0.5)
@@ -105,6 +125,18 @@ class FormsTest(unittest.TestCase):
             server_chunks = region.read_region(rp)
             for chunk in server_chunks.values():
                 chunk["block_entities"] = nbt.List(elem_tag=nbt.TAG_END)
+                for sec in chunk["sections"]:
+                    pal = sec.get("block_states", {}).get("palette", [])
+                    normalized = []
+                    for entry in pal:
+                        if isinstance(entry, str):
+                            entry = {"": entry}
+                        name = entry.get("", entry.get("id", entry.get("Name")))
+                        if name == "minecraft:barrier":
+                            entry = {"id": name, "properties": {"waterlogged": "false"}}
+                        normalized.append(entry)
+                    if normalized:
+                        sec["block_states"]["palette"] = nbt.List(normalized, elem_tag=nbt.TAG_COMPOUND)
             region.write_region(rp, server_chunks)
             stats = F.inject(wdir, fs.anchors())
             self.assertEqual(stats["자리 아님"], 0)

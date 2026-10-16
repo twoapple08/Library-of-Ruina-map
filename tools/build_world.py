@@ -267,6 +267,7 @@ def ci_world(argv) -> int:
     if b.form_stats:
         rep.info("자유 형체: " + ", ".join(f"{k} {v}" for k, v in b.form_stats.items()))
         st = forms.inject(wdir, b.forms.anchors())
+        rep.data["form_injection"] = st
         rep.add(st["자리 아님"] == 0, f"형체 블록 넣기 {st['칸']}칸 / 청크 {st['청크']}개 (자리 아님 {st['자리 아님']})")
 
     # ---------------------------------------------- 후처리 검증 (서버가 다시 저장한 청크 읽기)
