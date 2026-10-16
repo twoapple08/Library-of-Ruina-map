@@ -106,6 +106,8 @@ def build(b, d):
     rng = np.random.default_rng(1101)
     m = mats()
     fs = faces(m, rng)
+    for z in (-9,-5,-1,3,7):
+        fs.append(F.box((X0+.72,Y0+.4,z),(X0+.88,Y0+H-.4,z+.16),m['wood']))
     # 독서용 탁자 위의 낱권 책과 종이 두께.
     fs.extend([F.box((OX+.1,Y0+1.05,5.5),(OX+.9,Y0+1.2,6.6),m['wood']),F.box((OX+.15,Y0+1.2,5.55),(OX+.85,Y0+1.24,6.55),m['glass'])])
     for z in (-9,-5,-1,3,7):
