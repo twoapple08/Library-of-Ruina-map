@@ -219,8 +219,8 @@ def cabinet(m, view, rng):
                 # 접선 축을 따라 사각 기둥을 만든 뒤 벽면 방향으로 회전.
                 length = float(np.linalg.norm(du))
                 angle = math.degrees(math.atan2(du[2], du[0]))
-                plank = D.beveled_box((0, 0, -0.18), (length, 10.2, 0.18),
-                                     m["plank"][int(rng.integers(3))], .045)
+                plank = F.box((0, 0, -0.18), (length, 10.2, 0.18),
+                              m["plank"][int(rng.integers(3))])
                 out.append(plank.rotate("y", -angle).translate(p + nrm * off))
     out.append(F.plane((xa, y1, zc + d / 2), (xb - xa, 0, 0), (0, 0, -d), m["wood"], tile=(8, 8)))
     # 불 켜진 창 (남쪽 면, 원화 x 165~235, 줄 25~115)
