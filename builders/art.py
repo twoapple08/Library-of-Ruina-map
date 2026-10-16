@@ -79,7 +79,7 @@ def tree(m, rng, cx, cz, r0, h, seed=0, niches=True):
     y0, y1 = WATER - 10, WATER + h
     ys = np.linspace(y0, y1, 24)
     prof = [(r0 * (1.15 - 0.45 * (y - y0) / (y1 - y0)) * (1.25 if y < y0 + 10 else 1.0), y) for y in ys]
-    q = F.revolve(prof, m["bark"], segs=40, center=(cx, 0, cz), tiles_around=10, tile_up=12.0)
+    q = F.revolve(prof, m["bark"], segs=28, center=(cx, 0, cz), tiles_around=10, tile_up=12.0)
     a = np.arctan2(q.P[..., 2] - cz, q.P[..., 0] - cx)
     bump = 1 + 0.06 * np.sin(5 * a + q.P[..., 1] / 15 + seed) + 0.04 * np.sin(11 * a - q.P[..., 1] / 9)
     q.P[..., 0] = cx + (q.P[..., 0] - cx) * bump
