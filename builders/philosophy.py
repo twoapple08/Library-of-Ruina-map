@@ -66,7 +66,7 @@ def bridge(m, rng):
 
 def city(m, rng):
     out = []
-    for _ in range(220):
+    for _ in range(140):
         a = rng.uniform(0, 2 * math.pi)
         r = math.sqrt(rng.uniform(40 ** 2, 600 ** 2))
         cx, cz = r * math.cos(a), r * math.sin(a)
