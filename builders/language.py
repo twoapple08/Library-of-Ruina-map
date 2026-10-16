@@ -146,6 +146,7 @@ def build(b):
     m = mats()
     view = A.ArtView(CAM, 1000, 575)
     near = platform(m, rng)
+    near.extend(F.box((x-.25, Y0-1.8, -HW+2), (x+.25, Y0-1.45, HW-2), m['rust']) for x in np.arange(-BX+24, BX, 48))
     near.extend(F.box((-BX, Y0-2, z-.35), (BX, Y0-1.5, z+.35), m['rust']) for z in (-HW+2, HW-2))
     for x in (-21.0, 25.0, -150.0, 150.0):
         near.append(lattice(m, x, -HW - 6, LAVA, Y0 + 80))
