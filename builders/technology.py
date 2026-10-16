@@ -204,6 +204,7 @@ def build(b):
     m = mats()
     view = A.ArtView(CAM, 1000, 562)
     near = deck(m) + pylons(m)
+    near.extend(F.box((x-.22, Y0-1.5, -HW+2), (x+.22, Y0-1.1, HW-2), m['steel']) for x in np.arange(-BX+24, BX, 48))
     near.extend(F.box((-BX, Y0-2, z-.35), (BX, Y0-1.55, z+.35), m['steel']) for z in (-HW+2, HW-2))
     cn, cf = city(m, rng)
     far = truss(m) + cn + cf + tower(m, view)
