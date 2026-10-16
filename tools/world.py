@@ -213,6 +213,9 @@ class Dimension:
         keys = {(cx, cz) for (cx, _, cz), s in self.sections.items() if s.any()}
         keys |= {(x >> 4, z >> 4) for (x, _, z) in self.block_entities}
         keys |= self.extra_chunks
+        # 블록이 없는 방 가장자리도 지정 바이옴을 저장해야 한다. 그렇지 않으면
+        # 서버가 원래 차원의 바이옴으로 생성해 경계의 바이옴 샘플링이 틀어진다.
+        keys |= self.chunk_biomes.keys()
         return keys
 
     def bounds(self):

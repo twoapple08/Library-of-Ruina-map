@@ -93,6 +93,18 @@ class PackTest(unittest.TestCase):
 
 
 class WorldTest(unittest.TestCase):
+    def test_biome_only_room_border_is_saved(self):
+        dim = world.Dimension("ruina:test", 0, 64, "ruina:test")
+        # 방은 +Z에만 있어도 z=0의 바이옴 샘플링에 이웃의 빈 청크가 사용될 수 있다.
+        dim.fill(3999, 0, 4, 4001, 0, 12, "minecraft:barrier")
+        dim.set_biome(3960, -40, 4040, 40, "ruina:room")
+        self.assertIn((250, -1), dim.chunk_keys())
+        with tempfile.TemporaryDirectory() as folder:
+            dim.write_regions(folder, 5023, workers=1)
+            saved = region.read_region(os.path.join(folder, "r.7.-1.mca"))[(250, -1)]
+            self.assertTrue(all(s["biomes"]["palette"] == ["ruina:room"] for s in saved["sections"]))
+            self.assertEqual(world.chunk_block(saved, 4000, 1, -1), "minecraft:air")
+
     def test_state_parse(self):
         self.assertEqual(world.canonical("oak_stairs[half=top,facing=north]"),
                          "minecraft:oak_stairs[facing=north,half=top]")
