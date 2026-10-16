@@ -101,6 +101,8 @@ def build(b, d):
     rng = np.random.default_rng(1721)
     m = mats()
     fs = faces(m, rng)
+    for j in range(6):
+        fs.append(F.box((OX-6+j*2, Y0+.05, ZB+2), (OX-5.4+j*2, Y0+.35, ZB+2.5), m['table']))
     lights = [((OX - 3, Y0 + 5, ZB - 2), (0.4, 0.9, 1.2), 14.0)]
     kit.project_add(lay, CAM, m["art"], near=fs, lights=lights, ambient=(0.3, 0.36, 0.46),
                     glow_mats=[m["window"], m["neon"], m["shadow"]], min_facing=0.1)
