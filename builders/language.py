@@ -146,6 +146,7 @@ def build(b):
     m = mats()
     view = A.ArtView(CAM, 1000, 575)
     near = platform(m, rng)
+    near.extend(F.box((-BX, Y0-2, z-.35), (BX, Y0-1.5, z+.35), m['rust']) for z in (-HW+2, HW-2))
     for x in (-21.0, 25.0, -150.0, 150.0):
         near.append(lattice(m, x, -HW - 6, LAVA, Y0 + 80))
     far = machinery(m, rng) + [ladle(lay, m, view)]
