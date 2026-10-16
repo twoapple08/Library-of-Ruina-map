@@ -120,6 +120,8 @@ def build(b, d):
     rng = np.random.default_rng(2011)
     m = mats()
     fs = faces(m, rng)
+    # 차탁의 하부 금속 다리 연결재.
+    fs.append(F.box((OX+7.12,Y0+.22,10.15),(OX+7.48,Y0+.32,10.45),m['wood']))
     # 찻잔과 책받침의 층별 입체 마감.
     fs.extend([F.box((OX+7,Y0+.8,10),(OX+7.6,Y0+.87,10.6),m['wood']),F.box((OX+7.1,Y0+.87,10.1),(OX+7.5,Y0+1.18,10.5),m['shine'])])
     for z in (-10,-5,0,5):
