@@ -48,6 +48,7 @@ def mats():
 def faces(m, rng):
     out = []
     yt = Y0 + H
+    out.extend([F.box((OX-RW,Y0,ZB),(OX-RW+.25,Y0+.3,ZS),m['panel']), F.box((OX+RW+.75,Y0,ZB),(OX+RW+1,Y0+.3,ZS),m['panel'])])
     out.append(F.plane((OX - RW, Y0, ZS), (2 * RW + 1, 0, 0), (0, 0, ZB - ZS), m["floor"], tile=(3, 3)))
     for x, f in ((OX - RW, 1), (OX + RW + 1, -1)):            # 양쪽 높은 책장 벽 (아래 판넬)
         z0, z1 = (ZS, ZB) if f > 0 else (ZB, ZS)
