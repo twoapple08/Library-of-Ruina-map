@@ -127,6 +127,8 @@ def build(b, d):
     m = mats()
     view = A.ArtView(CAM, AW, AH)
     fs = faces(m, rng, view) + tentacles(m, rng, view)
+    for x in (OX-45,OX-30,OX+30,OX+45):
+        fs.append(F.box((x,Y0-.2,LEDGE-.7),(x+3,Y0+.12,LEDGE),m['floor']))
     for j in range(6):
         fs.append(F.box((OX-6+j*2, Y0+.05, ZG+2), (OX-5.3+j*2, Y0+.35, ZG+2.5), m['floor']))
     lights = [((OX + 2, Y0 + 40, ZG + 4), (1.1, 0.95, 0.75), 70.0)]
