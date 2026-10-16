@@ -126,6 +126,8 @@ def build(b, d):
     rng = np.random.default_rng(1531)
     m = mats()
     fs = faces(m, rng)
+    # 독서용 낮은 탁자의 모서리·발 받침.
+    fs.extend([F.box((OX-1,Y0+.4,8),(OX+1,Y0+.55,9.6),m['wood']),F.box((OX-.8,Y0,8.2),(OX-.55,Y0+.4,8.45),m['wood']),F.box((OX+.55,Y0,9.15),(OX+.8,Y0+.4,9.4),m['wood'])])
     for x in (OX-5,OX-3,OX+6):
         fs.append(F.box((x,Y0+4,ZB+.15),(x+.8,Y0+4.15,ZB+.95),m['wood']))
     for j in range(6):
