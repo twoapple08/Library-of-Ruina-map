@@ -101,7 +101,7 @@ def case(m, x, z, y, detailed=True):
         # 원거리 진열장: 외곽 실루엣만 유지해 불필요한 면과 투명 중첩을 절감.
         return F.concat([
             F.box((x-.48,y,z-.38),(x+.48,y+.7,z+.38),m["case_base"]),
-            F.box((x-.43,y+.7,z-.34),(x+.43,y+1.72,z+.34),m["glass"]).tint((1,1,1),.22),
+            F.box((x-.43,y+.7,z-.34),(x+.43,y+1.72,z+.34),m["glass"],faces="zZ").tint((1,1,1),.22),
             F.box((x-.46,y+1.72,z-.36),(x+.46,y+1.78,z+.36),m["case_base"])
         ])
     out = [D.beveled_box((x-.48,y,z-.38),(x+.48,y+.7,z+.38),m["case_base"],.035)]
@@ -327,7 +327,7 @@ def build(b):
     rng = np.random.default_rng(701)
     m = mats()
     view = A.ArtView(CAM, 1000, 562)
-    near_art = lambda x, z: True
+    near_art = lambda x, z: True  # 모든 열의 실루엣은 유지하고 case()에서 LOD 적용
     st = stage(m, rng, near=near_art)
     low = lower_layers(m, rng)
     tw = towers(m, rng)
