@@ -122,6 +122,8 @@ def build(b, d):
     lay = b.form("technology")
     m = mats()
     fs = faces(m, lay)
+    for j in range(6):
+        fs.append(F.box((OX-6+j*1.8, Y0+.05, ZB+2), (OX-5.1+j*1.8, Y0+.55, ZB+2.65), m['box']))
     lights = [((OX - 2.7, Y0 + 8, 2.5), (0.8, 0.5, 1.1), 10.0), ((OX + 1.4, Y0 + 3, ZB + 1), (0.6, 0.4, 0.9), 7.0),
               ((OX + 7.7, Y0 + 5, ZB + 2), (0.4, 0.25, 0.6), 6.0)]
     kit.project_add(lay, CAM, m["art"], near=fs, lights=lights, ambient=(0.4, 0.34, 0.5),
