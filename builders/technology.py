@@ -68,7 +68,7 @@ def deck(m):
     out = [F.plane((-BX, Y0, HW), (2 * BX, 0, 0), (0, 0, -2 * HW), m["asphalt"], tile=(4, 4))]
     for zl in (-4.2, 0.0, 4.2):                                   # 점선
         for x in np.arange(-BX, BX, 6.0):
-            out.append(F.plane((x, Y0 + 0.02, zl + 0.12), (3, 0, 0), (0, 0, -0.24), m["paint"]))
+            out.append(F.box((x, Y0 + 0.015, zl - 0.12), (x + 3, Y0 + 0.035, zl + 0.12), m["paint"]))
     for zl in (-8.6, 8.6):                                        # 가장자리 실선
         out.append(F.plane((-BX, Y0 + 0.02, zl + 0.12), (2 * BX, 0, 0), (0, 0, -0.24), m["paint"], tile=(8, 1)))
     for s in (-1, 1):                                             # 옆 거더 + 리벳 띠 + 아래판
