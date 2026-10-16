@@ -70,7 +70,9 @@ def book(m, rng, c, w, d, h, yaw):
     """눕힌 책 한 권 (또는 한 묶음): 옆면 책 더미 결, 위 표지."""
     i = int(rng.integers(3))
     q = F.box((-w / 2, 0, -d / 2), (w / 2, h, d / 2), m["books"][i], tile=1.0)
-    return q.rotate("y", yaw).translate(c)
+    # 낱권의 윗표지와 책장 단면을 별도 두께로 표현한다.
+    cover = F.box((-w/2-.035, h, -d/2-.035), (w/2+.035, h+.045, d/2+.035), m['slab'])
+    return F.concat([q, cover]).rotate('y', yaw).translate(c)
 
 
 def edge_books(m, rng, z, outward, depth=(2.5, 4.5), step=1.2):
@@ -109,10 +111,14 @@ def pile(m, rng, c, r):
 
 
 def bridge(m, rng, view):
-    out = [F.plane((-BX, Y0, HW), (2 * BX, 0, 0), (0, 0, -2 * HW), m["slab"], tile=(3, 3))]
+    # 위·아래·측면을 가진 실제 두께의 석재 보행판.
+    out = [F.box((-BX, Y0-0.55, -HW), (BX, Y0, HW), m['slab'], tile=3.0)]
+    # 가장자리 책층 아래의 연속 받침과 일정 간격 횡보.
+    out += [F.box((-BX, Y0-5.35, z-.45), (BX, Y0-4.85, z+.45), m['books'][0]) for z in (-HW+2, HW-2)]
+    out += [F.box((x-.3, Y0-5.3, -HW+2), (x+.3, Y0-4.9, HW-2), m['books'][1]) for x in np.arange(-BX+24, BX, 48)]
     out += edge_books(m, rng, HW, 1.0)
     out += edge_books(m, rng, -HW, -1.0, depth=(2.0, 3.5))
-    out.append(F.plane((-BX, Y0 - 5, -HW), (2 * BX, 0, 0), (0, 0, 2 * HW), m["books"][0], tile=(4, 4)))
+    out.append(F.box((-BX, Y0-5.25, -HW), (BX, Y0-5, HW), m['books'][0], tile=4.0))
     x = -BX                                                    # 뒤 가장자리 위 책 더미 줄 (들쭉날쭉)
     while x < BX:
         L = rng.uniform(1.5, 4.0)
@@ -210,6 +216,10 @@ def build(b):
     m = mats()
     view = A.ArtView(CAM, AW, AH)
     near = bridge(m, rng, view)
+    # 도착점 가까이에서 개별 책등과 표지가 보이는 낮은 책 더미.
+    for x in (-18, -11, 13, 21):
+        for j in range(3):
+            near.append(book(m, rng, (x + .16*j, Y0 + .26*j, -HW+3.5), 1.1, .72, .24, -8+j*6))
     far = towers(m, rng, view) + backdrop(m, rng)
     lights = [((260, Y0 + 260, -260), (0.75, 0.68, 0.58), 900.0)]
     kit.project_add(lay, CAM, m["art"], near=near, far=far, lights=lights, ambient=(0.5, 0.5, 0.52),
