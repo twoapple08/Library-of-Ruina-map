@@ -106,6 +106,9 @@ def build(b, d):
     rng = np.random.default_rng(1721)
     m = mats()
     fs = faces(m, rng)
+    # 커피 드리퍼를 받치는 입체 받침과 유리 용기.
+    fs.extend([F.box((OX+1.2,Y0+1.05,2.6),(OX+2,Y0+1.12,3.4),m['table']),
+               F.box((OX+1.35,Y0+1.12,2.75),(OX+1.85,Y0+1.65,3.25),m['glass'])])
     for y in (Y0+3.5,Y0+5.5):
         fs.append(F.box((OX+1,y,ZB+.18),(X1-.4,y+.14,ZB+.8),m['wall']))
     for j in range(6):
