@@ -70,7 +70,7 @@ def log(m, rng):
         z = -HALF + rng.uniform(0.2, 1.4)
         st = F.box((x, Y0 - 0.5, z - w / 2), (x + w, Y0 + h, z + w / 2), m["bark"], tile=2.0, faces="xXzZY")
         out.append(st.rotate("x", rng.uniform(-6, 6), origin=(x, Y0, z)))
-        out.append(F.plane((x, Y0 + h + 0.01, z + w / 2), (w, 0, 0), (0, 0, -w), m["glowline"]).tint((0.6, 0.7, 0.4)))
+        out.append(F.box((x, Y0 + h, z - w / 2), (x + w, Y0 + h + 0.06, z + w / 2), m["glowline"]).tint((0.6, 0.7, 0.4)))
     return out
 
 
