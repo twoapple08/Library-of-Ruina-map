@@ -40,21 +40,24 @@ TENTACLES = [  # 원화 (1000×562 기준) 가운데 선 [(x, y, 반폭)] 위 �
 
 def mats():
     m = {}
-    m["art"] = F.mat("groom_art", T.art("art/general_room", ART), emissive=True, flat=True, ao=False)
+    m["art"] = F.mat("roland_room_art", T.art("art/general_room", ART), emissive=True, flat=True, ao=False)
     grey = [(96, 94, 92), (80, 78, 76), (120, 118, 114), (64, 62, 62), (140, 136, 130)]
-    m["shelf"] = [F.mat(f"groom_shelf{i}", T.shelf(f"groom_shelf{i}", grey, wood=(84, 82, 80), seed=261 + i,
+    m["shelf"] = [F.mat(f"roland_room_shelf{i}", T.shelf(f"roland_room_shelf{i}", grey, wood=(84, 82, 80), seed=261 + i,
                                                     dark_back=(30, 30, 32)), emissive=True, flat=True, ao=False)
                   for i in range(2)]
-    m["bright"] = F.mat("groom_bright", T.shelf("groom_bright", [(220, 214, 200), (200, 194, 182), (240, 232, 216)],
+    m["bright"] = F.mat("roland_room_bright", T.shelf("roland_room_bright", [(220, 214, 200), (200, 194, 182), (240, 232, 216)],
                                                 wood=(230, 224, 210), seed=263, dark_back=(170, 164, 152)),
                         emissive=True, flat=True, ao=False, glow=3)
+    # 공용 general.tower가 책층 윗표지에 사용하는 재질. 바닥과 별도로 둔다.
+    m["slab"] = F.mat("roland_room_book_cover", T.flat("roland_room_book_cover", (84, 82, 80)),
+                      emissive=True, flat=True, ao=False)
     m["books"] = [F.mat(f"gen_books{i}", T.book_stack(f"gen_books{i}", seed=252 + i), emissive=True, flat=True, ao=False)
                   for i in range(3)]
-    m["floor"] = F.mat("groom_floor", T.stone_slab("groom_floor", (30, 30, 32), (70, 70, 74), seed=264), emissive=True,
+    m["floor"] = F.mat("roland_room_floor", T.stone_slab("roland_room_floor", (30, 30, 32), (70, 70, 74), seed=264), emissive=True,
                        flat=True, ao=False)
-    m["light"] = F.mat("groom_light", T.glow("groom_light", (255, 226, 180)), layer="translucent", emissive=True,
+    m["light"] = F.mat("roland_room_light", T.glow("roland_room_light", (255, 226, 180)), layer="translucent", emissive=True,
                        flat=True, ao=False)
-    m["haze"] = F.mat("groom_haze", T.glow("groom_haze", (120, 118, 116)), layer="translucent", emissive=True,
+    m["haze"] = F.mat("roland_room_haze", T.glow("roland_room_haze", (120, 118, 116)), layer="translucent", emissive=True,
                       flat=True, ao=False)
     return m
 

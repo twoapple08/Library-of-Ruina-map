@@ -40,7 +40,7 @@ permissions:
 
 concurrency:
   group: build
-  cancel-in-progress: false
+  cancel-in-progress: true  # 최신 소스 빌드가 이전 커밋의 실패 예정 월드 생성을 대체
 
 env:
   TASK: ${{ inputs.task || 'world' }}
