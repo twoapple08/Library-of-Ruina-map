@@ -50,7 +50,7 @@ def mats():
 
 
 def platform(m, rng):
-    out = [F.plane((-BX, Y0, HW), (2 * BX, 0, 0), (0, 0, -2 * HW), m["plate"], tile=(4, 4))]
+    out = [F.box((-BX, Y0 - 0.3, -HW), (BX, Y0, HW), m["plate"], tile=4.0)]
     for s in (-1, 1):
         z0, z1 = sorted((s * HW, s * (HW + 1.0)))
         out.append(F.box((-BX, Y0 - 3, z0), (BX, Y0 + 0.2, z1), m["black"], tile=4.0))
