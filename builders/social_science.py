@@ -66,7 +66,7 @@ def deck(m, rng):
     for _ in range(14):                                         # 구멍 (검게)
         x, z = rng.uniform(-BX, BX), rng.uniform(-HW + 2, HW - 2)
         w, l = rng.uniform(1.5, 4), rng.uniform(0.8, 2)
-        out.append(F.plane((x, Y0 + 0.02, z + l), (w, 0, 0), (0, 0, -l), m["hull"]).tint((0.15, 0.15, 0.2)))
+        out.append(F.box((x, Y0 + 0.015, z), (x + w, Y0 + 0.055, z + l), m["hull"]).tint((0.15, 0.15, 0.2)))
     for s in (-1, 1):                                           # 선체 옆면 (아래로)
         z = s * HW
         f = 1 if s > 0 else -1
