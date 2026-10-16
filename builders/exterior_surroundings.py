@@ -108,6 +108,26 @@ def building(m, width, depth, height, seed, near=False):
         out.append(_box((-w, h, z), (w, h+1.1, z+.3), trim, near))
     out.append(_box((-w*.45,h,-d*.4), (w*.45,h+3.5,d*.4), wall, near))
     out.append(_box((-w*.5,h+3.5,-d*.45), (w*.5,h+3.8,d*.45), trim, near))
+    if near:
+        # 가까운 옥상 출입구: 문짝·문틀·문턱·경첩·손잡이를
+        # 지붕 기계실의 전면에 각각 두께 있는 별도 부품으로 만든다.
+        front = d*.4
+        door_w = min(1.6, w*.55)
+        out.append(_box((-door_w/2,h+.12,front+.03),
+                        (door_w/2,h+2.55,front+.16), m['roof'], True))
+        for x in (-door_w/2-.15,door_w/2+.05):
+            out.append(_box((x,h+.08,front+.14),
+                            (x+.10,h+2.72,front+.32),trim,True))
+        out.append(_box((-door_w/2-.15,h+2.60,front+.14),
+                        (door_w/2+.15,h+2.72,front+.32),trim,True))
+        out.append(_box((-door_w/2-.18,h+.05,front+.12),
+                        (door_w/2+.18,h+.17,front+.39),trim,True))
+        for y in (h+.55,h+2.1):
+            out.append(_box((-door_w/2-.08,y,front+.19),
+                            (-door_w/2+.06,y+.16,front+.34),trim,True))
+        out.append(_box((door_w*.24,h+1.25,front+.17),
+                        (door_w*.24+.12,h+1.43,front+.37),m['glass'][0],True))
+
     for x in (-w*.6, w*.55):
         out.append(_box((x-.5,h+.1,-.6), (x+.5,h+1,.6), trim, near))
         for z in np.linspace(-.4,.4,3):
