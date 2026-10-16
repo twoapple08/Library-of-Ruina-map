@@ -10,6 +10,7 @@ import math
 
 import numpy as np
 
+from builders import detail as D
 from tools import form_textures as T
 from tools import forms as F
 
@@ -55,17 +56,54 @@ def mats():
 
 
 def shelf_block(m, x0, z0, x1, z1, y0, y1, rng, cap=True):
-    """책장 탑 (네 면 책장, 모서리 기둥, 위 덮개)."""
+    """네 면의 개별 책과 선반·뒤판·모서리 기둥으로 구성된 책장 탑."""
     out = []
-    for (ax, az), (bx, bz) in (((x0, z1), (x1, z1)), ((x1, z1), (x1, z0)), ((x1, z0), (x0, z0)), ((x0, z0), (x0, z1))):
-        du = np.array([bx - ax, 0, bz - az])
-        out.append(F.plane((ax, y0, az), du, (0, y1 - y0, 0), m["shelf"][int(rng.integers(3))], tile=(1.0, 1.0)))
-    for x, z in ((x0, z0), (x1, z0), (x0, z1), (x1, z1)):
-        out.append(F.box((x - 0.2, y0, z - 0.2), (x + 0.2, y1 + 0.2, z + 0.2), m["wood"]))
-    for y in np.arange(y0 + 4.0, y1, 4.0):
-        out.append(F.box((x0 - 0.1, y - 0.15, z0 - 0.1), (x1 + 0.1, y + 0.15, z1 + 0.1), m["wood"], faces="yYxXzZ"))
+    # 높이와 무관하게 각 층의 선반을 실제 두께로 만들고,
+    # 근접에서 읽히는 책은 종이 속지와 표지·책등을 각각 가진다.
+    for side, (ax, az), (bx, bz) in (
+        (0, (x0, z1), (x1, z1)),
+        (1, (x1, z1), (x1, z0)),
+        (2, (x1, z0), (x0, z0)),
+        (3, (x0, z0), (x0, z1)),
+    ):
+        direction = np.array([bx-ax, 0, bz-az], float)
+        length = float(np.linalg.norm(direction))
+        tangent = direction / length
+        inward = np.array([tangent[2], 0, -tangent[0]])
+        # 네 면의 깊은 뒤판, 실재하는 책 선반
+        for row in range(max(1, int((y1-y0-0.6)/1.15))):
+            yy = y0 + row*1.15
+            p = np.array([ax, yy, az]) + inward*.15
+            q = np.array([bx, yy, bz]) + inward*.15
+            if side % 2 == 0:
+                out.append(F.box((min(p[0],q[0]),yy,min(p[2],q[2])-.28),
+                                 (max(p[0],q[0]),yy+.10,max(p[2],q[2])+.28),m["wood"]))
+            else:
+                out.append(F.box((min(p[0],q[0])-.28,yy,min(p[2],q[2])),
+                                 (max(p[0],q[0])+.28,yy+.10,max(p[2],q[2])),m["wood"]))
+            # 거리별 밀도: 원거리 탑도 개별 책으로 구성하되 간격을 키운다.
+            step = .23 if abs((x0+x1)/2-OX)<30 and abs((z0+z1)/2)<30 else .43
+            count = max(1,int((length-.55)/step))
+            for j in range(count):
+                pos = .3+(j+.5)*(length-.6)/count
+                height = float(rng.uniform(.68,.98))
+                width = min(step*.82,.27)
+                book = D.upright_book(width,height,.34,
+                                      m["book"][int(rng.integers(len(m["book"])))],m["paper"])
+                # 로컬 +Z 책등을 외부 방향으로 배치.
+                angle = math.degrees(math.atan2(tangent[2],tangent[0]))
+                book = book.rotate("y",-angle)
+                loc = np.array([ax, yy+.10, az])+tangent*pos-inward*.05
+                out.append(book.translate(loc))
+        # 실제 뒤판: 외곽 모서리 사이의 얇은 벽
+        if side % 2 == 0:
+            out.append(F.box((min(ax,bx),y0,az-.12),(max(ax,bx),y1,az+.12),m["cab"]))
+        else:
+            out.append(F.box((ax-.12,y0,min(az,bz)),(ax+.12,y1,max(az,bz)),m["cab"]))
+    for x,z in ((x0,z0),(x1,z0),(x0,z1),(x1,z1)):
+        out.append(F.box((x-.2,y0,z-.2),(x+.2,y1+.2,z+.2),m["wood"]))
     if cap:
-        out.append(F.box((x0 - 0.3, y1, z0 - 0.3), (x1 + 0.3, y1 + 0.4, z1 + 0.3), m["wood"]))
+        out.append(F.box((x0-.3,y1,z0-.3),(x1+.3,y1+.4,z1+.3),m["wood"]))
     return F.concat(out)
 
 
