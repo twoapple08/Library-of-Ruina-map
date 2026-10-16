@@ -329,6 +329,7 @@ def build(b):
     view = A.ArtView(CAM, 1000, 562)
     near_art = lambda x, z: True  # 모든 열의 실루엣은 유지하고 case()에서 LOD 적용
     st = stage(m, rng, near=near_art)
+    st.extend(F.box((-HX, Y0-.8, z-.25), (HX, Y0-.35, z+.25), m['rail_top']) for z in (-HZ+2, HZ-2))
     low = lower_layers(m, rng)
     tw = towers(m, rng)
     cab, fire = cabinet(m, view, rng)
