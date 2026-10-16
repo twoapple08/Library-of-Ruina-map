@@ -1,3 +1,19 @@
+## 최신 배포 검증 완료 — 2026-10-16 (이 항목 우선)
+
+- 실행 코드 커밋: 21ba385c1a6cf22eb2f20b09e20fcfb08f14ffe7. 모드 버전 0.1.0, Minecraft 26.3, Fabric Loader 0.19.5, API 0.162.0+26.3.
+- Actions 실행 38871799908: **success**. Gradle 빌드 완료 2026-10-16 08:31:19 UTC / 17:31:19 KST.
+- world-latest의 Ruina.jar를 교체하고 실제로 다시 내려받아 검증 완료 (08:32:25 UTC / 17:32:25 KST).
+- JAR 크기 320296525바이트. SHA-256: 8197ddf3532fbb0b07c0cd47c8c1211a4a7b88e67423a1d518b057b8ebc2fcc2.
+- ruina/build.json 빌드 기록 시각: 2026-10-16T08:29:18.833670+00:00. 건축 버전 21ba385c1a6c-20261016082815, 지문 5bfd7aec223ea5fce293.
+- 릴리스 Ruina-build.json과 GitHub asset digest가 재다운로드 검증 JAR의 SHA-256과 일치함을 별도 확인.
+- 검사 49개 통과. 서버 블록 검사 3293/3293, 형체 주입 4,911,980칸 / 48,905청크, 자리 불일치 **0**. 방 바이옴 및 서버 이동 검사 포함 월드 보고서 실패 없음.
+- 월드 생성 리소스의 Actions 캐시 저장 완료. Java만 바뀌는 후속 수정은 지문이 같으면 재사용 가능.
+- 이 배포는 최신 초안과 오류 수정을 설치 가능한 JAR로 만든 것. 전체 건축 완성 판정이 아님.
+- 클라이언트 게임 검사·1050 Ti FPS는 사용자 지시대로 미실행. 모든 가구/계단 충돌, 원화 정합과 근접 마감, 기존 높이 범위 밖 형체 버림 점검 등이 남음. docs/quality/2026-10-16-room-audit.md 참고.
+- 다운로드: https://github.com/twoapple08/Library-of-Ruina-map/releases/download/world-latest/Ruina.jar
+- 증명서: https://github.com/twoapple08/Library-of-Ruina-map/releases/download/world-latest/Ruina-build.json
+- 이 기록 커밋은 문서만 수정하므로 JAR의 실행 코드 커밋은 위 21ba385가 맞음.
+
 ## 2026-10-16 빈 바이옴 청크 저장 수정
 - 38868388456 실패 로그 전체에서 반블록 557칸 외 자연과학/언어 방 바이옴 검사 실패도 확인. 앞서 요약만 보며 누락한 두 실패를 함께 수정함.
 - Dimension.chunk_keys가 블록/형체 없는 biome-only 청크를 누락했음. 방 북쪽 경계는 서버가 원래 차원 바이옴으로 생성할 수 있었음. chunk_biomes의 모든 청크를 저장 목록에 포함.
