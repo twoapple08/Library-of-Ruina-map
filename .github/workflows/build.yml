@@ -27,6 +27,7 @@ on:
     branches: [main]
     paths:
       - "builders/**"
+      - "design/models/**"
       - "tools/**"
       - "config.py"
       - "ref/**"

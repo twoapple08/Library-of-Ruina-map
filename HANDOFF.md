@@ -1,3 +1,16 @@
+## 2026-10-20 제작 도구 세팅 및 첫 외부 모델 적용 — 이 항목 우선
+
+- `docs/mod/ART-TOOLCHAIN.md`에 실제 설치·복원 명령과 변환 제한/대안을 기록.
+- 격리 Python 3.11.17 / bpy 4.5.3 LTS와 pinned Blockbench MCP 1.10.1을 실행. 실제 stdio MCP info/validate 확인. 사용자 PC GUI 연결·유료 API·게임 런타임 의존성 추가 없음.
+- `tools/model_import.py`: baked Generic/free bbmodel 메시 → 기존 Quads. 지원 안 되는 변환/UV/애니메이션/형체는 오류. 외부 텍스처 경로 자동 로딩 없음.
+- `design/models/tiphereth_table.bbmodel`: 원화의 사각 상판·X자 지지대·발판·연결재를 Blender로 제작 (9부품, 234면). 원형 받침 초안을 대체하고 앞 단 위로 낮춤.
+- 티페리트 방 큰 좌석/등받이 상자를 발·좌판·기울어진 등받이 기둥·가로살로 교체. 원화에 없는 추가 낮은 탁자·고립 선반/바닥 블록 제거.
+- 모델 소스를 월드 캐시 지문/Actions push 경로에 포함. 일반 CI는 Blender/Bun 없이 커밋된 모델을 사용.
+- 검사 53개 통과 (최종 검사 결과 아래 문서와 대조). 새 모델의 각 부품 닫힘·바깥 법선, 단위/UV/오류 처리를 확인. MCP 검사 errors/warnings 0, free 모델이라 block limits는 미실행.
+- 오프라인 전후·정면/측면/후면 비교를 previews/tiphereth_*_2026-10-20.jpg에 저장.
+- **방 전체 완성 아님**: 단 높이/충돌, 창 앞 단 모서리, 탁자·의자 충돌, 측면 벽 투영 왜곡이 남음. 게임/FPS 검증 미실행.
+- 이번 변경 JAR는 아직 빌드/배포 확인 전. 기존 검증 릴리스는 아래 21ba385이며 이번 모델 포함이라고 주장하지 말 것.
+
 ## 최신 배포 검증 완료 — 2026-10-16 (이 항목 우선)
 
 - 실행 코드 커밋: 21ba385c1a6cf22eb2f20b09e20fcfb08f14ffe7. 모드 버전 0.1.0, Minecraft 26.3, Fabric Loader 0.19.5, API 0.162.0+26.3.

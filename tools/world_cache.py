@@ -24,7 +24,7 @@ OUT = os.path.join(ROOT, "out", "release", "Ruina_generated.zip")
 URL = "https://github.com/twoapple08/Library-of-Ruina-map/releases/download/world-latest/Ruina_generated.zip"
 STAMP = "ruina/source.sha"
 
-INCLUDE_DIRS = ("builders", "ref", "resourcepack", "reference", "design/fit")
+INCLUDE_DIRS = ("builders", "ref", "resourcepack", "reference", "design/fit", "design/models")
 # tools/ 중 월드 결과에 영향이 없는 것 (미리보기·검사·CI 정리·아이콘·셰이더·이 파일)
 TOOLS_SKIP = {"ci.py", "mod_assets.py", "shaderpack.py", "render3d.py", "render_persp.py", "preview.py", "lint.py",
               "world_cache.py", "release_verify.py", "form_preview.py", "form_raster.py", "__init__.py"}

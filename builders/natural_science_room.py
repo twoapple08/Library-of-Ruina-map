@@ -7,13 +7,15 @@
 from __future__ import annotations
 
 import math
+from pathlib import Path
 
 import numpy as np
 
 from tools import form_textures as T
 from tools import forms as F
+from tools.model_import import load_bbmodel
 
-from . import kit
+from . import kit, detail
 
 Y0 = 64
 OX = 4000
@@ -96,12 +98,13 @@ def faces(m, rng):
         z1 = ZB + 4.6 - k * 1.2
         out.append(F.box((OX - 3.0, Y0, z0), (OX + 4.0, Y0 + 0.4 * (k + 1), z1), m["wood"], faces="yYxXZ"))
         out.append(F.plane((OX - 1.0, Y0 + 0.4 * (k + 1) + 0.01, z1), (3.0, 0, 0), (0, 0, -1.2), m["carpet"]))
-    tx, tz, ty = OX + 1.0, ZB + 2.0, Y0 + 1.2
-    out.append(F.revolve([(0.01, ty + 1.0), (1.3, ty + 1.0), (1.3, ty + 0.9), (0.2, ty + 0.85), (0.2, ty + 0.1),
-                          (0.7, ty)], m["wood"], segs=20, center=(tx, 0, tz), tiles_around=4, tile_up=1.0))
-    ch = (OX + 3.0, ZB + 1.9)
-    out.append(F.box((ch[0] - 0.6, ty, ch[1] - 0.6), (ch[0] + 0.6, ty + 0.55, ch[1] + 0.6), m["carpet"]))
-    out.append(F.box((ch[0] - 0.65, ty + 0.55, ch[1] - 0.6), (ch[0] - 0.45, ty + 1.8, ch[1] + 0.6), m["wood"]))
+    # The reference table is low, on the front step. The old 1-block table on
+    # the highest step sat above the arrival camera and appeared in the window.
+    tx, tz = OX + 1.4, ZB + 4.0
+    # Reference: rectangular top on crossed trestles, not a circular pedestal.
+    out.append(load_bbmodel(Path(__file__).resolve().parents[1] / "design/models/tiphereth_table.bbmodel",
+                            {0: m["wood"]}).scale(.5).translate((tx, Y0 + .4, tz)))
+    out.append(reading_chair(m).rotate("y", -90).translate((OX + 2.5, Y0 + .4, ZB + 4)))
     # A자 사다리 (오른쪽)
     ax, az = OX + 3.5, 8.0
     for dz in (-0.7, 0.7):
@@ -121,6 +124,26 @@ def faces(m, rng):
     return out
 
 
+def reading_chair(m):
+    """Reference's small wooden chair: feet, seat, tilted back and cross rails.
+
+    Local +Z is forward; seat/base align with the same front step as the table.
+    No large solid cushion floating above the arrival camera.
+    """
+    wood = m["wood"]
+    parts = [detail.beveled_box((-.31, .25, -.31), (.31, .33, .31), wood, .012)]
+    for x in (-.26, .26):
+        for z in (-.25, .25):
+            parts.append(F.box((x-.035, 0, z-.035), (x+.035, .25, z+.035), wood))
+        parts.append(F.box((x-.03, .11, -.25), (x+.03, .15, .25), wood))
+        parts.append(detail.beveled_box((-.035, 0, -.035), (.035, math.hypot(.6, .12), .035), wood, .005)
+                     .rotate("x", -math.degrees(math.atan(.2))).translate((x, .30, -.27)))
+    for y in (.47, .63, .81):
+        z = -.27 - (y-.30)*.2
+        parts.append(F.box((-.26, y, z-.025), (.26, y+.055, z+.025), wood))
+    return F.concat(parts)
+
+
 def build(b, d):
     lay = b.form("natural_science")
     rng = np.random.default_rng(1531)
@@ -129,12 +152,8 @@ def build(b, d):
     # 아치 창 좌우 기둥의 금빛 테두리.
     for x in WIN:
         fs.append(F.box((x-.1,Y0+2,ZB+.05),(x+.1,Y0+H-2,ZB+.35),m['wood']))
-    # 독서용 낮은 탁자의 모서리·발 받침.
-    fs.extend([F.box((OX-1,Y0+.4,8),(OX+1,Y0+.55,9.6),m['wood']),F.box((OX-.8,Y0,8.2),(OX-.55,Y0+.4,8.45),m['wood']),F.box((OX+.55,Y0,9.15),(OX+.8,Y0+.4,9.4),m['wood'])])
-    for x in (OX-5,OX-3,OX+6):
-        fs.append(F.box((x,Y0+4,ZB+.15),(x+.8,Y0+4.15,ZB+.95),m['wood']))
-    for j in range(6):
-        fs.append(F.box((OX-7+j*2.5, Y0+.05, ZB+2), (OX-6.4+j*2.5, Y0+.3, ZB+2.5), m['wood']))
+    # Remove the later freestanding low table and isolated shelf/floor blocks:
+    # they are absent from ART and obstruct the carpet/window composition.
     lights = [(((WIN[0] + WIN[1]) / 2, Y0 + 8, ZB - 1), (1.4, 1.2, 0.85), 18.0)]
     kit.project_add(lay, CAM, m["art"], near=fs, lights=lights, ambient=(0.6, 0.48, 0.32),
                     glow_mats=[m["window"], m["gem"]], min_facing=0.1)
