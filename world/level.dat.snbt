@@ -1,0 +1,36 @@
+{
+  Data: {
+    difficulty_settings: {
+      difficulty: "peaceful",
+      hardcore: 0b,
+      locked: 0b
+    },
+    Time: 1818L,
+    version_history: [5023],
+    GameType: 1,
+    ServerBrands: ["vanilla"],
+    version: 19133,
+    LastPlayed: 1792498517325L,
+    spawn: {
+      pos: [I; 0, 0, 130],
+      pitch: 0.0f,
+      dimension: "ruina:exterior",
+      yaw: -180.0f
+    },
+    Version: {
+      Snapshot: 0b,
+      Series: "main",
+      Id: 5023,
+      Name: "26.3"
+    },
+    LevelName: "Library of Ruina",
+    initialized: 1b,
+    WasModded: 0b,
+    DataVersion: 5023,
+    allowCommands: 1b,
+    DataPacks: {
+      Enabled: ["vanilla", "file/ruina"],
+      Disabled: ["minecart_improvements", "redstone_experiments", "trade_rebalance"]
+    }
+  }
+}

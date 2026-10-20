@@ -1,0 +1,450 @@
+{
+  DataVersion: 5023,
+  xPos: -51,
+  zPos: -2,
+  yPos: -4,
+  Status: "minecraft:full",
+  LastUpdate: 0L,
+  InhabitedTime: 0L,
+  isLightOn: 0b,
+  sections: [
+    {
+      Y: -4b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: -3b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: -2b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: -1b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 0b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 1b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 2b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 3b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 4b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 5b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 6b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 7b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 8b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 9b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 10b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 11b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 12b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 13b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 14b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 15b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 16b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 17b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 18b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 19b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 20b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 21b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 22b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 23b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 24b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 25b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 26b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 27b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 28b,
+      block_states: {
+        palette: [
+          {
+            : "minecraft:air"
+          },
+          {
+            id: "ruina:form",
+            properties: {
+              glow: "0",
+              half: "false",
+              light: "0",
+              solid: "false"
+            }
+          }
+        ],
+        data: [L; 0, 0, 0, 0, 0, 0, ... (256 total)]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 29b,
+      block_states: {
+        palette: [
+          {
+            : "minecraft:air"
+          },
+          {
+            id: "ruina:form",
+            properties: {
+              glow: "0",
+              half: "false",
+              light: "0",
+              solid: "false"
+            }
+          }
+        ],
+        data: [L; 0, 0, 0, 0, 0, 0, ... (256 total)]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 30b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 31b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 32b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 33b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 34b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    },
+    {
+      Y: 35b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:literature"]
+      }
+    }
+  ],
+  block_entities: [],
+  Heightmaps: {},
+  fluid_ticks: [],
+  block_ticks: [],
+  PostProcessing: [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+  ],
+  structures: {
+    References: {},
+    starts: {}
+  }
+}

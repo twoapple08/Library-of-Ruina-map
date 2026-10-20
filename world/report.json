@@ -1,0 +1,654 @@
+{
+  "ok": true,
+  "lines": [
+    "ℹ️ 마인크래프트 26.3 / Java 25",
+    "ℹ️ 검사: ruina:exterior: 블록 4,518,282개, 숨은 블록 0개 (0.0%)",
+    "ℹ️ 검사: ruina:lobby: 블록 172,776개, 숨은 블록 0개 (0.0%)",
+    "ℹ️ 검사: ruina:history: 블록 262,590개, 숨은 블록 0개 (0.0%)",
+    "ℹ️ 검사: ruina:technology: 블록 42,806개, 숨은 블록 0개 (0.0%)",
+    "ℹ️ 검사: ruina:literature: 블록 11,630개, 숨은 블록 0개 (0.0%)",
+    "ℹ️ 검사: ruina:art: 블록 9,494개, 숨은 블록 0개 (0.0%)",
+    "ℹ️ 검사: ruina:natural_science: 블록 25,303개, 숨은 블록 0개 (0.0%)",
+    "ℹ️ 검사: ruina:language: 블록 11,113개, 숨은 블록 0개 (0.0%)",
+    "ℹ️ 검사: ruina:social_science: 블록 8,468개, 숨은 블록 0개 (0.0%)",
+    "ℹ️ 검사: ruina:philosophy: 블록 24,617개, 숨은 블록 0개 (0.0%)",
+    "ℹ️ 검사: ruina:religion: 블록 18,681개, 숨은 블록 0개 (0.0%)",
+    "ℹ️ 검사: ruina:general: 블록 24,371개, 숨은 블록 0개 (0.0%)",
+    "ℹ️ 검사: 엔티티(TP 상호작용) 2개, 블록 엔티티 0개",
+    "ℹ️ 빌더 449.1초: exterior 7280청크, lobby 140청크, history 1652청크, technology 3360청크, literature 1830청크, art 5926청크, natural_science 158청크, language 5940청크, social_science 3172청크, philosophy 7780청크, religion 4132청크, general 7900청크",
+    "✅ 데이터팩 켜짐",
+    "✅ 차원 ruina:exterior 존재",
+    "✅ 차원 ruina:lobby 존재",
+    "✅ 차원 ruina:history 존재",
+    "✅ 차원 ruina:technology 존재",
+    "✅ 차원 ruina:literature 존재",
+    "✅ 차원 ruina:art 존재",
+    "✅ 차원 ruina:natural_science 존재",
+    "✅ 차원 ruina:language 존재",
+    "✅ 차원 ruina:social_science 존재",
+    "✅ 차원 ruina:philosophy 존재",
+    "✅ 차원 ruina:religion 존재",
+    "✅ 차원 ruina:general 존재",
+    "✅ 1차 실행 로그 경고/오류 0줄",
+    "ℹ️ DataVersion 5023",
+    "ℹ️ 청크 49270개 쓰기 5.5초",
+    "✅ 블록 검증 3293/3293 (팔레트 형식 26.3)",
+    "✅ 로비 방전환 전경→방: execute in ruina:lobby positioned 512.5 68.0 14.0 if entity @e[type=minecraft:marker,tag=ruina.tsilver,distance=..0.5]",
+    "✅ 로비 방전환 방→전경: execute in ruina:lobby positioned 0.5 66 -8.0 if entity @e[type=minecraft:marker,tag=ruina.tsilver,distance=..0.5]",
+    "✅ 홀 바이옴 ruina:lobby_hall: execute in ruina:lobby if biome 512 64 0 ruina:lobby_hall",
+    "✅ 방 바이옴 ruina:lobby: execute in ruina:lobby if biome 0 64 0 ruina:lobby",
+    "✅ 역사의 층 방전환 전경→방: execute in ruina:history positioned 4000.5 65 8.0 if entity @e[type=minecraft:marker,tag=ruina.tgold,distance=..0.5]",
+    "✅ 역사의 층 방전환 방→전경: execute in ruina:history positioned 0.5 77 100.0 if entity @e[type=minecraft:marker,tag=ruina.tgold,distance=..0.5]",
+    "✅ 말쿠트 방 바이옴: execute in ruina:history if biome 4000 64 0 ruina:history_room",
+    "✅ 기술과학의 층 방전환 전경→방: execute in ruina:technology positioned 4000.5 67 8.9 if entity @e[type=minecraft:marker,tag=ruina.tiron,distance=..0.5]",
+    "✅ 기술과학의 층 방전환 방→전경: execute in ruina:technology positioned 0.5 256 22.7 if entity @e[type=minecraft:marker,tag=ruina.tiron,distance=..0.5]",
+    "✅ 예소드 방 바이옴: execute in ruina:technology if biome 4000 64 0 ruina:technology_room",
+    "✅ 문학의 층 방전환 전경→방: execute in ruina:literature positioned 4000.5 64 12.0 if entity @e[type=minecraft:marker,tag=ruina.tgoldbar,distance=..0.5]",
+    "✅ 문학의 층 방전환 방→전경: execute in ruina:literature positioned 0.5 155 19.5 if entity @e[type=minecraft:marker,tag=ruina.tgoldbar,distance=..0.5]",
+    "✅ 호드 방 바이옴: execute in ruina:literature if biome 4000 64 0 ruina:literature_room",
+    "✅ 예술의 층 방전환 전경→방: execute in ruina:art positioned 4000.5 66 8.0 if entity @e[type=minecraft:marker,tag=ruina.tiplate,distance=..0.5]",
+    "✅ 예술의 층 방전환 방→전경: execute in ruina:art positioned 0.5 112 16.760254037844387 if entity @e[type=minecraft:marker,tag=ruina.tiplate,distance=..0.5]",
+    "✅ 네짜흐 방 바이옴: execute in ruina:art if biome 4000 64 0 ruina:art_room",
+    "✅ 자연과학의 층 방전환 전경→방: execute in ruina:natural_science positioned 4000.5 64 12.0 if entity @e[type=minecraft:marker,tag=ruina.tgplate,distance=..0.5]",
+    "✅ 자연과학의 층 방전환 방→전경: execute in ruina:natural_science positioned 0.5 102 23.4 if entity @e[type=minecraft:marker,tag=ruina.tgplate,distance=..0.5]",
+    "✅ 티페리트 방 바이옴: execute in ruina:natural_science if biome 4000 64 0 ruina:natural_science_room",
+    "✅ 언어의 층 방전환 전경→방: execute in ruina:language positioned 4000.5 64 10.0 if entity @e[type=minecraft:marker,tag=ruina.tiblock,distance=..0.5]",
+    "✅ 언어의 층 방전환 방→전경: execute in ruina:language positioned 0.5 124 20.7 if entity @e[type=minecraft:marker,tag=ruina.tiblock,distance=..0.5]",
+    "✅ 게부라 방 바이옴: execute in ruina:language if biome 4000 64 0 ruina:language_room",
+    "✅ 사회과학의 층 방전환 전경→방: execute in ruina:social_science positioned 4000.5 65 11.0 if entity @e[type=minecraft:marker,tag=ruina.tgblock,distance=..0.5]",
+    "✅ 사회과학의 층 방전환 방→전경: execute in ruina:social_science positioned 0.5 104 21.45 if entity @e[type=minecraft:marker,tag=ruina.tgblock,distance=..0.5]",
+    "✅ 헤세드 방 바이옴: execute in ruina:social_science if biome 4000 64 0 ruina:social_science_room",
+    "✅ 철학의 층 방전환 전경→방: execute in ruina:philosophy positioned 4000.5 65 16.0 if entity @e[type=minecraft:marker,tag=ruina.tanvil,distance=..0.5]",
+    "✅ 철학의 층 방전환 방→전경: execute in ruina:philosophy positioned 0.5 302 30.2 if entity @e[type=minecraft:marker,tag=ruina.tanvil,distance=..0.5]",
+    "✅ 비나 방 바이옴: execute in ruina:philosophy if biome 4000 64 0 ruina:philosophy_room",
+    "✅ 종교의 층 방전환 전경→방: execute in ruina:religion positioned 4000.5 64 14.0 if entity @e[type=minecraft:marker,tag=ruina.tapple,distance=..0.5]",
+    "✅ 종교의 층 방전환 방→전경: execute in ruina:religion positioned 0.5 153 23.1 if entity @e[type=minecraft:marker,tag=ruina.tapple,distance=..0.5]",
+    "✅ 호크마 방 바이옴: execute in ruina:religion if biome 4000 64 0 ruina:religion_room",
+    "✅ 총류의 층 방전환 전경→방: execute in ruina:general positioned 4000.5 64 29.5 if entity @e[type=minecraft:marker,tag=ruina.teapple,distance=..0.5]",
+    "✅ 총류의 층 방전환 방→전경: execute in ruina:general positioned 0.5 122 24.34 if entity @e[type=minecraft:marker,tag=ruina.teapple,distance=..0.5]",
+    "✅ 롤랑 방 바이옴: execute in ruina:general if biome 4000 64 0 ruina:general_room",
+    "✅ TP 엔티티 ruina:exterior (0.5, 2, 59.0) → lobby_entrance",
+    "✅ TP 엔티티 ruina:lobby (0.5, 66, 24.5) → exterior_gate",
+    "✅ TP 함수 ruina:tp/to/exterior_spawn → ruina:exterior (0.1, 0.0, 130.0)",
+    "✅ TP 함수 ruina:tp/to/exterior_gate → ruina:exterior (0.5, 0, 66.5)",
+    "✅ TP 함수 ruina:tp/to/lobby_entrance → ruina:lobby (0.5, 66, -8.0)",
+    "✅ TP 함수 ruina:tp/to/lobby_hall → ruina:lobby (512.5, 68.0, 14.0)",
+    "✅ TP 함수 ruina:tp/to/history_entrance → ruina:history (0.5, 77, 100.0)",
+    "✅ TP 함수 ruina:tp/to/history_room → ruina:history (4000.5, 65, 8.0)",
+    "✅ TP 함수 ruina:tp/to/technology_entrance → ruina:technology (0.5, 256, 22.7)",
+    "✅ TP 함수 ruina:tp/to/technology_room → ruina:technology (4000.5, 67, 8.9)",
+    "✅ TP 함수 ruina:tp/to/literature_entrance → ruina:literature (0.5, 155, 19.5)",
+    "✅ TP 함수 ruina:tp/to/literature_room → ruina:literature (4000.5, 64, 12.0)",
+    "✅ TP 함수 ruina:tp/to/art_entrance → ruina:art (0.5, 112, 16.760254037844387)",
+    "✅ TP 함수 ruina:tp/to/art_room → ruina:art (4000.5, 66, 8.0)",
+    "✅ TP 함수 ruina:tp/to/natural_science_entrance → ruina:natural_science (0.5, 102, 23.4)",
+    "✅ TP 함수 ruina:tp/to/natural_science_room → ruina:natural_science (4000.5, 64, 12.0)",
+    "✅ TP 함수 ruina:tp/to/language_entrance → ruina:language (0.5, 124, 20.7)",
+    "✅ TP 함수 ruina:tp/to/language_room → ruina:language (4000.5, 64, 10.0)",
+    "✅ TP 함수 ruina:tp/to/social_science_entrance → ruina:social_science (0.5, 104, 21.45)",
+    "✅ TP 함수 ruina:tp/to/social_science_room → ruina:social_science (4000.5, 65, 11.0)",
+    "✅ TP 함수 ruina:tp/to/philosophy_entrance → ruina:philosophy (0.5, 302, 30.2)",
+    "✅ TP 함수 ruina:tp/to/philosophy_room → ruina:philosophy (4000.5, 65, 16.0)",
+    "✅ TP 함수 ruina:tp/to/religion_entrance → ruina:religion (0.5, 153, 23.1)",
+    "✅ TP 함수 ruina:tp/to/religion_room → ruina:religion (4000.5, 64, 14.0)",
+    "✅ TP 함수 ruina:tp/to/general_entrance → ruina:general (0.5, 122, 24.34)",
+    "✅ TP 함수 ruina:tp/to/general_room → ruina:general (4000.5, 64, 29.5)",
+    "✅ 걷기 TP ruina:exterior (-1, 1, 58, 2, 4, 60) → lobby_entrance",
+    "✅ 걷기 TP ruina:lobby (-1, 66, 24, 1, 68, 24) → exterior_gate",
+    "✅ 암전 TP ruina:exterior (-1, 1, 58, 2, 4, 60) → lobby_entrance (도착 + 로딩 확인 후 해제)",
+    "✅ 암전 TP ruina:lobby (-1, 66, 24, 1, 68, 24) → exterior_gate (도착 + 로딩 확인 후 해제)",
+    "✅ 조각 F 층 이동 lobby_hall → history_entrance (도착 + 로딩 확인 후 해제)",
+    "✅ 조각 F 층 이동 lobby_hall → technology_entrance (도착 + 로딩 확인 후 해제)",
+    "✅ 조각 F 층 이동 lobby_hall → literature_entrance (도착 + 로딩 확인 후 해제)",
+    "✅ 조각 F 층 이동 lobby_hall → art_entrance (도착 + 로딩 확인 후 해제)",
+    "✅ 조각 F 층 이동 lobby_hall → natural_science_entrance (도착 + 로딩 확인 후 해제)",
+    "✅ 조각 F 층 이동 lobby_hall → language_entrance (도착 + 로딩 확인 후 해제)",
+    "✅ 조각 F 층 이동 lobby_hall → social_science_entrance (도착 + 로딩 확인 후 해제)",
+    "✅ 조각 F 층 이동 lobby_hall → philosophy_entrance (도착 + 로딩 확인 후 해제)",
+    "✅ 조각 F 층 이동 lobby_hall → religion_entrance (도착 + 로딩 확인 후 해제)",
+    "✅ 조각 F 층 이동 lobby_hall → general_entrance (도착 + 로딩 확인 후 해제)",
+    "✅ 시계 고정 (2/2 명령 성공)",
+    "✅ 차원별 시각 = 자정 138000 (어긋남: [])",
+    "✅ 2차 실행 로그 경고/오류 0줄",
+    "ℹ️ 자유 형체: exterior {'면': 2871391, '칸': 916900, '옮김': 0, '버림': 0, '움직임': 0, '파티클': 3}, lobby {'면': 4740017, '칸': 156627, '옮김': 0, '버림': 0, '움직임': 0, '파티클': 1}, history {'면': 771991, '칸': 461302, '옮김': 0, '버림': 4816, '움직임': 0, '파티클': 1}, technology {'면': 690563, '칸': 365836, '옮김': 0, '버림': 0, '움직임': 9, '파티클': 0}, literature {'면': 456759, '칸': 277596, '옮김': 0, '버림': 0, '움직임': 35, '파티클': 1}, art {'면': 630758, '칸': 502599, '옮김': 0, '버림': 3922, '움직임': 12, '파티클': 2}, natural_science {'면': 124810, '칸': 42603, '옮김': 0, '버림': 0, '움직임': 20, '파티클': 1}, language {'면': 394824, '칸': 301520, '옮김': 0, '버림': 0, '움직임': 1, '파티클': 1}, social_science {'면': 258485, '칸': 203244, '옮김': 0, '버림': 0, '움직임': 49, '파티클': 1}, philosophy {'면': 367899, '칸': 268943, '옮김': 0, '버림': 0, '움직임': 11, '파티클': 2}, religion {'면': 390784, '칸': 235835, '옮김': 0, '버림': 0, '움직임': 35, '파티클': 1}, general {'면': 1659156, '칸': 1178785, '옮김': 0, '버림': 108, '움직임': 0, '파티클': 2}",
+    "✅ 형체 블록 넣기 4911962칸 / 청크 48905개 (자리 아님 0)",
+    "✅ 조명 계산 0/0 (광원 옆 칸의 블록 빛 > 0)",
+    "ℹ️ 스폰: {'pos': array([  0,   0, 130], dtype=int32), 'pitch': 0.0, 'dimension': 'ruina:exterior', 'yaw': -180.0}",
+    "ℹ️ resources.zip 1.6 MB",
+    "ℹ️ zip 32.2 MB, 파일 398개",
+    "ℹ️ 모드 리소스: 건축물 193파일 335.6 MB, 빌드 ad380698f455-20261020122038"
+  ],
+  "server1_problems": [],
+  "entities_cmd": [
+    "System chat: Running function ruina:build/entities"
+  ],
+  "fade_diag": {
+    "lobby_entrance": {
+      "forceload": [
+        "System chat: Marked 46 chunks in ruina:lobby from [-3, -4] to [3, 2] to be force loaded"
+      ],
+      "corners_loaded": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "ticks": [
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ]
+      ],
+      "arrived": true,
+      "fading": false,
+      "score": [
+        "System chat: Marker has 1 score(s):",
+        "System chat: [ruina.fade]: 2"
+      ],
+      "loaded": true
+    },
+    "exterior_gate": {
+      "forceload": [
+        "System chat: Marked 46 chunks in ruina:exterior from [-3, 1] to [3, 7] to be force loaded"
+      ],
+      "corners_loaded": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "ticks": [
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ]
+      ],
+      "arrived": true,
+      "fading": false,
+      "score": [
+        "System chat: Marker has 1 score(s):",
+        "System chat: [ruina.fade]: 2"
+      ],
+      "loaded": true
+    },
+    "history_entrance": {
+      "forceload": [
+        "System chat: Marked 48 chunks in ruina:history from [-3, 3] to [3, 9] to be force loaded"
+      ],
+      "corners_loaded": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "ticks": [
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ]
+      ],
+      "arrived": true,
+      "fading": false,
+      "score": [
+        "System chat: Marker has 1 score(s):",
+        "System chat: [ruina.fade]: 2"
+      ],
+      "loaded": true
+    },
+    "technology_entrance": {
+      "forceload": [
+        "System chat: Marked 47 chunks in ruina:technology from [-3, -2] to [3, 4] to be force loaded"
+      ],
+      "corners_loaded": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "ticks": [
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ]
+      ],
+      "arrived": true,
+      "fading": false,
+      "score": [
+        "System chat: Marker has 1 score(s):",
+        "System chat: [ruina.fade]: 2"
+      ],
+      "loaded": true
+    },
+    "literature_entrance": {
+      "forceload": [
+        "System chat: Marked 48 chunks in ruina:literature from [-3, -2] to [3, 4] to be force loaded"
+      ],
+      "corners_loaded": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "ticks": [
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ]
+      ],
+      "arrived": true,
+      "fading": false,
+      "score": [
+        "System chat: Marker has 1 score(s):",
+        "System chat: [ruina.fade]: 2"
+      ],
+      "loaded": true
+    },
+    "art_entrance": {
+      "forceload": [
+        "System chat: Marked 47 chunks in ruina:art from [-3, -2] to [3, 4] to be force loaded"
+      ],
+      "corners_loaded": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "ticks": [
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ]
+      ],
+      "arrived": true,
+      "fading": false,
+      "score": [
+        "System chat: Marker has 1 score(s):",
+        "System chat: [ruina.fade]: 2"
+      ],
+      "loaded": true
+    },
+    "natural_science_entrance": {
+      "forceload": [
+        "System chat: Marked 46 chunks in ruina:natural_science from [-3, -2] to [3, 4] to be force loaded"
+      ],
+      "corners_loaded": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "ticks": [
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ]
+      ],
+      "arrived": true,
+      "fading": false,
+      "score": [
+        "System chat: Marker has 1 score(s):",
+        "System chat: [ruina.fade]: 2"
+      ],
+      "loaded": true
+    },
+    "language_entrance": {
+      "forceload": [
+        "System chat: Marked 48 chunks in ruina:language from [-3, -2] to [3, 4] to be force loaded"
+      ],
+      "corners_loaded": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "ticks": [
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ]
+      ],
+      "arrived": true,
+      "fading": false,
+      "score": [
+        "System chat: Marker has 1 score(s):",
+        "System chat: [ruina.fade]: 2"
+      ],
+      "loaded": true
+    },
+    "social_science_entrance": {
+      "forceload": [
+        "System chat: Marked 48 chunks in ruina:social_science from [-3, -2] to [3, 4] to be force loaded"
+      ],
+      "corners_loaded": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "ticks": [
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ]
+      ],
+      "arrived": true,
+      "fading": false,
+      "score": [
+        "System chat: Marker has 1 score(s):",
+        "System chat: [ruina.fade]: 2"
+      ],
+      "loaded": true
+    },
+    "philosophy_entrance": {
+      "forceload": [
+        "System chat: Marked 48 chunks in ruina:philosophy from [-3, -2] to [3, 4] to be force loaded"
+      ],
+      "corners_loaded": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "ticks": [
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ]
+      ],
+      "arrived": true,
+      "fading": false,
+      "score": [
+        "System chat: Marker has 1 score(s):",
+        "System chat: [ruina.fade]: 2"
+      ],
+      "loaded": true
+    },
+    "religion_entrance": {
+      "forceload": [
+        "System chat: Marked 48 chunks in ruina:religion from [-3, -2] to [3, 4] to be force loaded"
+      ],
+      "corners_loaded": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "ticks": [
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ]
+      ],
+      "arrived": true,
+      "fading": false,
+      "score": [
+        "System chat: Marker has 1 score(s):",
+        "System chat: [ruina.fade]: 2"
+      ],
+      "loaded": true
+    },
+    "general_entrance": {
+      "forceload": [
+        "System chat: Marked 48 chunks in ruina:general from [-3, -2] to [3, 4] to be force loaded"
+      ],
+      "corners_loaded": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "ticks": [
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ],
+        [
+          "System chat: Running function ruina:tp/fade_tick"
+        ]
+      ],
+      "arrived": true,
+      "fading": false,
+      "score": [
+        "System chat: Marker has 1 score(s):",
+        "System chat: [ruina.fade]: 2"
+      ],
+      "loaded": true
+    }
+  },
+  "help_time": [
+    "System chat: /time set (<time>|<timemarker>)",
+    "System chat: /time add <time>",
+    "System chat: /time pause",
+    "System chat: /time resume",
+    "System chat: /time rate <rate>",
+    "System chat: /time query (time|<timeline>|gametime)",
+    "System chat: /time of <clock> (set|add|pause|resume|rate|query)"
+  ],
+  "time_cmds": {
+    "time of ruina:library set 138000": [
+      "System chat: Clock ruina:library is already set to 138000 tick(s)"
+    ],
+    "time of ruina:library pause": [
+      "System chat: Clock ruina:library is already paused"
+    ]
+  },
+  "time_query": {
+    "ruina:exterior": [
+      "System chat: Clock ruina:library is at 138000 tick(s)"
+    ],
+    "ruina:lobby": [
+      "System chat: Clock ruina:library is at 138000 tick(s)"
+    ],
+    "ruina:history": [
+      "System chat: Clock ruina:library is at 138000 tick(s)"
+    ],
+    "ruina:technology": [
+      "System chat: Clock ruina:library is at 138000 tick(s)"
+    ],
+    "ruina:literature": [
+      "System chat: Clock ruina:library is at 138000 tick(s)"
+    ],
+    "ruina:art": [
+      "System chat: Clock ruina:library is at 138000 tick(s)"
+    ],
+    "ruina:natural_science": [
+      "System chat: Clock ruina:library is at 138000 tick(s)"
+    ],
+    "ruina:language": [
+      "System chat: Clock ruina:library is at 138000 tick(s)"
+    ],
+    "ruina:social_science": [
+      "System chat: Clock ruina:library is at 138000 tick(s)"
+    ],
+    "ruina:philosophy": [
+      "System chat: Clock ruina:library is at 138000 tick(s)"
+    ],
+    "ruina:religion": [
+      "System chat: Clock ruina:library is at 138000 tick(s)"
+    ],
+    "ruina:general": [
+      "System chat: Clock ruina:library is at 138000 tick(s)"
+    ],
+    "clock": [
+      "System chat: Clock ruina:library is at 138000 tick(s)"
+    ]
+  },
+  "setup_cmd": [
+    "System chat: Running function ruina:setup"
+  ],
+  "block_fails": [],
+  "server2_problems": [],
+  "form_injection": {
+    "칸": 4911962,
+    "청크": 48905,
+    "자리 아님": 0,
+    "비정상 상태": {},
+    "예시": []
+  },
+  "lights": []
+}

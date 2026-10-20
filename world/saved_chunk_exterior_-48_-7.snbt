@@ -1,0 +1,730 @@
+{
+  DataVersion: 5023,
+  xPos: -48,
+  zPos: -7,
+  yPos: -4,
+  Status: "minecraft:full",
+  LastUpdate: 0L,
+  InhabitedTime: 0L,
+  isLightOn: 0b,
+  sections: [
+    {
+      Y: -4b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: -3b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: -2b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: -1b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 0b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 1b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 2b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 3b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 4b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 5b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 6b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 7b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 8b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 9b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 10b,
+      block_states: {
+        palette: [
+          {
+            : "minecraft:air"
+          },
+          {
+            id: "ruina:form",
+            properties: {
+              glow: "0",
+              half: "false",
+              light: "0",
+              solid: "false"
+            }
+          }
+        ],
+        data: [L; 0, 0, 0, 0, 0, 0, ... (256 total)]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 11b,
+      block_states: {
+        palette: [
+          {
+            : "minecraft:air"
+          },
+          {
+            id: "ruina:form",
+            properties: {
+              glow: "0",
+              half: "false",
+              light: "0",
+              solid: "false"
+            }
+          }
+        ],
+        data: [L; 0, 0, 0, 0, 0, 0, ... (256 total)]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 12b,
+      block_states: {
+        palette: [
+          {
+            : "minecraft:air"
+          },
+          {
+            id: "ruina:form",
+            properties: {
+              glow: "0",
+              half: "false",
+              light: "0",
+              solid: "false"
+            }
+          }
+        ],
+        data: [L; 0, 0, 0, 0, 0, 0, ... (256 total)]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 13b,
+      block_states: {
+        palette: [
+          {
+            : "minecraft:air"
+          },
+          {
+            : "minecraft:barrier"
+          },
+          {
+            id: "ruina:form",
+            properties: {
+              glow: "0",
+              half: "false",
+              light: "0",
+              solid: "false"
+            }
+          },
+          {
+            id: "ruina:form",
+            properties: {
+              glow: "0",
+              half: "false",
+              light: "0",
+              solid: "true"
+            }
+          }
+        ],
+        data: [L; 0, 0, 0, 0, 0, 0, ... (256 total)]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 14b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 15b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 16b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 17b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 18b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 19b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 20b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 21b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 22b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 23b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 24b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 25b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 26b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 27b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 28b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 29b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 30b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 31b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 32b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 33b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 34b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 35b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 36b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 37b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 38b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 39b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 40b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 41b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 42b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 43b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 44b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 45b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 46b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 47b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 48b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 49b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 50b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 51b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 52b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 53b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 54b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 55b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 56b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 57b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 58b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    },
+    {
+      Y: 59b,
+      block_states: {
+        palette: ["minecraft:air"]
+      },
+      biomes: {
+        palette: ["ruina:exterior"]
+      }
+    }
+  ],
+  block_entities: [],
+  Heightmaps: {},
+  fluid_ticks: [],
+  block_ticks: [],
+  PostProcessing: [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+  ],
+  structures: {
+    References: {},
+    starts: {}
+  }
+}
